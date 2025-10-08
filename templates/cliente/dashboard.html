@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Cuenta - Bullburger{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>¡Bienvenido a Bullburger!</h1>
+    <p>Hola, {{ user.nombre }}</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div class="card" style="text-align: center;">
+            <h3>Hacer Pedido</h3>
+            <p>Realiza un nuevo pedido</p>
+            <button class="btn btn-primary">Ordenar Ahora</button>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h3>Mis Pedidos</h3>
+            <p>Revisa tu historial de pedidos</p>
+            <button class="btn btn-primary">Ver Pedidos</button>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h3>Mi Perfil</h3>
+            <p>Actualiza tu información</p>
+            <button class="btn btn-primary">Editar Perfil</button>
+        </div>
+    </div>
+</div>
+{% endblock %}

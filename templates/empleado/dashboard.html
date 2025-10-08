@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Empleado - Bullburger{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Panel de Empleado</h1>
+    <p>Bienvenido, {{ user.nombre }}</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <div class="card" style="text-align: center;">
+            <h3>Tomar Pedidos</h3>
+            <p>Registrar nuevos pedidos</p>
+            <button class="btn btn-primary">Nuevo Pedido</button>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h3>Pedidos Pendientes</h3>
+            <p>Gestionar pedidos en curso</p>
+            <button class="btn btn-primary">Ver Pedidos</button>
+        </div>
+        
+        <div class="card" style="text-align: center;">
+            <h3>Inventario</h3>
+            <p>Revisar stock disponible</p>
+            <button class="btn btn-primary">Ver Inventario</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
