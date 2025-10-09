@@ -73,3 +73,7 @@ def empleado_dashboard(request):
 @login_required
 def cliente_dashboard(request):
     return render(request, 'cliente/dashboard.html')
+
+
+def administrador_menu(request):
+    return render (request,'administrador/menu.html')
