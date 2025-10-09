@@ -77,3 +77,7 @@ def cliente_dashboard(request):
 
 def administrador_menu(request):
     return render (request,'administrador/menu.html')
+
+#diego
+
+print("Diego")
