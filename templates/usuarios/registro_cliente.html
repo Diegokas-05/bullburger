@@ -15,99 +15,105 @@
 
     <!-- Lado derecho con el formulario -->
     <div class="auth-form">
-        <h1 class="logo">Bull<span>Burger</span></h1>
-        <p class="subtitle">Crea tu cuenta y comienza tu experiencia gourmet</p>
+        <!-- Encabezado fijo -->
+        <div class="auth-header">
+            <h1 class="logo">Bull<span>Burger</span></h1>
+            <p class="subtitle">Crea tu cuenta y comienza tu experiencia gourmet</p>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <div class="tab active">Regístrate</div>
-            <a href="{% url 'login' %}" class="tab">Iniciar sesión</a>
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active">Regístrate</div>
+                <a href="{% url 'login' %}" class="tab">Iniciar sesión</a>
+            </div>
         </div>
 
-        <form method="post" class="form-content">
-            {% csrf_token %}
-            
-            <!-- Campo Nombre -->
-            <div class="form-group">
-                <input type="text" name="nombre" placeholder="Tu nombre completo" 
-                       value="{{ form.nombre.value|default:'' }}"
-                       class="{% if form.nombre.errors %}error-field{% endif %}">
-                {% if form.nombre.errors %}
-                <div class="error-alert">
-                    {{ form.nombre.errors.0 }}
+        <!-- Formulario con scroll -->
+        <div class="form-scroll-container">
+            <form method="post" class="form-content">
+                {% csrf_token %}
+                
+                <!-- Campo Nombre -->
+                <div class="form-group">
+                    <input type="text" name="nombre" placeholder="Tu nombre completo" 
+                           value="{{ form.nombre.value|default:'' }}"
+                           class="{% if form.nombre.errors %}error-field{% endif %}">
+                    {% if form.nombre.errors %}
+                    <div class="error-alert">
+                        {{ form.nombre.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo Email -->
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="Tu correo electrónico" 
+                           value="{{ form.email.value|default:'' }}"
+                           class="{% if form.email.errors %}error-field{% endif %}">
+                    {% if form.email.errors %}
+                    <div class="error-alert">
+                        {{ form.email.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo Teléfono -->
+                <div class="form-group">
+                    <input type="text" name="telefono" placeholder="Tu teléfono (opcional)" 
+                           value="{{ form.telefono.value|default:'' }}"
+                           class="{% if form.telefono.errors %}error-field{% endif %}">
+                    {% if form.telefono.errors %}
+                    <div class="error-alert">
+                        {{ form.telefono.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo Dirección -->
+                <div class="form-group">
+                    <textarea name="direccion" placeholder="Tu dirección (opcional)" 
+                              rows="2"
+                              class="{% if form.direccion.errors %}error-field{% endif %}">{{ form.direccion.value|default:'' }}</textarea>
+                    {% if form.direccion.errors %}
+                    <div class="error-alert">
+                        {{ form.direccion.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div class="form-group">
+                    <input type="password" name="password1" placeholder="Crea una contraseña" 
+                           class="{% if form.password1.errors %}error-field{% endif %}">
+                    {% if form.password1.errors %}
+                    <div class="error-alert">
+                        {{ form.password1.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo Confirmar Contraseña -->
+                <div class="form-group">
+                    <input type="password" name="password2" placeholder="Confirma tu contraseña" 
+                           class="{% if form.password2.errors %}error-field{% endif %}">
+                    {% if form.password2.errors %}
+                    <div class="error-alert">
+                        {{ form.password2.errors.0 }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Errores generales del formulario -->
+                {% if form.non_field_errors %}
+                <div class="error-alert general-error">
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
                 </div>
                 {% endif %}
-            </div>
 
-            <!-- Campo Email -->
-            <div class="form-group">
-                <input type="email" name="email" placeholder="Tu correo electrónico" 
-                       value="{{ form.email.value|default:'' }}"
-                       class="{% if form.email.errors %}error-field{% endif %}">
-                {% if form.email.errors %}
-                <div class="error-alert">
-                    {{ form.email.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Campo Teléfono -->
-            <div class="form-group">
-                <input type="text" name="telefono" placeholder="Tu teléfono (opcional)" 
-                       value="{{ form.telefono.value|default:'' }}"
-                       class="{% if form.telefono.errors %}error-field{% endif %}">
-                {% if form.telefono.errors %}
-                <div class="error-alert">
-                    {{ form.telefono.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Campo Dirección -->
-            <div class="form-group">
-                <textarea name="direccion" placeholder="Tu dirección (opcional)" 
-                          rows="3"
-                          class="{% if form.direccion.errors %}error-field{% endif %}">{{ form.direccion.value|default:'' }}</textarea>
-                {% if form.direccion.errors %}
-                <div class="error-alert">
-                    {{ form.direccion.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Campo Contraseña -->
-            <div class="form-group">
-                <input type="password" name="password1" placeholder="Crea una contraseña" 
-                       class="{% if form.password1.errors %}error-field{% endif %}">
-                {% if form.password1.errors %}
-                <div class="error-alert">
-                    {{ form.password1.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Campo Confirmar Contraseña -->
-            <div class="form-group">
-                <input type="password" name="password2" placeholder="Confirma tu contraseña" 
-                       class="{% if form.password2.errors %}error-field{% endif %}">
-                {% if form.password2.errors %}
-                <div class="error-alert">
-                    {{ form.password2.errors.0 }}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Errores generales del formulario (no asociados a un campo específico) -->
-            {% if form.non_field_errors %}
-            <div class="error-alert general-error">
-                {% for error in form.non_field_errors %}
-                <p>{{ error }}</p>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <button type="submit" class="btn-submit">Crear cuenta</button>
-        </form>
+                <button type="submit" class="btn-submit">Crear cuenta</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -117,12 +123,14 @@
     display: flex;
     height: 100vh;
     font-family: 'Poppins', sans-serif;
+    overflow: hidden;
 }
 
 /* --- Imagen izquierda --- */
 .auth-image {
     flex: 1;
     position: relative;
+    min-height: 100vh;
 }
 .auth-image img {
     width: 100%;
@@ -155,11 +163,18 @@
     background: linear-gradient(160deg, #3e2723, #6d4c41, #8d6e63);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
     color: #fff;
-    padding: 3rem 2.5rem;
+    padding: 0;
     box-shadow: -5px 0 25px rgba(0,0,0,0.2);
+    min-height: 100vh;
+}
+
+/* Encabezado fijo */
+.auth-header {
+    padding: 2rem 2.5rem 1rem;
+    background: linear-gradient(160deg, #3e2723, #6d4c41);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
 }
 
 /* --- Encabezado --- */
@@ -168,14 +183,16 @@
     font-size: 2.5rem;
     color: #fff;
     margin-bottom: 0.5rem;
+    text-align: center;
 }
 .logo span {
     color: #ffcc00;
 }
 .subtitle {
     font-size: 1.05rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     opacity: 0.9;
+    text-align: center;
 }
 
 /* --- Tabs --- */
@@ -184,8 +201,8 @@
     justify-content: center;
     width: 100%;
     max-width: 350px;
+    margin: 0 auto;
     border-bottom: 1px solid rgba(255,255,255,0.2);
-    margin-bottom: 1.5rem;
 }
 .tab {
     flex: 1;
@@ -205,13 +222,29 @@
     color: #ffcc00;
 }
 
+/* Contenedor del formulario con scroll */
+.form-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+}
+
 /* --- Formulario --- */
 .form-content {
     width: 100%;
     max-width: 350px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    flex: 1;
 }
 .form-group {
-    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    min-height: fit-content;
 }
 .form-group input,
 .form-group textarea {
@@ -227,12 +260,12 @@
 }
 .form-group textarea {
     resize: vertical;
-    min-height: 80px;
+    min-height: 60px;
+    max-height: 80px;
 }
 .form-group input:focus,
 .form-group textarea:focus {
     box-shadow: 0 0 0 3px rgba(255,204,0,0.5);
-    transform: scale(1.01);
     outline: none;
 }
 .form-group input::placeholder,
@@ -247,20 +280,28 @@
     border: 1px solid #d32f2f;
 }
 
-/* Alertas de error */
+/* Alertas de error - diseño compacto y estable */
 .error-alert {
     color: #ffcdd2;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     margin-top: 0.3rem;
-    padding: 0.5rem 0.8rem;
+    padding: 0.4rem 0.6rem;
     background: rgba(211, 47, 47, 0.1);
-    border-radius: 6px;
-    border-left: 3px solid #d32f2f;
-    animation: slideIn 0.3s ease-out;
+    border-radius: 4px;
+    border-left: 2px solid #d32f2f;
+    line-height: 1.2;
+    word-wrap: break-word;
+    max-height: 2.4rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .error-alert.general-error {
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+    max-height: none;
+    -webkit-line-clamp: unset;
 }
 
 /* --- Botón --- */
@@ -271,12 +312,13 @@
     padding: 0.9rem;
     border-radius: 30px;
     font-weight: 600;
-    margin-top: 1rem;
+    margin-top: auto;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 3px 10px rgba(0,0,0,0.2);
     font-size: 1rem;
+    flex-shrink: 0;
 }
 .btn-submit:hover {
     background: linear-gradient(to right, #7f0000, #c62828);
@@ -295,26 +337,37 @@
     }
 }
 
-/* --- Responsivo --- */
+/* --- Responsivo mejorado --- */
 @media (max-width: 900px) {
     .auth-container {
         flex-direction: column;
+        height: auto;
+        min-height: 100vh;
     }
     .auth-image {
-        height: 35vh;
+        height: 30vh;
+        min-height: 200px;
     }
     .auth-form {
-        height: 65vh;
-        padding: 2rem 1.5rem;
+        height: auto;
+        min-height: 70vh;
+    }
+    .auth-header {
+        padding: 1.5rem 1.5rem 1rem;
+    }
+    .form-scroll-container {
+        padding: 1rem 1.5rem 1.5rem;
     }
     .logo {
         font-size: 2rem;
+        margin-bottom: 0.3rem;
     }
     .subtitle {
         font-size: 0.95rem;
+        margin-bottom: 1rem;
     }
     .overlay-text {
-        bottom: 30px;
+        bottom: 20px;
         left: 20px;
     }
     .overlay-text h2 {
@@ -323,6 +376,62 @@
     .overlay-text p {
         font-size: 0.9rem;
     }
+    .form-content {
+        max-width: 100%;
+        gap: 0.6rem;
+    }
+    .error-alert {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+        max-height: 2.2rem;
+    }
+    .btn-submit {
+        margin-top: 0.5rem;
+        padding: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    .form-scroll-container {
+        padding: 0.5rem 1rem 1rem;
+    }
+    .logo {
+        font-size: 1.8rem;
+    }
+    .subtitle {
+        font-size: 0.9rem;
+    }
+    .tabs {
+        margin-bottom: 0;
+    }
+    .tab {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+    .form-group input,
+    .form-group textarea {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+    .btn-submit {
+        padding: 0.8rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Scroll suave para el panel del formulario */
+.form-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+.form-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.1);
+}
+.form-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255,204,0,0.5);
+    border-radius: 3px;
 }
 </style>
 {% endblock %}
