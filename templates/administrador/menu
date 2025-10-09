@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Menú Administrador - BullBurger{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Bienvenido, {{ user.nombre|default:user.email }}</h1>
+    <p>Desde aquí puedes gestionar todo el contenido del administrador.</p>
+
+    <!-- Ejemplo de tarjetas o botones -->
+    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+        <div class="card">
+            <h2>Gestión de Productos</h2>
+            <p>Agrega, edita o elimina productos.</p>
+            <a href="#" class="btn btn-primary">Ir</a>
+        </div>
+        <div class="card">
+            <h2>Gestión de Pedidoss</h2>
+            <p>Visualiza y procesa pedidos de clientes.</p>
+            <a href="#" class="btn btn-primary">Ir</a>
+        </div>
+        <div class="card">
+            <h2>Gestión de Usuarios</h2>
+            <p>Administra empleados y clientes.</p>
+            <a href="#" class="btn btn-primary">Ir</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
