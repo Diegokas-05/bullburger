@@ -115,7 +115,7 @@
             padding: 2rem;
         }
 
-        /* Mensajes */
+        /* Mensajes - FILTRADOS */
         .messages {
             margin-bottom: 1rem;
         }
@@ -223,23 +223,33 @@
         <!-- Usuario -->
         <div class="navbar-user">
             <span>Hola, {{ user.nombre|default:user.email }}</span>
-            <a href="{% url 'login' %}" class="btn-secondary">Cerrar Sesión</a>
+            <a href="{% url 'logout' %}" class="btn-secondary">Cerrar Sesión</a>
         </div>
     </nav>
     {% endif %}
 
-    <div class="container">
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
+    {% if user.is_authenticated %}
+        <div class="container">
         {% endif %}
 
-        {% block content %}
-        {% endblock %}
-    </div>
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    {# SOLO MOSTRAR MENSAJES DE ÉXITO #}
+                    {% if message.tags == 'success' %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+
+        {% if user.is_authenticated %}
+        </div>
+    {% endif %}
+
 
     {% block scripts %}
     {% endblock %}
