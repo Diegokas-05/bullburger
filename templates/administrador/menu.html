@@ -4,10 +4,38 @@
 
 {% block content %}
 <div class="container">
+
+    <!-- ✅ NUEVO DISEÑO (como la imagen que mostraste) -->
+    <h1 class="vista-previa">Vista Previa</h1>
+
+    <!-- Pestañas -->
+    <div class="tabs">
+        <div class="tab active">Todos</div>
+        <div class="tab">Hamburguesas</div>
+        <div class="tab">Bebidas</div>
+        <div class="tab">Snack</div>
+        <div class="tab">Combos</div>
+        <div class="tab">Postres</div>
+    </div>
+
+    <!-- Productos -->
+    <div class="productos">
+        <div class="card-producto">
+            <h3>CLASIC-BULL</h3>
+        </div>
+        <div class="card-producto">
+            <h3>BATIDOS</h3>
+        </div>
+        <div class="card-producto">
+            <h3>PAPAS</h3>
+        </div>
+    </div>
+
+    <!-- Tu contenido original -->
+    <hr style="margin: 2rem 0;">
     <h1>Bienvenido, {{ user.nombre|default:user.email }}</h1>
     <p>Desde aquí puedes gestionar todo el contenido del administrador.</p>
 
-    <!-- Ejemplo de tarjetas o botones -->
     <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
         <div class="card">
             <h2>Gestión de Productos</h2>
@@ -15,15 +43,94 @@
             <a href="#" class="btn btn-primary">Ir</a>
         </div>
         <div class="card">
-            <h2>Gestión de Pedidoss</h2>
+            <h2>Gestión de Pedidos</h2>
             <p>Visualiza y procesa pedidos de clientes.</p>
             <a href="#" class="btn btn-primary">Ir</a>
         </div>
         <div class="card">
-            <h2>Gestión de Usuarios</h2>
+            <h2>Gestión de Usuariosss</h2>
             <p>Administra empleados y clientes.</p>
             <a href="#" class="btn btn-primary">Ir</a>
         </div>
     </div>
+
 </div>
+
+<!-- 🎨 Estilos abajo del archivo -->
+<style>
+/* === Estilo Vista Previa === */
+.vista-previa {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #5a4634;
+    margin-bottom: 1rem;
+}
+
+/* === Pestañas === */
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: 10px;
+    border: 1.5px solid #ccc;
+    background-color: white;
+    color: #5a4634;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    background-color: #f1e0c6;
+}
+
+.tab.active {
+    background-color: #fff;
+    border: 2px solid #b35b22;
+    color: #b35b22;
+}
+
+/* === Productos === */
+.productos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
+/* === Tarjetas de productos === */
+.card-producto {
+    width: 230px;
+    background-color: #f3f3f3;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.card-producto:hover {
+    transform: translateY(-5px);
+}
+
+.card-producto img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+}
+
+.card-producto h3 {
+    margin: 0;
+    padding: 1rem;
+    background-color: #d9d9d9;
+    color: #3b2d20;
+    font-weight: 800;
+}
+</style>
 {% endblock %}
