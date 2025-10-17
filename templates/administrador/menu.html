@@ -1,136 +1,997 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Menú Administrador - BullBurger{% endblock %}
+{% block title %}Gestión de Menú - BullBurger{% endblock %}
 
 {% block content %}
-<div class="container">
-
-    <!-- ✅ NUEVO DISEÑO (como la imagen que mostraste) -->
-    <h1 class="vista-previa">Vista Previa</h1>
-
-    <!-- Pestañas -->
-    <div class="tabs">
-        <div class="tab active">Todos</div>
-        <div class="tab">Hamburguesas</div>
-        <div class="tab">Bebidas</div>
-        <div class="tab">Snack</div>
-        <div class="tab">Combos</div>
-        <div class="tab">Postres</div>
+<div class="menu-admin-dashboard">
+    <!-- Header del Menú -->
+    <div class="dashboard-header">
+        <h1 class="welcome-title">Gestión del Menú - BullBurger</h1>
+        <p class="welcome-subtitle">Administra y visualiza todos los productos del menú</p>
     </div>
 
-    <!-- Productos -->
-    <div class="productos">
-        <div class="card-producto">
-            <h3>CLASIC-BULL</h3>
+    <!-- Mensajes -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
         </div>
-        <div class="card-producto">
-            <h3>BATIDOS</h3>
-        </div>
-        <div class="card-producto">
-            <h3>PAPAS</h3>
-        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Botones de Acción -->
+    <div class="action-buttons">
+        <button class="add-product-btn" onclick="openAddProductModal()">
+            <span>+</span>
+            Agregar Nuevo Producto
+        </button>
+        <button class="add-category-btn" onclick="openAddCategoryModal()">
+            <span>+</span>
+            Agregar Nueva Categoría
+        </button>
+        <button class="manage-categories-btn" onclick="openManageCategoriesModal()">
+            <span>📁</span>
+            Gestionar Categorías
+        </button>
     </div>
 
-    <!-- Tu contenido original -->
-    <hr style="margin: 2rem 0;">
-    <h1>Bienvenido, {{ user.nombre|default:user.email }}</h1>
-    <p>Desde aquí puedes gestionar todo el contenido del administrador.</p>
-
-    <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-        <div class="card">
-            <h2>Gestión de Productos</h2>
-            <p>Agrega, edita o elimina productos.</p>
-            <a href="#" class="btn btn-primary">Ir</a>
+    <!-- Pestañas de Categorías -->
+    <div class="category-tabs">
+        <div class="category-tab active" data-category="all">
+            <span>🍽️ Todos</span>
         </div>
-        <div class="card">
-            <h2>Gestión de Pedidos</h2>
-            <p>Visualiza y procesa pedidos de clientes.</p>
-            <a href="#" class="btn btn-primary">Ir</a>
+        {% for categoria in categorias %}
+        <div class="category-tab" data-category="{{ categoria.id }}">
+            <span>
+                {% if categoria.nombre == 'Hamburguesas' %}🍔
+                {% elif categoria.nombre == 'Bebidas' %}🥤
+                {% elif categoria.nombre == 'Snacks' %}🍟
+                {% elif categoria.nombre == 'Combos' %}📦
+                {% elif categoria.nombre == 'Postres' %}🍦
+                {% else %}🍽️{% endif %}
+                {{ categoria.nombre }}
+            </span>
         </div>
-        <div class="card">
-            <h2>Gestión de Usuariosss</h2>
-            <p>Administra empleados y clientes.</p>
-            <a href="#" class="btn btn-primary">Ir</a>
-        </div>
+        {% endfor %}
     </div>
 
+    <!-- Grid de Productos -->
+    <div class="products-grid">
+        {% for producto in productos %}
+        <div class="product-card" data-category="{{ producto.categoria.id }}">
+            <div class="product-image">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                {% elif producto.imagen_url %}
+                <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                {% endif %}
+                <div class="image-placeholder" {% if producto.imagen or producto.imagen_url %}style="display: none;"{% endif %}>
+                    {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
+                    {% elif producto.categoria.nombre == 'Bebidas' %}🥤
+                    {% elif producto.categoria.nombre == 'Snacks' %}🍟
+                    {% elif producto.categoria.nombre == 'Combos' %}📦
+                    {% elif producto.categoria.nombre == 'Postres' %}🍦
+                    {% else %}🍽️{% endif %}
+                </div>
+                <div class="product-actions">
+                    <button class="edit-btn" onclick="editProduct({{ producto.id }})">✏️</button>
+                    <button class="delete-btn" onclick="deleteProduct({{ producto.id }})">🗑️</button>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>{{ producto.nombre }}</h3>
+                <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
+                <div class="product-price">${{ producto.precio }}</div>
+                <div class="product-status {% if producto.disponible %}available{% else %}out-of-stock{% endif %}">
+                    {% if producto.disponible %}Disponible{% else %}Agotado{% endif %}
+                </div>
+                <div class="product-category">
+                    <small>Categoría: {{ producto.categoria.nombre }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-products">
+            <h3>No hay productos en el menú</h3>
+            <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
 
-<!-- 🎨 Estilos abajo del archivo -->
+<!-- Modal para agregar producto -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Agregar Nuevo Producto</h2>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="productForm" method="post" action="{% url 'crear_producto' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="nombre">Nombre del Producto *</label>
+                    <input type="text" id="nombre" name="nombre" required maxlength="100" placeholder="Ej: Hamburguesa Clásica">
+                </div>
+                
+                <div class="form-group">
+                    <label for="descripcion">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" rows="3" placeholder="Describe el producto..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precio">Precio ($) *</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoria">Categoría *</label>
+                        <select id="categoria" name="categoria" required>
+                            <option value="">Selecciona una categoría</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="imagen">Imagen del Producto</label>
+                    <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input">
+                    <small class="file-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</small>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="disponible" name="disponible" checked>
+                        <span class="checkmark"></span>
+                        Producto disponible
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para agregar categoría -->
+<div id="categoryModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Agregar Nueva Categoría</h2>
+            <span class="close" onclick="closeCategoryModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="categoryForm" method="post" action="{% url 'crear_categoria' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="nombre_categoria">Nombre de la Categoría *</label>
+                    <input type="text" id="nombre_categoria" name="nombre" required maxlength="100" placeholder="Ej: Bebidas, Postres, etc.">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeCategoryModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar Categoría</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para gestionar categorías -->
+<div id="manageCategoriesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Gestionar Categorías</h2>
+            <span class="close" onclick="closeManageCategoriesModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="categories-list">
+                <h3>Todas las Categorías</h3>
+                {% if categorias %}
+                    <div class="categories-grid">
+                        {% for categoria in categorias %}
+                        <div class="category-item">
+                            <span class="category-name">
+                                {% if categoria.nombre == 'Hamburguesas' %}🍔
+                                {% elif categoria.nombre == 'Bebidas' %}🥤
+                                {% elif categoria.nombre == 'Snacks' %}🍟
+                                {% elif categoria.nombre == 'Combos' %}📦
+                                {% elif categoria.nombre == 'Postres' %}🍦
+                                {% else %}🍽️{% endif %}
+                                {{ categoria.nombre }}
+                            </span>
+                            <div class="category-actions">
+                                <span class="product-count">
+                                    {{ categoria.producto_set.count }} producto(s)
+                                </span>
+                                <button class="delete-category-btn" onclick="deleteCategory({{ categoria.id }}, '{{ categoria.nombre }}')" 
+                                        {% if categoria.producto_set.count > 0 %}disabled title="No se puede eliminar categoría con productos"{% endif %}>
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-categories">No hay categorías creadas.</p>
+                {% endif %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeManageCategoriesModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario oculto para eliminar -->
+<form id="deleteForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<!-- Formulario oculto para eliminar categorías -->
+<form id="deleteCategoryForm" method="post" action="" style="display: none;">
+    {% csrf_token %}
+</form>
+
 <style>
-/* === Estilo Vista Previa === */
-.vista-previa {
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: #5a4634;
-    margin-bottom: 1rem;
+/* === Estilos Generales === */
+.menu-admin-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* === Pestañas === */
-.tabs {
+/* === Mensajes === */
+.messages-container {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* === Header del Dashboard === */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* === Botones de Acción === */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.add-product-btn, .add-category-btn {
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.add-product-btn {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.add-product-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+}
+
+.add-category-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.add-category-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.add-product-btn span, .add-category-btn span {
+    font-size: 1.5rem;
+}
+
+/* === Pestañas de Categorías === */
+.category-tabs {
     display: flex;
     justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.category-tab {
+    padding: 0.8rem 1.5rem;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #7f8c8d;
+}
+
+.category-tab:hover {
+    border-color: #FF6B35;
+    color: #FF6B35;
+    transform: translateY(-2px);
+}
+
+.category-tab.active {
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
+    border-color: #FF6B35;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+/* === Grid de Productos === */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.product-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    height: 200px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    font-size: 4rem;
+    opacity: 0.7;
+}
+
+.product-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .product-actions {
+    opacity: 1;
+}
+
+.edit-btn, .delete-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.edit-btn:hover {
+    background: #3498db;
+    color: white;
+}
+
+.delete-btn:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+.product-info {
+    padding: 1.5rem;
+}
+
+.product-info h3 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.product-description {
+    color: #7f8c8d;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    font-size: 0.9rem;
+}
+
+.product-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #27ae60;
+    margin-bottom: 0.5rem;
+}
+
+.product-status {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.product-status.available {
+    background: #d4edda;
+    color: #155724;
+}
+
+.product-status.out-of-stock {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.product-category {
+    color: #95a5a6;
+    font-size: 0.8rem;
+}
+
+/* === Modal === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #f1c40f;
+}
+
+.modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Estilos para el scroll del modal */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* === Formularios === */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #FF6B35;
+}
+
+.file-input {
+    padding: 0.5rem;
+}
+
+.file-help {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+}
+
+/* Preview de imagen */
+.image-preview {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: normal;
+    gap: 0.5rem;
+}
+
+.checkbox-label input {
+    width: auto;
+    margin: 0;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    flex-shrink: 0;
+}
+
+.btn-cancel, .btn-save {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+/* === No Products === */
+.no-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+}
+
+.no-products h3 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    .menu-admin-dashboard {
+        padding: 1rem;
+    }
+    
+    .welcome-title {
+        font-size: 2rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .add-product-btn, .add-category-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .category-tabs {
+        gap: 0.5rem;
+    }
+    
+    .category-tab {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+}
+
+/* Botón Gestionar Categorías */
+.manage-categories-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.manage-categories-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+}
+
+.manage-categories-btn span {
+    font-size: 1.5rem;
+}
+
+/* Lista de Categorías */
+.categories-list h3 {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.categories-grid {
+    display: grid;
     gap: 1rem;
     margin-bottom: 2rem;
 }
 
-.tab {
-    padding: 0.5rem 1.2rem;
-    border-radius: 10px;
-    border: 1.5px solid #ccc;
-    background-color: white;
-    color: #5a4634;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.tab:hover {
-    background-color: #f1e0c6;
-}
-
-.tab.active {
-    background-color: #fff;
-    border: 2px solid #b35b22;
-    color: #b35b22;
-}
-
-/* === Productos === */
-.productos {
+.category-item {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 2rem;
-}
-
-/* === Tarjetas de productos === */
-.card-producto {
-    width: 230px;
-    background-color: #f3f3f3;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    overflow: hidden;
-    text-align: center;
-    transition: transform 0.2s;
-}
-
-.card-producto:hover {
-    transform: translateY(-5px);
-}
-
-.card-producto img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-}
-
-.card-producto h3 {
-    margin: 0;
+    justify-content: space-between;
+    align-items: center;
     padding: 1rem;
-    background-color: #d9d9d9;
-    color: #3b2d20;
-    font-weight: 800;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.category-name {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.category-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.product-count {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.delete-category-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-category-btn:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.no-categories {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 2rem;
 }
 </style>
+
+<script>
+// Funciones para los modales
+function openAddProductModal() {
+    document.getElementById('productModal').style.display = 'block';
+    document.getElementById('modalTitle').textContent = 'Agregar Nuevo Producto';
+    document.getElementById('productForm').reset();
+    document.getElementById('productForm').action = "{% url 'crear_producto' %}";
+    document.getElementById('imagePreview').innerHTML = '';
+}
+
+function openAddCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'block';
+    document.getElementById('categoryForm').reset();
+}
+
+function openManageCategoriesModal() {
+    document.getElementById('manageCategoriesModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('productModal').style.display = 'none';
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'none';
+}
+
+function closeManageCategoriesModal() {
+    document.getElementById('manageCategoriesModal').style.display = 'none';
+}
+
+function editProduct(productId) {
+    window.location.href = `/productos/editar/${productId}/`;
+}
+
+function deleteProduct(productId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        const form = document.getElementById('deleteForm');
+        form.action = `/productos/eliminar/${productId}/`;
+        form.submit();
+    }
+}
+
+function deleteCategory(categoriaId, categoriaNombre) {
+    if (confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoriaNombre}"?`)) {
+        const form = document.getElementById('deleteCategoryForm');
+        form.action = `/productos/categoria/eliminar/${categoriaId}/`;
+        form.submit();
+    }
+}
+
+
+function deleteProduct(productId) {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        const form = document.getElementById('deleteForm');
+        form.action = `/productos/eliminar/${productId}/`;
+        form.submit();
+    }
+}
+
+// Preview de imagen
+document.getElementById('imagen')?.addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    const file = e.target.files[0];
+    
+    if (file) {
+        if (file.size > 5 * 1024 * 1024) {
+            alert('La imagen es demasiado grande. Máximo 5MB.');
+            this.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        
+        if (!file.type.match('image.*')) {
+            alert('Por favor selecciona un archivo de imagen.');
+            this.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
+        }
+        reader.readAsDataURL(file);
+    } else {
+        preview.innerHTML = '';
+    }
+});
+
+// Filtrado de productos por categoría
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryTabs = document.querySelectorAll('.category-tab');
+    const productCards = document.querySelectorAll('.product-card');
+    
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            categoryTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            const category = this.getAttribute('data-category');
+            
+            productCards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+
+// Cerrar modales al hacer clic fuera
+window.onclick = function(event) {
+    const productModal = document.getElementById('productModal');
+    const categoryModal = document.getElementById('categoryModal');
+    
+    if (event.target === productModal) {
+        closeModal();
+    }
+    if (event.target === categoryModal) {
+        closeCategoryModal();
+    }
+}
+
+// Cerrar modales con ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+        closeCategoryModal();
+    }
+});
+
+// Validación del formulario
+document.getElementById('productForm')?.addEventListener('submit', function(e) {
+    const precio = document.getElementById('precio');
+    if (precio && parseFloat(precio.value) < 0) {
+        e.preventDefault();
+        alert('El precio no puede ser negativo');
+        precio.focus();
+    }
+});
+</script>
 {% endblock %}

@@ -119,3 +119,46 @@ class CustomAuthenticationForm(AuthenticationForm):
             'required': 'La contraseña es obligatoria',
         }
     )
+
+# Agrega esto al final del archivo forms.py que ya tienes
+
+class UsuarioAdminForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control', 
+            'placeholder': 'Contraseña'
+        }),
+        required=False,
+        help_text='Dejar vacío para mantener la contraseña actual'
+    )
+    
+    class Meta:
+        model = Usuario
+        fields = ['nombre', 'email', 'telefono', 'direccion', 'rol', 'is_active']
+        widgets = {
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Nombre completo'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Correo electrónico'
+            }),
+            'telefono': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Teléfono'
+            }),
+            'direccion': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Dirección', 
+                'rows': 3
+            }),
+            'rol': forms.Select(attrs={'class': 'form-control'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hacer el campo password requerido solo para creación
+        if not self.instance.pk:
+            self.fields['password'].required = True
+            self.fields['password'].help_text = 'La contraseña es obligatoria para nuevos usuarios'

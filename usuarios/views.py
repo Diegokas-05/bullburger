@@ -74,6 +74,22 @@ def empleado_dashboard(request):
 def cliente_dashboard(request):
     return render(request, 'cliente/dashboard.html')
 
-
+@login_required
 def administrador_menu(request):
     return render (request,'administrador/menu.html')
+
+@login_required
+def crear_categoria(request):
+    """Vista para crear una nueva categoría"""
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre')
+        if nombre:
+            categoria, created = Categoria.objects.get_or_create(nombre=nombre)
+            if created:
+                messages.success(request, f'Categoría "{nombre}" creada exitosamente!')
+            else:
+                messages.info(request, f'La categoría "{nombre}" ya existe.')
+        else:
+            messages.error(request, 'El nombre de la categoría es requerido.')
+    
+    return redirect('lista_productos')
