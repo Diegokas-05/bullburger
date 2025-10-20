@@ -74,9 +74,9 @@ def empleado_dashboard(request):
 def cliente_dashboard(request):
     return render(request, 'cliente/dashboard.html')
 
-@login_required
+"""@login_required
 def administrador_menu(request):
-    return render (request,'administrador/menu.html')
+    return render (request,'administrador/menu.html')"""
 
 @login_required
 def crear_categoria(request):

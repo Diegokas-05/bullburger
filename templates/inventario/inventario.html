@@ -1,0 +1,1531 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Inventario - BullBurger{% endblock %}
+
+{% block content %}
+<div class="inventario-dashboard">
+    <!-- Header del Inventario -->
+    <div class="dashboard-header">
+        <h1 class="welcome-title">Gestión de Inventario - BullBurger</h1>
+        <p class="welcome-subtitle">Controla tus ingredientes y materias primas</p>
+    </div>
+
+    <!-- QUITAMOS LOS MENSAJES DE DJANGO -->
+    
+    <!-- Estadísticas Rápidas -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+                <h3>{{ total_ingredientes }}</h3>
+                <p>Total Ingredientes</p>
+            </div>
+        </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+                <h3>{{ total_ingredientes_bajos }}</h3>
+                <p>Stock Bajo</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+                <h3>${{ valor_total_inventario|floatformat:2 }}</h3>
+                <p>Valor Inventario</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="action-buttons">
+        <button class="add-ingrediente-btn" onclick="openAddIngredienteModal()">
+            <span>+</span>
+            Agregar Ingrediente
+        </button>
+        <button class="historial-btn" onclick="openHistorialModal()">
+            <span>📊</span>
+            Ver Historial
+        </button>
+    </div>
+
+    <!-- Alertas de Stock Bajo -->
+    {% if ingredientes_bajos %}
+    <div class="alert-section">
+        <div class="alert-header">
+            <h3>⚠️ Alertas de Stock Bajo</h3>
+            <span class="alert-count">{{ ingredientes_bajos|length }}</span>
+        </div>
+        <div class="alert-grid">
+            {% for ingrediente in ingredientes_bajos %}
+            <div class="alert-item {% if ingrediente.estado_stock == 'agotado' %}alert-danger{% else %}alert-warning{% endif %}">
+                <div class="alert-info">
+                    <span class="alert-nombre">{{ ingrediente.nombre }}</span>
+                    <span class="alert-stock">{{ ingrediente.stock_actual }} {{ ingrediente.unidad_medida }}</span>
+                    <span class="alert-minimo">Mínimo: {{ ingrediente.stock_minimo }}</span>
+                </div>
+                <button class="btn-ajustar-small" onclick="openAjustarModal({{ ingrediente.id }}, '{{ ingrediente.nombre|escapejs }}')">
+                    Ajustar Stock
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tabla de Ingredientes -->
+    <div class="table-section">
+        <div class="section-header">
+            <h3>📦 Todos los Ingredientes</h3>
+            <div class="section-actions">
+                <span class="total-count">{{ ingredientes|length }} ingredientes</span>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ingrediente</th>
+                        <th>Stock Actual</th>
+                        <th>Stock Mínimo</th>
+                        <th>Unidad</th>
+                        <th>Costo Unitario</th>
+                        <th>Valor Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ingrediente in ingredientes %}
+                    <tr class="data-row {% if ingrediente.estado_stock == 'bajo' %}row-warning{% elif ingrediente.estado_stock == 'agotado' %}row-danger{% endif %}">
+                        <td class="ingrediente-info">
+                            <div class="ingrediente-nombre">
+                                <strong>{{ ingrediente.nombre }}</strong>
+                                {% if ingrediente.proveedor %}
+                                <small>Prov: {{ ingrediente.proveedor }}</small>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="stock-actual">{{ ingrediente.stock_actual }}</td>
+                        <td class="stock-minimo">{{ ingrediente.stock_minimo }}</td>
+                        <td class="unidad">{{ ingrediente.unidad_medida }}</td>
+                        <td class="costo">${{ ingrediente.costo_unitario|floatformat:4 }}</td>
+                        <td class="valor-total">${{ ingrediente.valor_total|floatformat:2 }}</td>
+                        <td class="estado">
+                            <span class="status-badge status-{{ ingrediente.estado_stock }}">
+                                {% if ingrediente.estado_stock == 'normal' %}
+                                    ✅ Normal
+                                {% elif ingrediente.estado_stock == 'bajo' %}
+                                    ⚠️ Bajo
+                                {% else %}
+                                    🔴 Agotado
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="acciones">
+                            <div class="action-buttons-small">
+                                <button class="btn-action btn-edit" onclick="openEditIngredienteModal({{ ingrediente.id }})" title="Editar">
+                                    <span>✏️</span>
+                                </button>
+                                <button class="btn-action btn-ajustar" onclick="openAjustarModal({{ ingrediente.id }}, '{{ ingrediente.nombre|escapejs }}')" title="Ajustar Stock">
+                                    <span>📊</span>
+                                </button>
+                                <button class="btn-action btn-delete" onclick="confirmDeleteIngrediente({{ ingrediente.id }}, '{{ ingrediente.nombre|escapejs }}')" title="Eliminar">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="no-data">
+                            <div class="empty-state">
+                                <div class="empty-icon">📦</div>
+                                <h3>No hay ingredientes registrados</h3>
+                                <p>Comienza agregando tu primer ingrediente al inventario</p>
+                                <button class="btn-primary" onclick="openAddIngredienteModal()">
+                                    Agregar Primer Ingrediente
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar Ingrediente -->
+<div id="addIngredienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Agregar Nuevo Ingrediente</h2>
+            <span class="close" onclick="closeAddIngredienteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="addIngredienteForm" method="post" action="{% url 'crear_ingrediente' %}" onsubmit="return validateAddIngredienteForm(event)">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="nombre">Nombre del Ingrediente *</label>
+                    <input type="text" id="nombre" name="nombre" required class="form-control"
+                    pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                    title="Solo se permiten letras y espacios"
+                    oninput="validateLettersOnly(this)"
+                    placeholder="Ej: Queso Americano">
+                    <div class="error-message" id="nombreError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="unidad_medida">Unidad de Medida *</label>
+                    <select id="unidad_medida" name="unidad_medida" required class="form-control">
+                        <option value="">Selecciona unidad</option>
+                        <option value="kg">Kilogramos (kg)</option>
+                        <option value="g">Gramos (g)</option>
+                        <option value="l">Litros (l)</option>
+                        <option value="ml">Mililitros (ml)</option>
+                        <option value="unidad">Unidades</option>
+                        <option value="lb">Libras (lb)</option>
+                    </select>
+                    <div class="error-message" id="unidad_medidaError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="precio_paquete">Precio del Paquete ($) *</label>
+                        <input type="number" id="precio_paquete" name="precio_paquete" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)"
+                            placeholder="3.99">
+                        <div class="error-message" id="precio_paqueteError"></div>
+                    </div>
+                                    
+                    <div class="form-group">
+                        <label for="tamaño_paquete">Tamaño del Paquete *</label>
+                        <input type="number" id="tamaño_paquete" name="tamaño_paquete" 
+                            step="0.01" min="0.01" required class="form-control"
+                            oninput="validatePositiveNumber(this)"
+                            placeholder="400">
+                        <small class="help-text">En la unidad seleccionada</small>
+                        <div class="error-message" id="tamaño_paqueteError"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stock_actual">Stock Actual *</label>
+                        <input type="number" id="stock_actual" name="stock_actual" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)"
+                            placeholder="0">
+                        <div class="error-message" id="stock_actualError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="stock_minimo">Stock Mínimo *</label>
+                        <input type="number" id="stock_minimo" name="stock_minimo" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)"
+                            placeholder="10">
+                        <div class="error-message" id="stock_minimoError"></div>
+                    </div>
+                </div>
+
+                <!-- Mostrar cálculo automático -->
+                <div class="form-group calculation-display">
+                    <label>Cálculo Automático:</label>
+                    <div id="costo-calculation" class="calculation-result">
+                        Costo por unidad: <span id="costo-unitario">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="proveedor">Proveedor</label>
+                        <input type="text" id="proveedor" name="proveedor" 
+                            class="form-control"
+                            pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                            title="Solo se permiten letras y espacios"
+                            oninput="validateLettersOnly(this)"
+                            placeholder="Nombre del proveedor">
+                        <div class="error-message" id="proveedorError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ubicacion">Ubicación</label>
+                        <input type="text" id="ubicacion" name="ubicacion" 
+                            class="form-control"
+                            pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                            title="Solo se permiten letras y espacios"
+                            oninput="validateLettersOnly(this)"
+                            placeholder="Ej: Almacén A, Refrigerador">
+                        <div class="error-message" id="ubicacionError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAddIngredienteModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar Ingrediente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Ingrediente -->
+<div id="editIngredienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Ingrediente</h2>
+            <span class="close" onclick="closeEditIngredienteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editIngredienteForm" method="post" action="" onsubmit="return validateEditIngredienteForm(event)">
+                {% csrf_token %}
+                <input type="hidden" id="edit_ingrediente_id" name="ingrediente_id">
+                
+                <div class="form-group">
+                    <label for="edit_nombre">Nombre del Ingrediente *</label>
+                    <input type="text" id="edit_nombre" name="nombre" required class="form-control" 
+                        pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                        title="Solo se permiten letras y espacios"
+                        oninput="validateLettersOnly(this)"
+                        placeholder="Nombre del ingrediente">
+                    <div class="error-message" id="edit_nombreError"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="edit_unidad_medida">Unidad de Medida *</label>
+                    <select id="edit_unidad_medida" name="unidad_medida" required class="form-control">
+                        <option value="">Selecciona unidad</option>
+                        <option value="kg">Kilogramos (kg)</option>
+                        <option value="g">Gramos (g)</option>
+                        <option value="l">Litros (l)</option>
+                        <option value="ml">Mililitros (ml)</option>
+                        <option value="unidad">Unidades</option>
+                        <option value="lb">Libras (lb)</option>
+                    </select>
+                    <div class="error-message" id="edit_unidad_medidaError"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_precio_paquete">Precio del Paquete ($) *</label>
+                        <input type="number" id="edit_precio_paquete" name="precio_paquete" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)"
+                            placeholder="0.00">
+                        <div class="error-message" id="edit_precio_paqueteError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit_tamaño_paquete">Tamaño del Paquete *</label>
+                        <input type="number" id="edit_tamaño_paquete" name="tamaño_paquete" 
+                            step="0.01" min="0.01" required class="form-control"
+                            oninput="validatePositiveNumber(this)"
+                            placeholder="1.00">
+                        <div class="error-message" id="edit_tamaño_paqueteError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_stock_actual">Stock Actual *</label>
+                        <input type="number" id="edit_stock_actual" name="stock_actual" 
+                            step="0.01" min="0" required class="form-control" 
+                            oninput="validateNumber(this)"
+                            placeholder="0">
+                        <div class="error-message" id="edit_stock_actualError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit_stock_minimo">Stock Mínimo *</label>
+                        <input type="number" id="edit_stock_minimo" name="stock_minimo" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)"
+                            placeholder="10">
+                        <div class="error-message" id="edit_stock_minimoError"></div>
+                    </div>
+                </div>
+
+                <!-- Mostrar cálculo automático en edición -->
+                <div class="form-group calculation-display">
+                    <label>Cálculo Automático:</label>
+                    <div class="calculation-result">
+                        Costo por unidad: <span id="edit-costo-unitario">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_proveedor">Proveedor</label>
+                        <input type="text" id="edit_proveedor" name="proveedor" 
+                            class="form-control"
+                            pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                            title="Solo se permiten letras y espacios"
+                            oninput="validateLettersOnly(this)"
+                            placeholder="Nombre del proveedor">
+                        <div class="error-message" id="edit_proveedorError"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit_ubicacion">Ubicación</label>
+                        <input type="text" id="edit_ubicacion" name="ubicacion" 
+                            class="form-control"
+                            pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                            title="Solo se permiten letras y espacios"
+                            oninput="validateLettersOnly(this)"
+                            placeholder="Ej: Almacén A, Refrigerador">
+                        <div class="error-message" id="edit_ubicacionError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditIngredienteModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Actualizar Ingrediente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Ajustar Inventario -->
+<div id="ajustarModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="ajustarModalTitle">Ajustar Inventario</h2>
+            <span class="close" onclick="closeAjustarModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="ajustarForm" method="post" action="" onsubmit="return validateAjusteForm(event)">
+                {% csrf_token %}
+                <input type="hidden" id="ajustar_ingrediente_id" name="ingrediente_id">
+                
+                <div class="form-group">
+                    <label for="ajustar_nombre">Ingrediente</label>
+                    <input type="text" id="ajustar_nombre" readonly class="form-control readonly-input">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="stock_actual_ajuste">Stock Actual</label>
+                        <input type="text" id="stock_actual_ajuste" readonly class="form-control readonly-input">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cantidad_nueva">Nueva Cantidad *</label>
+                        <input type="number" id="cantidad_nueva" name="cantidad_nueva" 
+                            step="0.01" min="0" required class="form-control"
+                            oninput="validateNumber(this)">
+                        <div class="error-message" id="cantidad_nuevaError"></div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="motivo_ajuste">Motivo del Ajuste *</label>
+                    <textarea id="motivo_ajuste" name="motivo" rows="3" required class="form-control" 
+                        placeholder="Ej: Conteo físico, Ajuste por pérdida, Corrección..."></textarea>
+                    <div class="error-message" id="motivo_ajusteError"></div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAjustarModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Aplicar Ajuste</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario oculto para eliminar -->
+<form id="deleteIngredienteForm" method="post" style="display: none;">
+    {% csrf_token %}
+</form>
+
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2 id="alertTitle">Alerta</h2>
+            <span class="close" onclick="closeCustomAlert()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="alertMessage"></p>
+            <div class="form-actions" style="justify-content: center;">
+                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* === Estilos Generales === */
+.inventario-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* === Header del Dashboard === */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.welcome-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* === Stats Grid === */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-left: 4px solid #27ae60;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-card.warning {
+    border-left-color: #e74c3c;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 2rem;
+    color: #2c3e50;
+}
+
+.stat-info p {
+    margin: 0;
+    color: #7f8c8d;
+    font-weight: 500;
+}
+
+/* === Botones de Acción === */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.add-ingrediente-btn, .historial-btn {
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.add-ingrediente-btn {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.add-ingrediente-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+}
+
+.historial-btn {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.historial-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.add-ingrediente-btn span, .historial-btn span {
+    font-size: 1.5rem;
+}
+
+/* === Alert Section === */
+.alert-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.alert-header h3 {
+    margin: 0;
+    color: #856404;
+    font-size: 1.3rem;
+}
+
+.alert-count {
+    background: #e74c3c;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.alert-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.alert-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #e74c3c;
+    transition: all 0.3s ease;
+}
+
+.alert-item.alert-warning {
+    border-left-color: #f39c12;
+}
+
+.alert-item.alert-danger {
+    border-left-color: #e74c3c;
+}
+
+.alert-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.alert-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.alert-nombre {
+    font-weight: 600;
+    color: #2c3e50;
+    min-width: 150px;
+}
+
+.alert-stock {
+    color: #e74c3c;
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.alert-minimo {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.btn-ajustar-small {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-ajustar-small:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* === Table Section === */
+.table-section {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.3rem;
+}
+
+.total-count {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* === Data Table === */
+.table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+}
+
+.data-row:hover {
+    background: #f8f9fa;
+}
+
+.row-warning {
+    background: #fff3cd !important;
+}
+
+.row-danger {
+    background: #f8d7da !important;
+}
+
+/* Ingrediente Info */
+.ingrediente-info {
+    min-width: 200px;
+}
+
+.ingrediente-nombre {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.ingrediente-nombre small {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-normal {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-bajo {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-agotado {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Action Buttons */
+.action-buttons-small {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 35px;
+}
+
+.btn-edit:hover {
+    background: #3498db;
+    color: white;
+}
+
+.btn-ajustar:hover {
+    background: #f39c12;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #e74c3c;
+    color: white;
+}
+
+/* No Data State */
+.no-data {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+.empty-state p {
+    margin: 0;
+    color: #6c757d;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+/* === Modal Styles === */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+@keyframes modalSlideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close {
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #f1c40f;
+}
+
+.modal-body {
+    padding: 2rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #FF6B35;
+}
+
+.readonly-input {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #6c757d;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    flex-shrink: 0;
+}
+
+.btn-cancel, .btn-save {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+/* Error Messages */
+.error-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    display: none;
+}
+
+/* Estilos para el cálculo automático */
+.calculation-display {
+    background: #e8f5e8;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.calculation-result {
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+.help-text {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    font-style: italic;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    .inventario-dashboard {
+        padding: 1rem;
+    }
+    
+    .welcome-title {
+        font-size: 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .add-ingrediente-btn, .historial-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .alert-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .alert-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        min-width: 800px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+}
+</style>
+
+<script>
+// Funciones para los modales
+function openAddIngredienteModal() {
+    document.getElementById('addIngredienteModal').style.display = 'block';
+    document.getElementById('addIngredienteForm').reset();
+    clearAllErrors();
+}
+
+function closeAddIngredienteModal() {
+    document.getElementById('addIngredienteModal').style.display = 'none';
+}
+
+function openEditIngredienteModal(ingredienteId) {
+    // Cargar datos via AJAX
+    fetch(`/inventario/api/ingrediente/${ingredienteId}/`)
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al cargar los datos');
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Llenar el formulario del modal con los datos
+        document.getElementById('edit_ingrediente_id').value = data.id;
+        document.getElementById('edit_nombre').value = data.nombre;
+        document.getElementById('edit_unidad_medida').value = data.unidad_medida;
+        document.getElementById('edit_precio_paquete').value = data.precio_paquete;
+        document.getElementById('edit_tamaño_paquete').value = data.tamaño_paquete;
+        document.getElementById('edit_stock_actual').value = data.stock_actual;
+        document.getElementById('edit_stock_minimo').value = data.stock_minimo;
+        document.getElementById('edit_proveedor').value = data.proveedor;
+        document.getElementById('edit_ubicacion').value = data.ubicacion;
+        
+        // Calcular costo unitario para mostrar
+        calculateEditUnitCost();
+        
+        // Actualizar action del form
+        document.getElementById('editIngredienteForm').action = `/inventario/ingrediente/editar/${ingredienteId}/`;
+        
+        // Mostrar modal
+        document.getElementById('editIngredienteModal').style.display = 'block';
+        clearAllErrors();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showCustomAlert('Error', 'No se pudieron cargar los datos del ingrediente');
+    });
+}
+
+function closeEditIngredienteModal() {
+    document.getElementById('editIngredienteModal').style.display = 'none';
+}
+
+function openAjustarModal(ingredienteId, ingredienteNombre) {
+    // Cargar datos via AJAX
+    fetch(`/inventario/api/ingrediente/${ingredienteId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('ajustarModal').style.display = 'block';
+            document.getElementById('ajustarModalTitle').textContent = `Ajustar ${data.nombre}`;
+            document.getElementById('ajustar_nombre').value = data.nombre;
+            document.getElementById('ajustar_ingrediente_id').value = data.id;
+            document.getElementById('stock_actual_ajuste').value = `${data.stock_actual} ${data.unidad_medida}`;
+            document.getElementById('cantidad_nueva').value = data.stock_actual;
+            document.getElementById('ajustarForm').action = `/inventario/ajustar/${ingredienteId}/`;
+            clearAllErrors();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showCustomAlert('Error', 'No se pudieron cargar los datos del ingrediente');
+        });
+}
+
+function closeAjustarModal() {
+    document.getElementById('ajustarModal').style.display = 'none';
+}
+
+function openHistorialModal() {
+    window.location.href = '/inventario/historial/';
+}
+
+// Función de alerta personalizada
+function showCustomAlert(title, message, confirmCallback = null) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('customAlert').style.display = 'block';
+    
+    const confirmBtn = document.getElementById('alertConfirmBtn');
+    if (confirmCallback) {
+        confirmBtn.onclick = function() {
+            confirmCallback();
+            closeCustomAlert();
+        };
+    } else {
+        confirmBtn.onclick = closeCustomAlert;
+    }
+}
+
+function closeCustomAlert() {
+    document.getElementById('customAlert').style.display = 'none';
+}
+
+// Funciones de validación
+function validateLettersOnly(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById(input.id + 'Error');
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+    
+    if (input.required && !value) {
+        showError(input, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    if (value && !lettersOnly.test(value)) {
+        showError(input, errorElement, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    return true;
+}
+
+function validateNumber(input) {
+    const value = parseFloat(input.value);
+    const errorElement = document.getElementById(input.id + 'Error');
+    
+    if (!input.value) {
+        showError(input, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    if (isNaN(value) || value < 0) {
+        showError(input, errorElement, 'Debe ser un número válido mayor o igual a 0');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    
+    // Calcular costo unitario automáticamente
+    if (input.id.includes('precio') || input.id.includes('tamaño')) {
+        if (input.id.includes('edit')) {
+            calculateEditUnitCost();
+        } else {
+            calculateUnitCost();
+        }
+    }
+    return true;
+}
+
+function validatePositiveNumber(input) {
+    const value = parseFloat(input.value);
+    const errorElement = document.getElementById(input.id + 'Error');
+    
+    if (!input.value) {
+        showError(input, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    if (isNaN(value) || value <= 0) {
+        showError(input, errorElement, 'Debe ser un número mayor a 0');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    
+    // Calcular costo unitario automáticamente
+    if (input.id.includes('precio') || input.id.includes('tamaño')) {
+        if (input.id.includes('edit')) {
+            calculateEditUnitCost();
+        } else {
+            calculateUnitCost();
+        }
+    }
+    return true;
+}
+
+function validateUnidadMedida(select) {
+    const errorElement = document.getElementById(select.id + 'Error');
+    
+    if (!select.value) {
+        showError(select, errorElement, 'Debes seleccionar una unidad de medida');
+        return false;
+    }
+    
+    hideError(select, errorElement);
+    return true;
+}
+
+function validateTextArea(textarea) {
+    const errorElement = document.getElementById(textarea.id + 'Error');
+    
+    if (!textarea.value.trim()) {
+        showError(textarea, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    hideError(textarea, errorElement);
+    return true;
+}
+
+// Calcular costo unitario automáticamente - AGREGAR
+function calculateUnitCost() {
+    const precio = parseFloat(document.getElementById('precio_paquete')?.value) || 0;
+    const tamaño = parseFloat(document.getElementById('tamaño_paquete')?.value) || 1;
+    
+    if (precio > 0 && tamaño > 0) {
+        const costoUnitario = precio / tamaño;
+        document.getElementById('costo-unitario').textContent = `$${costoUnitario.toFixed(6)}`;
+    } else {
+        document.getElementById('costo-unitario').textContent = '$0.00';
+    }
+}
+
+// Calcular costo unitario automáticamente - EDITAR
+function calculateEditUnitCost() {
+    const precio = parseFloat(document.getElementById('edit_precio_paquete')?.value) || 0;
+    const tamaño = parseFloat(document.getElementById('edit_tamaño_paquete')?.value) || 1;
+    
+    if (precio > 0 && tamaño > 0) {
+        const costoUnitario = precio / tamaño;
+        document.getElementById('edit-costo-unitario').textContent = `$${costoUnitario.toFixed(6)}`;
+    } else {
+        document.getElementById('edit-costo-unitario').textContent = '$0.00';
+    }
+}
+
+// Funciones para mostrar/ocultar errores
+function showError(input, errorElement, message) {
+    input.style.borderColor = '#e74c3c';
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function hideError(input, errorElement) {
+    input.style.borderColor = '#e0e0e0';
+    if (errorElement) {
+        errorElement.style.display = 'none';
+    }
+}
+
+function clearAllErrors() {
+    // Limpiar todos los mensajes de error
+    const errorMessages = document.querySelectorAll('.error-message');
+    errorMessages.forEach(error => {
+        error.style.display = 'none';
+    });
+    
+    // Restablecer bordes de los inputs
+    const inputs = document.querySelectorAll('.form-control');
+    inputs.forEach(input => {
+        input.style.borderColor = '#e0e0e0';
+    });
+}
+
+// Validación completa del formulario AGREGAR
+function validateAddIngredienteForm(event) {
+    const nombre = document.getElementById('nombre');
+    const unidadMedida = document.getElementById('unidad_medida');
+    const precio = document.getElementById('precio_paquete');
+    const tamaño = document.getElementById('tamaño_paquete');
+    const stockActual = document.getElementById('stock_actual');
+    const stockMinimo = document.getElementById('stock_minimo');
+    const proveedor = document.getElementById('proveedor');
+    const ubicacion = document.getElementById('ubicacion');
+    
+    clearAllErrors();
+    
+    let isValid = true;
+    
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateUnidadMedida(unidadMedida)) isValid = false;
+    if (!validateNumber(precio)) isValid = false;
+    if (!validatePositiveNumber(tamaño)) isValid = false;
+    if (!validateNumber(stockActual)) isValid = false;
+    if (!validateNumber(stockMinimo)) isValid = false;
+    if (proveedor.value && !validateLettersOnly(proveedor)) isValid = false;
+    if (ubicacion.value && !validateLettersOnly(ubicacion)) isValid = false;
+    
+    if (!isValid) {
+        event.preventDefault();
+        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Validación completa del formulario EDITAR
+function validateEditIngredienteForm(event) {
+    const nombre = document.getElementById('edit_nombre');
+    const unidadMedida = document.getElementById('edit_unidad_medida');
+    const precio = document.getElementById('edit_precio_paquete');
+    const tamaño = document.getElementById('edit_tamaño_paquete');
+    const stockActual = document.getElementById('edit_stock_actual');
+    const stockMinimo = document.getElementById('edit_stock_minimo');
+    const proveedor = document.getElementById('edit_proveedor');
+    const ubicacion = document.getElementById('edit_ubicacion');
+    
+    clearAllErrors();
+    
+    let isValid = true;
+    
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateUnidadMedida(unidadMedida)) isValid = false;
+    if (!validateNumber(precio)) isValid = false;
+    if (!validatePositiveNumber(tamaño)) isValid = false;
+    if (!validateNumber(stockActual)) isValid = false;
+    if (!validateNumber(stockMinimo)) isValid = false;
+    if (proveedor.value && !validateLettersOnly(proveedor)) isValid = false;
+    if (ubicacion.value && !validateLettersOnly(ubicacion)) isValid = false;
+    
+    if (!isValid) {
+        event.preventDefault();
+        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+        return false;
+    }
+    
+    return true;
+}
+
+function validateAjusteForm(event) {
+    const cantidadNueva = document.getElementById('cantidad_nueva');
+    const motivo = document.getElementById('motivo_ajuste');
+    
+    clearAllErrors();
+    
+    let isValid = true;
+    
+    if (!validateNumber(cantidadNueva)) isValid = false;
+    if (!validateTextArea(motivo)) isValid = false;
+    
+    if (!isValid) {
+        event.preventDefault();
+        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Funciones de eliminación
+function confirmDeleteIngrediente(ingredienteId, ingredienteNombre) {
+    showCustomAlert(
+        'Confirmar Eliminación',
+        `¿Estás seguro de que quieres eliminar el ingrediente "${ingredienteNombre}"?`,
+        function() {
+            const form = document.getElementById('deleteIngredienteForm');
+            form.action = `/inventario/ingrediente/eliminar/${ingredienteId}/`;
+            form.submit();
+        }
+    );
+}
+
+// Cerrar modales al hacer clic fuera
+window.addEventListener('click', function(event) {
+    const modals = [
+        'addIngredienteModal', 
+        'editIngredienteModal', 
+        'ajustarModal',
+        'customAlert'
+    ];
+    
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+
+// Cerrar modales con ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const modals = [
+            'addIngredienteModal', 
+            'editIngredienteModal', 
+            'ajustarModal',
+            'customAlert'
+        ];
+        
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sistema de inventario BullBurger cargado correctamente 📦');
+    
+    // Agregar efectos hover a las filas de la tabla
+    const tableRows = document.querySelectorAll('.data-row');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+    
+    // Inicializar cálculos
+    document.getElementById('precio_paquete')?.addEventListener('input', calculateUnitCost);
+    document.getElementById('tamaño_paquete')?.addEventListener('input', calculateUnitCost);
+    document.getElementById('edit_precio_paquete')?.addEventListener('input', calculateEditUnitCost);
+    document.getElementById('edit_tamaño_paquete')?.addEventListener('input', calculateEditUnitCost);
+});
+</script>
+{% endblock %}
