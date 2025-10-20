@@ -11,17 +11,6 @@
         <p class="welcome-subtitle">Administra y visualiza todos los productos del menú</p>
     </div>
 
-    <!-- Mensajes -->
-    {% if messages %}
-    <div class="messages-container">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <!-- Botones de Acción -->
     <div class="action-buttons">
         <button class="add-product-btn" onclick="openAddProductModal()">
@@ -78,7 +67,7 @@
                 </div>
                 <div class="product-actions">
                     <button class="edit-btn" onclick="editProduct({{ producto.id }})">✏️</button>
-                    <button class="delete-btn" onclick="deleteProduct({{ producto.id }})">🗑️</button>
+                    <button class="delete-btn" onclick="confirmDeleteProduct({{ producto.id }}, '{{ producto.nombre|escapejs }}')">🗑️</button>
                 </div>
             </div>
             <div class="product-info">
@@ -104,7 +93,7 @@
 
 <!-- Modal para agregar producto -->
 <div id="productModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
             <h2 id="modalTitle">Agregar Nuevo Producto</h2>
             <span class="close" onclick="closeModal()">&times;</span>
@@ -112,46 +101,151 @@
         <div class="modal-body">
             <form id="productForm" method="post" action="{% url 'crear_producto' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="form-group">
-                    <label for="nombre">Nombre del Producto *</label>
-                    <input type="text" id="nombre" name="nombre" required maxlength="100" placeholder="Ej: Hamburguesa Clásica">
-                </div>
                 
-                <div class="form-group">
-                    <label for="descripcion">Descripción</label>
-                    <textarea id="descripcion" name="descripcion" rows="3" placeholder="Describe el producto..."></textarea>
-                </div>
-                
-                <div class="form-row">
+                <!-- Información Básica del Producto -->
+                <div class="form-section">
+                    <h3>📋 Información del Producto</h3>
+                    
                     <div class="form-group">
-                        <label for="precio">Precio ($) *</label>
-                        <input type="number" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00">
+                        <label for="nombre">Nombre del Producto *</label>
+                        <input type="text" id="nombre" name="nombre" required maxlength="100" 
+                               pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                               title="Solo se permiten letras y espacios"
+                               oninput="validateLettersOnly(this)"
+                               placeholder="Ej: Hamburguesa Clásica" class="form-control">
+                        <div class="error-message" id="nombreError"></div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="categoria">Categoría *</label>
-                        <select id="categoria" name="categoria" required>
-                            <option value="">Selecciona una categoría</option>
-                            {% for categoria in categorias %}
-                            <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="descripcion">Descripción *</label>
+                        <textarea id="descripcion" name="descripcion" rows="3" 
+                                  placeholder="Describe el producto..." required class="form-control"></textarea>
+                        <div class="error-message" id="descripcionError"></div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoria">Categoría *</label>
+                            <select id="categoria" name="categoria" required class="form-control">
+                                <option value="">Selecciona una categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="error-message" id="categoriaError"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receta del Producto -->
+                <div class="form-section">
+                    <h3>🍳 Receta del Producto</h3>
+                    <div class="receta-info">
+                        <p>Agrega los ingredientes necesarios para preparar este producto:</p>
+                    </div>
+                    
+                    <div id="receta-container">
+                        <!-- Los ingredientes se agregarán dinámicamente aquí -->
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ingrediente_select">Ingrediente</label>
+                            <select id="ingrediente_select" class="form-control">
+                                <option value="">Selecciona un ingrediente</option>
+                                {% for ingrediente in ingredientes %}
+                                <option value="{{ ingrediente.id }}" 
+                                        data-unidad="{{ ingrediente.unidad_medida }}"
+                                        data-costo="{{ ingrediente.costo_unitario }}"
+                                        data-stock="{{ ingrediente.stock_actual }}">
+                                    {{ ingrediente.nombre }} (Stock: {{ ingrediente.stock_actual }} {{ ingrediente.unidad_medida }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cantidad_ingrediente">Cantidad</label>
+                            <div class="cantidad-container">
+                                <input type="number" id="cantidad_ingrediente" step="0.01" min="0.01" 
+                                       class="form-control" placeholder="0.00" oninput="calcularCostoIngrediente()">
+                                <span id="unidad_ingrediente" class="unidad-text">-</span>
+                            </div>
+                            <small class="help-text" id="costo_ingrediente_text">Costo: $0.00</small>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn-add-ingrediente" onclick="agregarIngrediente()">
+                        <span>+</span> Agregar a la Receta
+                    </button>
+                    
+                    <!-- Lista de ingredientes agregados -->
+                    <div id="ingredientes-agregados" class="ingredientes-list">
+                        <h4>Ingredientes en la receta:</h4>
+                        <div id="lista-ingredientes" class="lista-ingredientes">
+                            <div class="no-ingredientes">No hay ingredientes agregados</div>
+                        </div>
+                        
+                        <!-- Resumen de costos -->
+                        <div class="costos-resumen">
+                            <div class="costo-item">
+                                <span>Costo de Ingredientes:</span>
+                                <span id="costo-total-ingredientes">$0.00</span>
+                            </div>
+                            <div class="costo-item">
+                                <label for="mano_obra">Mano de Obra (%)</label>
+                                <input type="number" id="mano_obra" name="mano_obra" value="30" min="0" max="100" 
+                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                <span id="costo-mano-obra">$0.00</span>
+                            </div>
+                            <div class="costo-item">
+                                <label for="ganancia">Margen de Ganancia (%)</label>
+                                <input type="number" id="ganancia" name="ganancia" value="40" min="0" max="100" 
+                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                <span id="costo-ganancia">$0.00</span>
+                            </div>
+                            <div class="costo-total">
+                                <strong>Precio Sugerido:</strong>
+                                <strong id="precio-sugerido">$0.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precio Final -->
+                <div class="form-section">
+                    <h3>💰 Precio de Venta</h3>
+                    <div class="form-group">
+                        <label for="precio">Precio Final ($) *</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" required 
+                               placeholder="0.00" class="form-control" oninput="actualizarPrecioManual()">
+                        <small class="help-text">Puedes ajustar el precio sugerido según sea necesario</small>
+                        <div class="error-message" id="precioError"></div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="imagen">Imagen del Producto</label>
-                    <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input">
-                    <small class="file-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</small>
-                    <div id="imagePreview" class="image-preview"></div>
+                <!-- Imagen del Producto -->
+                <div class="form-section">
+                    <h3>🖼️ Imagen del Producto</h3>
+                    <div class="form-group">
+                        <label for="imagen">Imagen del Producto *</label>
+                        <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input" required
+                               onchange="previewImage(this)">
+                        <small class="file-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</small>
+                        <div id="imagePreview" class="image-preview"></div>
+                        <div class="error-message" id="imagenError"></div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="disponible" name="disponible" checked>
-                        <span class="checkmark"></span>
-                        Producto disponible
-                    </label>
+                <!-- Disponibilidad -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="disponible" name="disponible" checked>
+                            <span class="checkmark"></span>
+                            Producto disponible
+                        </label>
+                    </div>
                 </div>
                 
                 <div class="form-actions">
@@ -163,6 +257,7 @@
     </div>
 </div>
 
+<!-- Los otros modales (categoría, gestionar categorías, etc.) se mantienen igual -->
 <!-- Modal para agregar categoría -->
 <div id="categoryModal" class="modal">
     <div class="modal-content">
@@ -175,7 +270,9 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="nombre_categoria">Nombre de la Categoría *</label>
-                    <input type="text" id="nombre_categoria" name="nombre" required maxlength="100" placeholder="Ej: Bebidas, Postres, etc.">
+                    <input type="text" id="nombre_categoria" name="nombre" required maxlength="100" 
+                           placeholder="Ej: Bebidas, Postres, etc." class="form-control">
+                    <div class="error-message" id="categoriaNameError"></div>
                 </div>
                 
                 <div class="form-actions">
@@ -214,7 +311,7 @@
                                 <span class="product-count">
                                     {{ categoria.producto_set.count }} producto(s)
                                 </span>
-                                <button class="delete-category-btn" onclick="deleteCategory({{ categoria.id }}, '{{ categoria.nombre }}')" 
+                                <button class="delete-category-btn" onclick="confirmDeleteCategory({{ categoria.id }}, '{{ categoria.nombre|escapejs }}')" 
                                         {% if categoria.producto_set.count > 0 %}disabled title="No se puede eliminar categoría con productos"{% endif %}>
                                     🗑️
                                 </button>
@@ -240,11 +337,72 @@
 </form>
 
 <!-- Formulario oculto para eliminar categorías -->
-<form id="deleteCategoryForm" method="post" action="" style="display: none;">
+<form id="deleteCategoryForm" method="post" style="display: none;">
     {% csrf_token %}
 </form>
 
+<!-- Custom Alert Modal -->
+<div id="customAlert" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2 id="alertTitle">Alerta</h2>
+            <span class="close" onclick="closeCustomAlert()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="alertMessage"></p>
+            <div class="form-actions" style="justify-content: center;">
+                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
+/* Estilos adicionales para el nuevo diseño */
+.form-control-small {
+    width: 80px;
+    padding: 0.4rem;
+    margin: 0 0.5rem;
+}
+
+.costos-resumen {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #e8f5e8;
+    border-radius: 8px;
+    border: 1px solid #4caf50;
+}
+
+.costo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 4px;
+}
+
+.costo-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding: 0.8rem;
+    background: #4caf50;
+    color: white;
+    border-radius: 4px;
+    font-size: 1.1rem;
+}
+
+.help-text {
+    display: block;
+    color: #666;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    font-style: italic;
+}
 /* === Estilos Generales === */
 .menu-admin-dashboard {
     max-width: 1400px;
@@ -309,7 +467,7 @@
     flex-wrap: wrap;
 }
 
-.add-product-btn, .add-category-btn {
+.add-product-btn, .add-category-btn, .manage-categories-btn {
     border: none;
     padding: 1rem 2rem;
     border-radius: 25px;
@@ -343,7 +501,17 @@
     box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
 }
 
-.add-product-btn span, .add-category-btn span {
+.manage-categories-btn {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+}
+
+.manage-categories-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+}
+
+.add-product-btn span, .add-category-btn span, .manage-categories-btn span {
     font-size: 1.5rem;
 }
 
@@ -526,7 +694,7 @@
     padding: 0;
     border-radius: 15px;
     width: 90%;
-    max-width: 600px;
+    max-width: 800px;
     max-height: 90vh;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     animation: modalSlideIn 0.3s ease;
@@ -710,82 +878,7 @@ input:focus, textarea:focus, select:focus {
     color: #2c3e50;
 }
 
-/* === Responsive Design === */
-@media (max-width: 768px) {
-    .menu-admin-dashboard {
-        padding: 1rem;
-    }
-    
-    .welcome-title {
-        font-size: 2rem;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .add-product-btn, .add-category-btn {
-        width: 100%;
-        max-width: 300px;
-        justify-content: center;
-    }
-    
-    .category-tabs {
-        gap: 0.5rem;
-    }
-    
-    .category-tab {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-    }
-    
-    .products-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: 5% auto;
-        max-height: 85vh;
-    }
-    
-    .modal-body {
-        padding: 1.5rem;
-    }
-}
-
-/* Botón Gestionar Categorías */
-.manage-categories-btn {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.manage-categories-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
-}
-
-.manage-categories-btn span {
-    font-size: 1.5rem;
-}
-
-/* Lista de Categorías */
+/* === Lista de Categorías === */
 .categories-list h3 {
     margin-bottom: 1rem;
     color: #2c3e50;
@@ -848,21 +941,318 @@ input:focus, textarea:focus, select:focus {
     font-style: italic;
     padding: 2rem;
 }
+
+/* === Secciones del Formulario === */
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border-left: 4px solid #FF6B35;
+}
+
+.form-section h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.receta-info {
+    margin-bottom: 1rem;
+}
+
+.receta-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Contenedor de cantidad */
+.cantidad-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cantidad-container input {
+    padding-right: 60px;
+}
+
+.unidad-text {
+    position: absolute;
+    right: 10px;
+    color: #6c757d;
+    font-size: 0.9rem;
+    background: #f8f9fa;
+    padding: 0 5px;
+}
+
+/* Botón agregar ingrediente */
+.btn-add-ingrediente {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.btn-add-ingrediente:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+/* Lista de ingredientes agregados */
+.ingredientes-list {
+    margin-top: 1rem;
+}
+
+.ingredientes-list h4 {
+    margin: 0 0 0.5rem 0;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.lista-ingredientes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ingrediente-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.ingrediente-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.ingrediente-nombre {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.ingrediente-cantidad {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.btn-remove-ingrediente {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.btn-remove-ingrediente:hover {
+    background: #c0392b;
+}
+
+.no-ingredientes {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 1rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px dashed #dee2e6;
+}
+
+/* Custom Alert Modal */
+#customAlert .modal-content {
+    max-width: 400px;
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+    .menu-admin-dashboard {
+        padding: 1rem;
+    }
+    
+    .welcome-title {
+        font-size: 2rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .add-product-btn, .add-category-btn, .manage-categories-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+    
+    .category-tabs {
+        gap: 0.5rem;
+    }
+    
+    .category-tab {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        max-height: 85vh;
+    }
+    
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    /* Ajustes específicos para la sección de receta en móviles */
+    .cantidad-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .cantidad-container input {
+        padding-right: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .unidad-text {
+        position: static;
+        text-align: center;
+        padding: 0.3rem;
+        background: #e9ecef;
+        border-radius: 4px;
+    }
+    
+    .ingrediente-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .btn-remove-ingrediente {
+        align-self: flex-end;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel, .btn-save {
+        width: 100%;
+    }
+}
+
+/* Mensajes de error */
+.error-message {
+    display: none;
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 0.3rem;
+    font-weight: 500;
+}
+
+input.error, textarea.error, select.error {
+    border-color: #e74c3c;
+}
+
+/* Estilos para el checkbox personalizado */
+.checkbox-label {
+    position: relative;
+    padding-left: 35px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.checkbox-label input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 25px;
+    width: 25px;
+    background-color: #eee;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+.checkbox-label input:checked ~ .checkmark {
+    background-color: #27ae60;
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.checkbox-label input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.checkbox-label .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
 </style>
 
 <script>
 // Funciones para los modales
 function openAddProductModal() {
     document.getElementById('productModal').style.display = 'block';
-    document.getElementById('modalTitle').textContent = 'Agregar Nuevo Producto';
-    document.getElementById('productForm').reset();
-    document.getElementById('productForm').action = "{% url 'crear_producto' %}";
-    document.getElementById('imagePreview').innerHTML = '';
+    // Resetear estado al abrir el modal
+    precioModificadoManual = false;
 }
 
 function openAddCategoryModal() {
     document.getElementById('categoryModal').style.display = 'block';
-    document.getElementById('categoryForm').reset();
 }
 
 function openManageCategoriesModal() {
@@ -871,6 +1261,11 @@ function openManageCategoriesModal() {
 
 function closeModal() {
     document.getElementById('productModal').style.display = 'none';
+    // Limpiar la receta cuando se cierra el modal
+    ingredientesReceta = [];
+    precioModificadoManual = false;
+    actualizarListaIngredientes();
+    calcularPrecioFinal();
 }
 
 function closeCategoryModal() {
@@ -881,64 +1276,416 @@ function closeManageCategoriesModal() {
     document.getElementById('manageCategoriesModal').style.display = 'none';
 }
 
+function closeCustomAlert() {
+    document.getElementById('customAlert').style.display = 'none';
+}
+
+// Función de alerta personalizada
+function showCustomAlert(title, message, confirmCallback = null) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('customAlert').style.display = 'block';
+    
+    const confirmBtn = document.getElementById('alertConfirmBtn');
+    if (confirmCallback) {
+        confirmBtn.onclick = function() {
+            confirmCallback();
+            closeCustomAlert();
+        };
+    } else {
+        confirmBtn.onclick = closeCustomAlert;
+    }
+}
+
+// Funciones de validación
+function validateLettersOnly(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById(input.id + 'Error');
+    
+    // Permitir letras, espacios y algunos caracteres especiales
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    
+    if (!value) {
+        showError(input, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    if (!lettersOnly.test(value)) {
+        showError(input, errorElement, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    
+    if (value.length < 2) {
+        showError(input, errorElement, 'El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    return true;
+}
+
+function validateCategoryName(input) {
+    const value = input.value.trim();
+    const errorElement = document.getElementById('categoriaNameError');
+    
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
+    
+    if (!value) {
+        showError(input, errorElement, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    if (!lettersOnly.test(value)) {
+        showError(input, errorElement, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    
+    if (value.length < 2) {
+        showError(input, errorElement, 'La categoría debe tener al menos 2 caracteres');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    return true;
+}
+
+function validatePrice(input) {
+    const value = parseFloat(input.value);
+    const errorElement = document.getElementById('precioError');
+    
+    if (!input.value) {
+        showError(input, errorElement, 'El precio es obligatorio');
+        return false;
+    }
+    
+    if (isNaN(value) || value < 0) {
+        showError(input, errorElement, 'El precio debe ser un número válido mayor o igual a 0');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    return true;
+}
+
+function validateImage(input) {
+    const file = input.files[0];
+    const errorElement = document.getElementById('imagenError');
+    
+    if (!file) {
+        showError(input, errorElement, 'Debes seleccionar una imagen');
+        return false;
+    }
+    
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+        showError(input, errorElement, 'Formato no válido. Solo JPG, PNG o GIF');
+        return false;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+        showError(input, errorElement, 'La imagen es demasiado grande. Máximo 5MB');
+        return false;
+    }
+    
+    hideError(input, errorElement);
+    return true;
+}
+
+// Helper functions para errores
+function showError(input, errorElement, message) {
+    input.classList.add('error');
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+}
+
+function hideError(input, errorElement) {
+    input.classList.remove('error');
+    errorElement.style.display = 'none';
+}
+
+function clearAllErrors() {
+    const errors = document.querySelectorAll('.error-message');
+    const errorInputs = document.querySelectorAll('.error');
+    
+    errors.forEach(error => error.style.display = 'none');
+    errorInputs.forEach(input => input.classList.remove('error'));
+}
+
+// Validación de formularios completos
+function validateProductForm(event) {
+    const nombre = document.getElementById('nombre');
+    const descripcion = document.getElementById('descripcion');
+    const precio = document.getElementById('precio');
+    const categoria = document.getElementById('categoria');
+    const imagen = document.getElementById('imagen');
+    
+    clearAllErrors();
+    
+    let isValid = true;
+    
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!descripcion.value.trim()) {
+        showError(descripcion, document.getElementById('descripcionError'), 'La descripción es obligatoria');
+        isValid = false;
+    }
+    if (!validatePrice(precio)) isValid = false;
+    if (!categoria.value) {
+        showError(categoria, document.getElementById('categoriaError'), 'Debes seleccionar una categoría');
+        isValid = false;
+    }
+    if (!validateImage(imagen)) isValid = false;
+    
+    // Validar que haya al menos un ingrediente en la receta
+    if (ingredientesReceta.length === 0) {
+        showCustomAlert('Error de Validación', 'Debes agregar al menos un ingrediente a la receta del producto.');
+        isValid = false;
+    }
+    
+    if (!isValid) {
+        event.preventDefault();
+        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario antes de continuar.');
+    }
+    
+    return isValid;
+}
+
+function validateCategoryForm(event) {
+    const nombreCategoria = document.getElementById('nombre_categoria');
+    
+    clearAllErrors();
+    
+    if (!validateCategoryName(nombreCategoria)) {
+        event.preventDefault();
+        showCustomAlert('Error de Validación', 'Por favor corrige el error en el campo de categoría.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Funciones de eliminación
+function confirmDeleteProduct(productId, productName) {
+    showCustomAlert(
+        'Confirmar Eliminación',
+        `¿Estás seguro de que quieres eliminar el producto "${productName}"? Esta acción no se puede deshacer.`,
+        function() {
+            const form = document.getElementById('deleteForm');
+            form.action = "{% url 'eliminar_producto' 0 %}".replace('0', productId);
+            form.submit();
+        }
+    );
+}
+
+function confirmDeleteCategory(categoriaId, categoriaNombre) {
+    showCustomAlert(
+        'Confirmar Eliminación',
+        `¿Estás seguro de que quieres eliminar la categoría "${categoriaNombre}"?`,
+        function() {
+            const form = document.getElementById('deleteCategoryForm');
+            form.action = "{% url 'eliminar_categoria' 0 %}".replace('0', categoriaId);
+            form.submit();
+        }
+    );
+}
+
 function editProduct(productId) {
-    window.location.href = `/productos/editar/${productId}/`;
+    window.location.href = `/editar/${productId}/`;
 }
 
-function deleteProduct(productId) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `/productos/eliminar/${productId}/`;
-        form.submit();
+// =============================================
+// SISTEMA DE CÁLCULO AUTOMÁTICO DE PRECIOS
+// =============================================
+
+// Variables globales para la receta
+let ingredientesReceta = [];
+let precioModificadoManual = false;
+
+// Actualizar unidad y costo cuando se selecciona un ingrediente
+document.getElementById('ingrediente_select')?.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const unidad = selectedOption.getAttribute('data-unidad') || '-';
+    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+    
+    document.getElementById('unidad_ingrediente').textContent = unidad;
+    calcularCostoIngrediente();
+});
+
+// Calcular costo del ingrediente seleccionado
+function calcularCostoIngrediente() {
+    const ingredienteSelect = document.getElementById('ingrediente_select');
+    const cantidadInput = document.getElementById('cantidad_ingrediente');
+    const selectedOption = ingredienteSelect.options[ingredienteSelect.selectedIndex];
+    
+    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+    const cantidad = parseFloat(cantidadInput.value) || 0;
+    const costo = costoUnitario * cantidad;
+    
+    document.getElementById('costo_ingrediente_text').textContent = `Costo: $${costo.toFixed(4)}`;
+}
+
+// Agregar ingrediente a la receta
+function agregarIngrediente() {
+    const ingredienteSelect = document.getElementById('ingrediente_select');
+    const cantidadInput = document.getElementById('cantidad_ingrediente');
+    const selectedOption = ingredienteSelect.options[ingredienteSelect.selectedIndex];
+    
+    const ingredienteId = ingredienteSelect.value;
+    const cantidad = parseFloat(cantidadInput.value);
+    const ingredienteNombre = selectedOption.text.split(' (')[0];
+    const unidad = selectedOption.getAttribute('data-unidad');
+    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+    const costo = costoUnitario * cantidad;
+    
+    // Validaciones
+    if (!ingredienteId) {
+        showCustomAlert('Error', 'Por favor selecciona un ingrediente');
+        return;
+    }
+    
+    if (!cantidad || cantidad <= 0) {
+        showCustomAlert('Error', 'Por favor ingresa una cantidad válida');
+        return;
+    }
+    
+    // Verificar stock disponible
+    const stock = parseFloat(selectedOption.getAttribute('data-stock')) || 0;
+    if (cantidad > stock) {
+        showCustomAlert('Error', `Stock insuficiente. Disponible: ${stock} ${unidad}`);
+        return;
+    }
+    
+    // Verificar si el ingrediente ya está en la receta
+    if (ingredientesReceta.some(item => item.ingrediente_id == ingredienteId)) {
+        showCustomAlert('Error', 'Este ingrediente ya está en la receta');
+        return;
+    }
+    
+    // Agregar a la lista
+    ingredientesReceta.push({
+        ingrediente_id: ingredienteId,
+        ingrediente_nombre: ingredienteNombre,
+        cantidad: cantidad,
+        unidad: unidad,
+        costo_unitario: costoUnitario,
+        costo_total: costo
+    });
+    
+    // Actualizar la interfaz
+    actualizarListaIngredientes();
+    calcularPrecioFinal();
+    
+    // Limpiar campos
+    ingredienteSelect.value = '';
+    cantidadInput.value = '';
+    document.getElementById('unidad_ingrediente').textContent = '-';
+    document.getElementById('costo_ingrediente_text').textContent = 'Costo: $0.00';
+}
+
+// Actualizar lista de ingredientes en la interfaz
+function actualizarListaIngredientes() {
+    const lista = document.getElementById('lista-ingredientes');
+    
+    if (ingredientesReceta.length === 0) {
+        lista.innerHTML = '<div class="no-ingredientes">No hay ingredientes agregados</div>';
+        // Resetear costos
+        document.getElementById('costo-total-ingredientes').textContent = '$0.00';
+        document.getElementById('costo-mano-obra').textContent = '$0.00';
+        document.getElementById('costo-ganancia').textContent = '$0.00';
+        document.getElementById('precio-sugerido').textContent = '$0.00';
+        return;
+    }
+    
+    lista.innerHTML = ingredientesReceta.map((ingrediente, index) => `
+        <div class="ingrediente-item">
+            <div class="ingrediente-info">
+                <span class="ingrediente-nombre">${ingrediente.ingrediente_nombre}</span>
+                <span class="ingrediente-cantidad">${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costo_total.toFixed(4)}</span>
+            </div>
+            <button type="button" class="btn-remove-ingrediente" onclick="removerIngrediente(${index})">
+                ×
+            </button>
+        </div>
+    `).join('');
+    
+    // Actualizar campos ocultos del formulario
+    actualizarCamposReceta();
+}
+
+// Remover ingrediente de la receta
+function removerIngrediente(index) {
+    ingredientesReceta.splice(index, 1);
+    actualizarListaIngredientes();
+    calcularPrecioFinal();
+}
+
+// Calcular precio final automáticamente
+function calcularPrecioFinal() {
+    if (precioModificadoManual) return;
+    
+    // Calcular costo total de ingredientes
+    const costoTotalIngredientes = ingredientesReceta.reduce((total, ingrediente) => {
+        return total + ingrediente.costo_total;
+    }, 0);
+    
+    document.getElementById('costo-total-ingredientes').textContent = `$${costoTotalIngredientes.toFixed(2)}`;
+    
+    // Calcular mano de obra (porcentaje del costo de ingredientes)
+    const manoObraPorcentaje = parseFloat(document.getElementById('mano_obra').value) || 0;
+    const costoManoObra = costoTotalIngredientes * (manoObraPorcentaje / 100);
+    document.getElementById('costo-mano-obra').textContent = `$${costoManoObra.toFixed(2)}`;
+    
+    // Calcular ganancia (porcentaje del costo total + mano de obra)
+    const gananciaPorcentaje = parseFloat(document.getElementById('ganancia').value) || 0;
+    const costoBase = costoTotalIngredientes + costoManoObra;
+    const costoGanancia = costoBase * (gananciaPorcentaje / 100);
+    document.getElementById('costo-ganancia').textContent = `$${costoGanancia.toFixed(2)}`;
+    
+    // Calcular precio sugerido
+    const precioSugerido = costoBase + costoGanancia;
+    document.getElementById('precio-sugerido').textContent = `$${precioSugerido.toFixed(2)}`;
+    
+    // Actualizar campo de precio (solo si no fue modificado manualmente)
+    if (!precioModificadoManual) {
+        document.getElementById('precio').value = precioSugerido.toFixed(2);
     }
 }
 
-function deleteCategory(categoriaId, categoriaNombre) {
-    if (confirm(`¿Estás seguro de que quieres eliminar la categoría "${categoriaNombre}"?`)) {
-        const form = document.getElementById('deleteCategoryForm');
-        form.action = `/productos/categoria/eliminar/${categoriaId}/`;
-        form.submit();
-    }
+// Actualizar campos ocultos del formulario con la receta
+function actualizarCamposReceta() {
+    const recetaContainer = document.getElementById('receta-container');
+    
+    // Limpiar campos anteriores
+    recetaContainer.innerHTML = '';
+    
+    // Agregar campos ocultos para cada ingrediente
+    ingredientesReceta.forEach((ingrediente, index) => {
+        recetaContainer.innerHTML += `
+            <input type="hidden" name="ingredientes[${index}][id]" value="${ingrediente.ingrediente_id}">
+            <input type="hidden" name="ingredientes[${index}][cantidad]" value="${ingrediente.cantidad}">
+        `;
+    });
 }
 
-
-function deleteProduct(productId) {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-        const form = document.getElementById('deleteForm');
-        form.action = `/productos/eliminar/${productId}/`;
-        form.submit();
-    }
+// Cuando el usuario modifica manualmente el precio
+function actualizarPrecioManual() {
+    precioModificadoManual = true;
 }
 
 // Preview de imagen
-document.getElementById('imagen')?.addEventListener('change', function(e) {
+function previewImage(input) {
     const preview = document.getElementById('imagePreview');
-    const file = e.target.files[0];
+    const file = input.files[0];
     
     if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-            alert('La imagen es demasiado grande. Máximo 5MB.');
-            this.value = '';
-            preview.innerHTML = '';
-            return;
-        }
-        
-        if (!file.type.match('image.*')) {
-            alert('Por favor selecciona un archivo de imagen.');
-            this.value = '';
-            preview.innerHTML = '';
-            return;
-        }
-        
         const reader = new FileReader();
         reader.onload = function(e) {
-            preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa">`;
-        }
+            preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa" style="max-width: 100%; max-height: 200px; border-radius: 8px;">`;
+        };
         reader.readAsDataURL(file);
     } else {
         preview.innerHTML = '';
     }
-});
+}
 
 // Filtrado de productos por categoría
 document.addEventListener('DOMContentLoaded', function() {
@@ -961,37 +1708,55 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
+    // Inicializar event listeners para cálculos de precio
+    const manoObraInput = document.getElementById('mano_obra');
+    const gananciaInput = document.getElementById('ganancia');
+    
+    if (manoObraInput) {
+        manoObraInput.addEventListener('input', calcularPrecioFinal);
+    }
+    if (gananciaInput) {
+        gananciaInput.addEventListener('input', calcularPrecioFinal);
+    }
+    
+    // Inicializar event listener para el input de cantidad
+    const cantidadInput = document.getElementById('cantidad_ingrediente');
+    if (cantidadInput) {
+        cantidadInput.addEventListener('input', calcularCostoIngrediente);
+    }
 });
 
 // Cerrar modales al hacer clic fuera
-window.onclick = function(event) {
+window.addEventListener('click', function(event) {
     const productModal = document.getElementById('productModal');
     const categoryModal = document.getElementById('categoryModal');
+    const manageModal = document.getElementById('manageCategoriesModal');
+    const customAlert = document.getElementById('customAlert');
     
-    if (event.target === productModal) {
-        closeModal();
-    }
-    if (event.target === categoryModal) {
-        closeCategoryModal();
-    }
-}
+    if (event.target === productModal) closeModal();
+    if (event.target === categoryModal) closeCategoryModal();
+    if (event.target === manageModal) closeManageCategoriesModal();
+    if (event.target === customAlert) closeCustomAlert();
+});
 
 // Cerrar modales con ESC
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeModal();
         closeCategoryModal();
+        closeManageCategoriesModal();
+        closeCustomAlert();
     }
 });
 
-// Validación del formulario
-document.getElementById('productForm')?.addEventListener('submit', function(e) {
-    const precio = document.getElementById('precio');
-    if (precio && parseFloat(precio.value) < 0) {
-        e.preventDefault();
-        alert('El precio no puede ser negativo');
-        precio.focus();
-    }
+// Inicialización
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Sistema de gestión de menú BullBurger cargado correctamente 🍔');
 });
 </script>
+
+
+
+
 {% endblock %}

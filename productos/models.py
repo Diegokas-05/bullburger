@@ -22,6 +22,13 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
     
+    def calcular_costo_produccion(self):
+        """Calcula el costo automáticamente basado en los ingredientes"""
+        total = 0
+        for receta in self.receta_set.all():
+            total += receta.cantidad * receta.ingrediente.costo_unitario
+        return total
+    
 class Promocion(models.Model):
     codigo = models.CharField(max_length=50, unique=True)
     descripcion = models.TextField()
