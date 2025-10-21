@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullBurger - Nuestra Ubicación</title>
+  <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-top">
+      <img src="{% static 'usuarios/img/logoBullBurger.png' %}" alt="BullBurger Logo" class="logo-img">
+
+      <nav class="nav">
+        <a href="{% url 'inicio_cliente' %}">Inicio</a>
+        <a href="{% url 'menu_cliente' %}">Menú</a>
+        <a href="{% url 'ubicacion_cliente' %}" class="activo">Nuestra Ubicación</a>
+        <a href="{% url 'pedidos_cliente' %}">Mis Pedidos</a>
+      </nav>
+
+      <a href="{% url 'carrito_cliente' %}" class="btn_carrito">
+      🛒&nbsp; <span class="carrito-amount">${{ total_carrito|default:"0.00" }}</span>
+    </a>
+    </div>
+    <div class="separator"></div>
+    <div class="separator dos"></div>
+  </header>
+
+  <main class="ubicacion">
+    <h1 class="titulo-ubicacion">Conoce nuestra ubicación</h1>
+    
+    <div class="mapa-container">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1936.9633971493345!2d-88.85169380160522!3d13.843432699999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f635f218690f011%3A0x8700216b32fa7c1a!2sArtisan!5e0!3m2!1ses-419!2sus!4v1760828865788!5m2!1ses-419!2sus" 
+        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </main>
+</body>
+</html>

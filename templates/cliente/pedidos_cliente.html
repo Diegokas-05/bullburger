@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullBurger - Mis Pedidos</title>
+  <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-top">
+      <img src="{% static 'usuarios/img/logoBullBurger.png' %}" alt="BullBurger Logo" class="logo-img">
+      <nav class="nav">
+        <a href="{% url 'inicio_cliente' %}">Inicio</a>
+        <a href="{% url 'menu_cliente' %}">Menú</a>
+        <a href="{% url 'ubicacion_cliente' %}">Nuestra Ubicación</a>
+        <a href="#" class="activo">Mis Pedidos</a>
+      </nav>
+      <a href="{% url 'carrito_cliente' %}" class="btn_carrito">
+      🛒&nbsp; <span class="carrito-amount">${{ total_carrito|default:"0.00" }}</span>
+    </a>
+    </div>
+    <div class="separator"></div>
+    <div class="separator dos"></div>
+  </header>
+
+  <main class="pedidos">
+    <h1 class="titulo-pedidos">Mis Pedidos</h1>
+
+    <div class="contenedor-pedidos">
+
+      <!-- 🟡 Pedido pendiente -->
+      <div class="pedido-card pendiente">
+        <div class="pedido-header">
+          <h3>Pedido #002</h3>
+          <span class="estado">Pendiente</span>
+        </div>
+        <p><strong>Fecha:</strong> 19/10/2025</p>
+        <p><strong>Hora:</strong> 4:30 PM</p>
+        <p><strong>Productos:</strong> Combo 1, Papas Grandes</p>
+        <p><strong>Total:</strong> $9.75</p>
+      </div>
+
+      <!-- 🟢 Pedido entregado -->
+      <div class="pedido-card completado">
+        <div class="pedido-header">
+          <h3>Pedido #001</h3>
+          <span class="estado">Completado</span>
+        </div>
+        <p><strong>Fecha:</strong> 18/10/2025</p>
+        <p><strong>Hora:</strong> 2:45 PM</p>
+        <p><strong>Productos:</strong> Clasic-Bull, Papas, Batido de Fresa</p>
+        <p><strong>Total:</strong> $12.50</p>
+      </div>
+
+    </div>
+  </main>
+</body>
+</html>
