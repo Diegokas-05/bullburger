@@ -142,6 +142,7 @@ def editar_cliente(request, id):
     return HttpResponseNotAllowed(['GET', 'POST'])
 
 
+
 @login_required
 @require_POST
 def eliminar_cliente(request, id):
