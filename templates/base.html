@@ -6,8 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bullburger{% endblock %}</title>
 
-    <!-- Estilos internos (fusionando el diseño de rama_jona_new) -->
+    <!-- CSS global -->
+    <link rel="stylesheet" href="{% static 'css/base_style.css' %}">
+
     <style>
+        /* === Tus estilos personalizados (los mantengo igual) === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+        }
+
         /* Navbar principal */
         .navbar {
             background-color: #e0c68b;
@@ -74,7 +89,7 @@
             padding-bottom: 2px;
         }
 
-        /* Dropdown (Usuarios) */
+        /* Dropdown */
         .dropdown {
             position: relative;
         }
@@ -170,69 +185,6 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-
-        /* Cards y botones */
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: #d32f2f;
-            color: white;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab.active {
-            border-bottom-color: #d32f2f;
-            color: #d32f2f;
-            font-weight: bold;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
     </style>
 </head>
 
@@ -240,7 +192,6 @@
 
 {% if user.is_authenticated %}
 <nav class="navbar">
-    <!-- Logo -->
     <div class="navbar-left">
         <a href="{% url 'admin_dashboard' %}">
             <img src="{% static 'img/logo_bullburger.png' %}" alt="BullBurger">
@@ -248,13 +199,11 @@
         </a>
     </div>
 
-    <!-- Menú principal -->
     <ul class="navbar-menu">
         <li><a href="{% url 'menu_administrador' %}">Gestión de menú</a></li>
         <li><a href="{% url 'inventario' %}">Inventario</a></li>
         <li><a href="#">Pedidos</a></li>
 
-        <!-- Dropdown de Usuarios -->
         <li class="dropdown">
             <a href="#">Usuarios</a>
             <ul class="dropdown-content">
@@ -267,12 +216,15 @@
         <li><a href="/admin/">Admin Django</a></li>
     </ul>
 
-    <!-- Usuario -->
     <div class="navbar-user">
         <span>Hola, {{ user.nombre|default:user.email }}</span>
         <a href="{% url 'logout' %}" class="btn-secondary">Cerrar Sesión</a>
     </div>
 </nav>
+
+<!-- separadores opcionales para estética -->
+<div class="separator"></div>
+<div class="separator dos"></div>
 {% endif %}
 
 {% if user.is_authenticated %}
@@ -298,57 +250,5 @@
 
 {% block scripts %}
 {% endblock %}
-    <!-- Vinculamos el CSS externo -->
-    <link rel="stylesheet" href="{% static 'css/base_style.css' %}">
-</head>
-<body class="{% if not user.is_authenticated %}auth-page{% endif %}">
-    {% if user.is_authenticated %}
-    <nav class="navbar">
-        <div class="navbar-left">
-            <a href="{% url 'admin_dashboard' %}">
-                <img src="{% static 'img/logo_bullburger.png' %}" alt="BullBurger">
-                Bull<span>Burger</span>
-            </a>
-        </div>
-
-        <ul class="navbar-menu">
-            <li><a href="{% url 'menu_administrador' %}">Gestio de menú</a></li>
-            <li><a href="{% url 'inventario' %}">Inventario</a></li>
-            <li><a href="#">Pedidos</a></li>
-            <li><a href="#">Usuarios</a></li>
-            <li><a href="/admin/">Admin Django</a></li>
-        </ul>
-
-        <div class="navbar-user">
-            <span>Hola, {{ user.nombre|default:user.email }}</span>
-            <a href="{% url 'logout' %}" class="btn-secondary">Cerrar Sesión</a>
-        </div>
-        
-    </nav>
-    <div class="separator"></div>
-    <div class="separator dos"></div>
-    {% endif %}
-
-    {% if user.is_authenticated %}
-    <div class="container">
-    {% endif %}
-
-        {% if user.is_authenticated and messages %}
-        <div class="messages">
-            {% for message in messages %}
-                {% if message.tags == 'success' %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% block content %}{% endblock %}
-
-    {% if user.is_authenticated %}
-    </div>
-    {% endif %}
-
-    {% block scripts %}{% endblock %}
 </body>
 </html>
