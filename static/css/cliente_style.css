@@ -1,0 +1,448 @@
+
+/* Archivo: styles.css */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #D2C5B4;
+  color: #3e2c1c;
+}
+
+.header {
+background-color: #D2C5B4;
+  color: white;
+  padding-bottom: 0.5rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.logo-img {
+  height: 70px;
+}
+
+.nav a:hover{
+    color: #861400;
+}
+
+.nav a {
+  margin: 0 1rem;
+  color: rgb(66, 37, 21);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav a.activo {
+  color: #861400; 
+  font-weight: 600;
+  border-bottom: 2px solid #861400;
+}
+
+/* estilo del botón carrito en el header */
+.btn_carrito {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #861400;
+  color: #FFFFFF;
+  padding: 0.6rem 1.2rem;
+  border-radius: 25px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+.btn_carrito:hover {
+  background-color: #a31b00;
+  transform: translateY(-2px);
+}
+
+/* estilo del monto dentro del botón (opcional) */
+.btn_carrito-amount {
+  background: rgba(255,255,255,0.12);
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.separator {
+  height: 15px;
+  background-color: #f4c542;
+  
+}
+
+.separator.dos {
+  height: 15px;
+  background-color: #301E15;
+  margin-top: 5px;
+}
+
+.welcome {
+  border-radius: 10px;
+  margin: 0 2rem;
+  margin-top: 20px;
+  text-align: center;
+  padding: 2rem;
+  background-color: #f0ebe4;
+}
+
+.welcome p{
+    color: #861400;
+}
+.products {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  flex-wrap: wrap;
+}
+
+.product-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  width: 250px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.product-card h3 {
+  background-color: #f4c542;
+  margin: 0;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+}
+
+/* ---------- SECCIÓN MENÚ ---------- */
+.menu {
+  background-color: #f7efe2;
+  padding: 2rem;
+  border-radius: 10px;
+  margin: 2rem;
+  
+}
+
+.categorias {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.categoria {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.6rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  color: #442a1a;
+}
+
+.categoria:hover {
+  background-color: #f4c542;
+}
+
+.categoria.activo {
+  background-color: #f4c542;
+  color: #5a351e;
+  border: none;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  margin: 0 5.5rem;
+}
+
+.producto {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  overflow: hidden;
+  text-align: center;
+  width: 250px;
+  transition: transform 0.2s ease;
+}
+
+.producto img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.producto h3 {
+  background-color: #f4c542;
+  margin: 0;
+  padding: 0.6rem;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.1rem;
+  color: #3e2c1c;
+}
+
+.producto:hover {
+  transform: scale(1.05);
+}
+
+/* ---------- SECCIÓN CARRITO ---------- */
+.carrito {
+  background-color: #f7efe2;
+  border-radius: 10px;
+  margin: 2rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.titulo-carrito {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #3e2c1c;
+  margin-bottom: 0.5rem;
+}
+
+.linea-titulo {
+  width: 80%;
+  border: none;
+  border-top: 2px solid #3e2c1c;
+  margin-bottom: 2rem;
+}
+
+.carrito-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 0 5.5rem;
+}
+
+.item-carrito {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  width: 90%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.item-carrito img {
+  width: 120px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.info-producto {
+  flex: 1;
+  text-align: left;
+  margin-left: 1.5rem;
+}
+
+.info-producto h3 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #3e2c1c;
+}
+
+.info-producto p {
+  font-size: 0.9rem;
+  color: #4d3b29;
+  margin: 0.5rem 0;
+}
+
+.precio {
+  display: block;
+  font-weight: bold;
+  color: #000;
+  margin-top: 0.5rem;
+}
+
+.btn-eliminar {
+  background-color: #861400;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn-eliminar:hover {
+  background-color: #a31b00;
+}
+
+.carrito-total {
+  margin-top: 2rem;
+}
+
+.btn-pagar {
+  background-color: #f4c542;
+  color: #3e2c1c;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  padding: 1rem 3rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+
+.btn-pagar:hover {
+  transform: scale(1.05);
+}
+
+
+.stock {
+  display: block;
+  font-size: 0.85rem;
+  color: #861400;
+  margin-top: 0.3rem;
+}
+
+.acciones-producto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-left: 20px;
+}
+
+/* Botón EDITAR */
+.btn-editar {
+  background-color: #e0b837;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-editar:hover {
+  background-color: #b89213;
+}
+
+/* ---------- SECCIÓN UBICACIÓN ---------- */
+.ubicacion {
+  background-color: #f7efe2;
+  border-radius: 15px;
+  margin: 2rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.titulo-ubicacion {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 2rem;
+  color: #3e2c1c;
+  margin-bottom: 1.5rem;
+}
+
+.mapa-container {
+  background-color: #d2c5b4;
+  border-radius: 20px;
+  padding: 1rem;
+  width: 80%;
+  margin: 0 auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.mapa-container iframe {
+  width: 100%;
+  height: 350px;
+  border: none;
+  border-radius: 20px;
+}
+
+/* ---------- SECCIÓN MIS PEDIDOS ---------- */
+.pedidos {
+  background-color: #f7efe2;
+  border-radius: 15px;
+  margin: 2rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.titulo-pedidos {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 2rem;
+  color: #3e2c1c;
+  margin-bottom: 2rem;
+}
+
+.contenedor-pedidos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.pedido-card {
+  width: 80%;
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  padding: 1.5rem;
+  text-align: left;
+  border-left: 8px solid #d2c5b4;
+  transition: all 0.3s ease;
+}
+
+.pedido-card:hover {
+  transform: translateY(-5px);
+}
+
+.pedido-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.pedido-header h3 {
+  margin: 0;
+  color: #3e2c1c;
+}
+
+.estado {
+  padding: 0.3rem 1rem;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Colores según estado */
+.completado {
+  border-left-color: #2e7d32;
+}
+
+.completado .estado {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.pendiente {
+  border-left-color: #b89213;
+}
+
+.pendiente .estado {
+  background-color: #fff3cd;
+  color: #b89213;
+}

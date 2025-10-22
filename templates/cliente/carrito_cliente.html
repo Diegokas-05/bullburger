@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BullBurger - Mi Carrito</title>
+  <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
+</head>
+
+<body>
+  <header class="header">
+    <div class="header-top">
+      <img src="{% static 'usuarios/img/logoBullBurger.png' %}" alt="BullBurger Logo" class="logo-img">
+
+      <nav class="nav">
+        <a href="{% url 'inicio_cliente' %}">Inicio</a>
+        <a href="{% url 'menu_cliente' %}">Menú</a>
+        <a href="{% url 'ubicacion_cliente' %}">Nuestra Ubicación</a>
+        <a href="{% url 'pedidos_cliente' %}">Mis Pedidos</a>
+      </nav>
+
+      <a href="{% url 'carrito_cliente' %}" class="btn_carrito">
+      🛒&nbsp; <span class="carrito-amount">${{ total_carrito|default:"0.00" }}</span>
+    </a>
+    </div>
+
+    <div class="separator"></div>
+    <div class="separator dos"></div>
+  </header>
+
+  <main class="carrito">
+    <h1 class="titulo-carrito">MI BOLSA</h1>
+    <hr class="linea-titulo">
+
+    <div class="carrito-items">
+
+      <!-- ITEM 1 -->
+      <div class="item-carrito">
+        <img src="{% static 'usuarios/img/Clasic-Bull.jpg' %}" alt="CLASIC-BULL">
+        <div class="info-producto">
+          <h3>CLASIC-BULL</h3>
+          <p>Descripción breve del producto. Ingredientes principales o detalle corto.</p>
+          <span class="stock">Cantidad: 1</span>
+          <span class="precio">$ 0.00</span>
+        </div>
+        <div class="acciones-producto">
+          <button class="btn-editar">EDITAR</button>
+          <button class="btn-eliminar">ELIMINAR</button>
+        </div>
+      </div>
+
+      <!-- ITEM 2 -->
+      <div class="item-carrito">
+        <img src="{% static 'usuarios/img/Papas.jpg' %}" alt="PAPAS">
+        <div class="info-producto">
+          <h3>PAPAS</h3>
+          <p>Descripción breve del producto. Ingredientes principales o detalle corto.</p>
+          <span class="stock">Cantidad: 1</span>
+          <span class="precio">$ 0.00</span>
+        </div>
+        <div class="acciones-producto">
+          <button class="btn-editar">EDITAR</button>
+          <button class="btn-eliminar">ELIMINAR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="carrito-total">
+      <button class="btn-pagar">PAGAR CARRITO<br><span>$0.00</span></button>
+    </div>
+  </main>
+</body>
+</html>
