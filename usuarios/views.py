@@ -1,9 +1,17 @@
-from django.shortcuts import render, redirect
+import json
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import JsonResponse, HttpResponseNotAllowed
+from django.views.decorators.http import require_http_methods, require_POST
+from django.db import transaction
+from django.db.models import Q  # Útil si usas buscadores con filtros dinámicos
+
 from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario
+
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -93,3 +101,50 @@ def crear_categoria(request):
             messages.error(request, 'El nombre de la categoría es requerido.')
     
     return redirect('lista_productos')
+
+
+@login_required
+def lista_clientes(request):
+    """Muestra los usuarios con rol 'Cliente' y permite buscarlos."""
+    clientes = Usuario.objects.filter(rol__nombre='Cliente')
+
+    query = request.GET.get('buscar')
+    if query:
+        clientes = clientes.filter(
+            Q(nombre__icontains=query) |
+            Q(email__icontains=query)
+        )
+
+    context = {'clientes': clientes}
+    return render(request, 'administrador/lista_clientes.html', context)
+
+@login_required
+def editar_cliente(request, id):
+    c = get_object_or_404(Usuario, id=id)
+
+    if request.method == 'GET':
+        return JsonResponse({
+            'id': c.id,
+            'nombre': c.nombre or '',
+            'email': c.email or '',
+            'telefono': c.telefono or '',
+            'direccion': c.direccion or '',
+        })
+
+    if request.method == 'POST':
+        data = json.loads(request.body or '{}')
+        for f in ('nombre', 'email', 'telefono', 'direccion'):
+            if f in data:
+                setattr(c, f, (data[f] or None))
+        c.save()
+        return JsonResponse({'success': True})
+
+    return HttpResponseNotAllowed(['GET', 'POST'])
+
+
+
+@login_required
+@require_POST
+def eliminar_cliente(request, id):
+    get_object_or_404(Usuario, id=id).delete()
+    return JsonResponse({'success': True})

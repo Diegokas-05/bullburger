@@ -109,6 +109,7 @@ def editar_ingrediente(request, ingrediente_id):
         'form': form,
         'ingrediente': ingrediente
     })
+    
 
 # inventario/views.py
 @login_required
