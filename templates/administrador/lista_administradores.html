@@ -1,0 +1,477 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Administradores{% endblock %}
+
+{% block content %}
+<style>
+/* === MISMO ESTILO QUE lista_clientes.html (copiado y ajustado de título) === */
+body { background-color: #ffffff; }
+
+.clientes-container {  /* reusar clases para no tocar CSS global */
+    background-color: #f8f4ef;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 1100px;
+    margin: 40px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.clientes-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
+}
+.clientes-header h2 { color: #5a3b2e; font-weight: bold; }
+
+.buscador { display: flex; justify-content: flex-end; gap: 8px; }
+.buscador input[type="text"] {
+    padding: 8px 14px; width: 300px; border: 1px solid #c4b7a6; border-radius: 20px;
+    outline: none; transition: 0.2s; background-color: #fff;
+}
+.buscador input[type="text"]:focus { border-color: #8b5e3c; box-shadow: 0 0 5px rgba(139,94,60,.3); }
+
+.buscador button, .btn-crear {
+    background-color: #8b2e0f; color: #fff; border: none; border-radius: 10px;
+    padding: 8px 20px; cursor: pointer; font-weight: bold; transition: background-color .3s;
+}
+.buscador button:hover, .btn-crear:hover { background-color: #a33b14; }
+
+/* Tabla */
+.tabla-clientes { width: 100%; border-collapse: collapse; background-color: #fff; border-radius: 12px;
+  overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.tabla-clientes thead { background-color: #d8c3a5; color: #4a2e1c; text-transform: uppercase; font-size: 14px; letter-spacing: .5px; }
+.tabla-clientes th, .tabla-clientes td { padding: 12px 16px; text-align: center; border-bottom: 1px solid #e5dcd1; }
+.tabla-clientes tr:hover { background-color: #f3ede7; }
+.tabla-clientes td { color: #5a4633; font-size: 15px; }
+
+.action-buttons-small { display: flex; justify-content: center; gap: 10px; }
+.btn-action { background: none; border: none; cursor: pointer; font-size: 18px; transition: transform .2s ease, color .3s ease; }
+.btn-edit { color: #27ae60; } .btn-edit:hover { color: #2ecc71; transform: scale(1.2); }
+.btn-delete { color: #c0392b; } .btn-delete:hover { color: #e74c3c; transform: scale(1.2); }
+.sin-resultados { text-align: center; padding: 20px; color: #7c6d5e; }
+
+/* Modal */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,.5); backdrop-filter: blur(5px); }
+.modal-content { background-color: white; margin: 2% auto; padding: 0; border-radius: 15px; width: 90%;
+  max-width: 600px; max-height: 90vh; box-shadow: 0 10px 30px rgba(0,0,0,.3); display: flex; flex-direction: column; }
+.modal-header { padding: 1.5rem 2rem; background: linear-gradient(135deg, #5a3b2e, #8b5e3c); color: white;
+  border-radius: 15px 15px 0 0; display: flex; justify-content: space-between; align-items: center; }
+.close { font-size: 2rem; cursor: pointer; }
+.modal-body { padding: 2rem; }
+.form-group { margin-bottom: 1.2rem; text-align: left; }
+label { display: block; margin-bottom: .5rem; font-weight: 600; color: #2c3e50; }
+.form-control { width: 100%; padding: .8rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem; transition: border-color .3s ease; }
+.form-control:focus { border-color: #8b5e3c; }
+.form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.2rem; }
+.btn-cancel { background: #95a5a6; color: white; border: none; padding: .8rem 1.5rem; border-radius: 8px; font-weight: 600; }
+.btn-save { background: linear-gradient(135deg, #27ae60, #2ecc71); color: white; border: none; padding: .8rem 1.5rem; border-radius: 8px; font-weight: 600; }
+.error-message { color: #e74c3c; font-size: .85rem; margin-top: .3rem; display: none; }
+
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;   
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+
+.modal-body {
+  overflow-y: auto;
+  /* altura útil: 90vh - header (~70px) - footer (~70px) */
+  max-height: calc(90vh - 140px);
+}
+
+/* Footer fijo al fondo del modal (no dentro del scroll) */
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  background: #fff;
+  box-shadow: 0 -6px 12px rgba(0,0,0,.05);
+}
+
+/* Botones (reutilizamos tus clases visuales) */
+.modal-footer .btn-cancel,
+.modal-footer .btn-save {
+  padding: .8rem 1.5rem;   /* deja tu tamaño original */
+}
+
+/* (Opcional) Quitar el amarillo del autocompletado de Chrome */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  transition: background-color 9999s ease-in-out 0s !important;
+  -webkit-text-fill-color: #333 !important;
+  box-shadow: 0 0 0px 1000px #fff inset !important;
+}
+
+/* === Mejorar interacción de los botones dentro del modal === */
+.btn-cancel, .btn-save {
+  cursor: pointer;                  /* 👈 muestra el cursor de mano */
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #7f8c8d;        /* un poco más oscuro al pasar el mouse */
+  transform: scale(1.03);           /* efecto leve de clic visual */
+}
+
+.btn-save:hover {
+  background: linear-gradient(135deg, #219a52, #27ae60);  /* resalta */
+  transform: scale(1.03);
+}
+
+.btn-cancel:active, .btn-save:active {
+  transform: scale(0.97);           /* leve efecto al hacer clic */
+}
+
+</style>
+
+
+
+<div class="clientes-container">
+  <div class="clientes-header">
+    <h2>Lista de Administradores</h2>
+
+    <div class="buscador">
+      <form method="GET">
+        <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
+        <button type="submit">Buscar</button>
+      </form>
+      <button class="btn-crear" onclick="openCreateAdminModal()">Crear</button>
+    </div>
+  </div>
+
+  <table class="tabla-clientes" id="tabla-admins">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Correo</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Creado en</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in admins %}
+      <tr class="data-row" data-id="{{ a.id }}">
+        <td>{{ a.id }}</td>
+        <td class="a-nombre">{{ a.nombre }}</td>
+        <td class="a-email">{{ a.email }}</td>
+        <td class="a-telefono">{{ a.telefono|default:"-" }}</td>
+        <td class="a-direccion">{{ a.direccion|default:"-" }}</td>
+        <td>{{ a.creado_en|date:"d/m/Y H:i" }}</td>
+        <td>
+          <div class="action-buttons-small">
+            <button class="btn-action btn-edit" onclick="openEditAdminModal({{ a.id }})">✏️</button>
+            <button class="btn-action btn-delete" onclick="confirmDeleteAdmin({{ a.id }}, '{{ a.nombre|escapejs }}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="sin-resultados">No se encontraron administradores.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- === Modal CREAR Administrador === -->
+<div id="createAdminModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Crear Administrador</h2>
+      <span class="close" onclick="closeCreateAdminModal()">&times;</span>
+    </div>
+
+    <div class="modal-body">
+      <form id="createAdminForm" onsubmit="return submitCreateAdmin(event)">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="c_nombre">Nombre *</label>
+          <input type="text" id="c_nombre" required class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="c_email">Correo *</label>
+          <input type="email" id="c_email" required class="form-control">
+          <div class="error-message" id="c_emailError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="c_telefono">Teléfono</label>
+          <input type="text" id="c_telefono" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="c_direccion">Dirección</label>
+          <input type="text" id="c_direccion" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="c_password">Contraseña *</label>
+          <input type="password" id="c_password" required class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="c_password2">Confirmar contraseña *</label>
+          <input type="password" id="c_password2" required class="form-control">
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeCreateAdminModal()">Cancelar</button>
+      <button type="submit" form="createAdminForm" class="btn-save">Crear</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- === Modal EDITAR Administrador === -->
+<div id="editAdminModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Editar Administrador</h2>
+      <span class="close" onclick="closeEditAdminModal()">&times;</span>
+    </div>
+
+    <!-- SOLO el contenido scrollea -->
+    <div class="modal-body">
+      <form id="editAdminForm" onsubmit="return submitEditAdmin(event)">
+        {% csrf_token %}
+        <input type="hidden" id="e_id">
+
+        <div class="form-group">
+          <label for="e_nombre">Nombre *</label>
+          <input type="text" id="e_nombre" required class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="e_email">Correo *</label>
+          <input type="email" id="e_email" required class="form-control">
+          <div class="error-message" id="e_emailError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="e_telefono">Teléfono</label>
+          <input type="text" id="e_telefono" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="e_direccion">Dirección</label>
+          <input type="text" id="e_direccion" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="e_password">Nueva contraseña (opcional)</label>
+          <input type="password" id="e_password" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="e_password2">Confirmar nueva contraseña</label>
+          <input type="password" id="e_password2" class="form-control">
+        </div>
+      </form>
+    </div>
+
+    <!-- BOTONERA fuera del body -->
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeEditAdminModal()">Cancelar</button>
+      <button type="submit" form="editAdminForm" class="btn-save">Actualizar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal de alerta (reutilizado) -->
+<div id="customAlert" class="modal">
+  <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-header">
+      <h2 id="alertTitle">Alerta</h2>
+      <span class="close" onclick="closeCustomAlert()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <p id="alertMessage"></p>
+      <div class="form-actions" style="justify-content:center;">
+        <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+        <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== CSRF ===== */
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i=0; i<cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+/* ===== Helpers Alert ===== */
+function showCustomAlert(title, message, confirmCallback = null) {
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertMessage').textContent = message;
+  document.getElementById('customAlert').style.display = 'block';
+  const confirmBtn = document.getElementById('alertConfirmBtn');
+  if (confirmCallback) {
+      confirmBtn.onclick = function() { confirmCallback(); closeCustomAlert(); };
+  } else {
+      confirmBtn.onclick = closeCustomAlert;
+  }
+}
+function closeCustomAlert() {
+  document.getElementById('customAlert').style.display = 'none';
+}
+
+/* ===== Modal Crear ===== */
+function openCreateAdminModal() {
+  document.getElementById('createAdminModal').style.display = 'block';
+}
+function closeCreateAdminModal() {
+  document.getElementById('createAdminModal').style.display = 'none';
+}
+function submitCreateAdmin(e) {
+  e.preventDefault();
+  const data = {
+    nombre: document.getElementById('c_nombre').value,
+    email: document.getElementById('c_email').value,
+    telefono: document.getElementById('c_telefono').value,
+    direccion: document.getElementById('c_direccion').value,
+    password: document.getElementById('c_password').value,
+    password2: document.getElementById('c_password2').value
+    // el rol se fuerza en la view a 'Administrador'
+  };
+
+  fetch('/administradores/crear/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(json => {
+    if (json.ok) {
+      closeCreateAdminModal();
+      location.reload();
+    } else {
+      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
+      if (emailErr) {
+        document.getElementById('c_emailError').style.display = 'block';
+        document.getElementById('c_emailError').textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
+      }
+      showCustomAlert('Error', 'Revisa los campos del formulario.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  return false;
+}
+
+/* ===== Modal Editar ===== */
+function openEditAdminModal(id) {
+  fetch(`/administradores/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('e_id').value = data.id;
+      document.getElementById('e_nombre').value = data.nombre || '';
+      document.getElementById('e_email').value = data.email || '';
+      document.getElementById('e_telefono').value = data.telefono || '';
+      document.getElementById('e_direccion').value = data.direccion || '';
+      document.getElementById('e_password').value = '';
+      document.getElementById('e_password2').value = '';
+      document.getElementById('editAdminModal').style.display = 'block';
+    });
+}
+function closeEditAdminModal() {
+  document.getElementById('editAdminModal').style.display = 'none';
+}
+function submitEditAdmin(e) {
+  e.preventDefault();
+  const id = document.getElementById('e_id').value;
+  const data = {
+    nombre: document.getElementById('e_nombre').value,
+    email: document.getElementById('e_email').value,
+    telefono: document.getElementById('e_telefono').value,
+    direccion: document.getElementById('e_direccion').value
+  };
+
+  // Enviar contraseña solo si han escrito algo
+  const np = document.getElementById('e_password').value;
+  const np2 = document.getElementById('e_password2').value;
+  if (np || np2) {
+    data.password = np;
+    data.password2 = np2;
+  }
+
+  fetch(`/administradores/editar/${id}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(json => {
+    if (json.ok) {
+      // Actualizar fila sin recargar
+      const fila = document.querySelector(`tr[data-id='${id}']`);
+      fila.querySelector('.a-nombre').textContent = data.nombre;
+      fila.querySelector('.a-email').textContent = data.email;
+      fila.querySelector('.a-telefono').textContent = data.telefono || '-';
+      fila.querySelector('.a-direccion').textContent = data.direccion || '-';
+      closeEditAdminModal();
+      showCustomAlert('Éxito', 'Administrador actualizado correctamente.');
+    } else {
+      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
+      if (emailErr) {
+        document.getElementById('e_emailError').style.display = 'block';
+        document.getElementById('e_emailError').textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
+      }
+      showCustomAlert('Error', 'No se pudo actualizar.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  return false;
+}
+
+/* ===== Eliminar ===== */
+function confirmDeleteAdmin(id, nombre) {
+  showCustomAlert('Confirmar Eliminación', `¿Seguro que deseas eliminar al administrador "${nombre}"?`, function () {
+    fetch(`/administradores/eliminar/${id}/`, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.ok) {
+        document.querySelector(`tr[data-id='${id}']`).remove();
+        showCustomAlert('Éxito', 'Administrador eliminado correctamente.');
+      } else {
+        showCustomAlert('Error', resp.msg || 'No se pudo eliminar.');
+      }
+    })
+    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  });
+}
+</script>
+{% endblock %}

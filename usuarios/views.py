@@ -8,6 +8,7 @@ from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.http import require_http_methods, require_POST
 from django.db import transaction
 from django.db.models import Q  # Útil si usas buscadores con filtros dinámicos
+from .forms import UsuarioAdminForm 
 
 from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario
@@ -119,6 +120,42 @@ def lista_clientes(request):
     return render(request, 'administrador/lista_clientes.html', context)
 
 @login_required
+def lista_administradores(request):
+    
+    admins = Usuario.objects.filter(rol__nombre='Administrador').order_by('-date_joined')
+
+    query = request.GET.get('buscar', '').strip()
+    if query:
+        admins = admins.filter(
+            Q(nombre__icontains=query) |
+            Q(email__icontains=query)
+        )
+
+    context = {'admins': admins}
+    return render(request, 'administrador/lista_administradores.html', context)
+
+
+def crear_administrador(request):
+    if request.method == "GET":
+        return JsonResponse({'ok': True, 'data': {}})
+
+    data = json.loads(request.body or '{}')
+
+
+    from .models import Rol
+    rol_admin, _ = Rol.objects.get_or_create(nombre='Administrador')
+    data.setdefault('rol', rol_admin.id)
+    data.setdefault('is_active', True)
+
+    form = UsuarioAdminForm(data=data)
+    if form.is_valid():
+        user = form.save()
+        return JsonResponse({'ok': True, 'id': user.id})
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+
+
+@login_required
 def editar_cliente(request, id):
     c = get_object_or_404(Usuario, id=id)
 
@@ -144,7 +181,47 @@ def editar_cliente(request, id):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
+def editar_administrador(request, id):
+    u = get_object_or_404(Usuario, id=id, rol__nombre='Administrador')
+
+    if request.method == 'GET':
+        return JsonResponse({
+            'id': u.id,
+            'nombre': u.nombre or '',
+            'email': u.email or '',
+            'telefono': u.telefono or '',
+            'direccion': u.direccion or '',
+        })
+
+    data = json.loads(request.body or '{}')
+
+    # ✅ Mantener campos críticos si no llegan del modal
+    if 'rol' not in data:
+        data['rol'] = u.rol_id
+    if 'is_active' not in data:
+        data['is_active'] = u.is_active
+
+    form = UsuarioAdminForm(data=data, instance=u)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({'ok': True, 'msg': 'Administrador actualizado'})
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+
+
+@login_required
 @require_POST
 def eliminar_cliente(request, id):
     get_object_or_404(Usuario, id=id).delete()
     return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def eliminar_administrador(request, id):
+    u = get_object_or_404(Usuario, id=id, rol__nombre='Administrador')
+    if request.user.id == u.id:
+        return JsonResponse({'ok': False, 'msg': 'No puedes eliminar tu propia cuenta.'}, status=400)
+    u.delete()
+    return JsonResponse({'ok': True})
