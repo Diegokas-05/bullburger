@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Clientes{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- CSS global -->
+<link rel="stylesheet" href="{% static 'css/listas-usuarios_login.css' %}">
+
+
+<div class="clientes-container">
+    <div class="clientes-header">
+        <h2>Lista de Clientes</h2>
+        <form method="GET" class="buscador">
+            <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
+            <button type="submit">Buscar</button>
+        </form>
+    </div>
+
+    <table class="tabla-clientes" id="tabla-clientes">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Creado en</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr class="data-row" data-id="{{ cliente.id }}">
+                <td>{{ cliente.id }}</td>
+                <td class="c-nombre">{{ cliente.nombre }}</td>
+                <td class="c-email">{{ cliente.email }}</td>
+                <td class="c-telefono">{{ cliente.telefono|default:"-" }}</td>
+                <td class="c-direccion">{{ cliente.direccion|default:"-" }}</td>
+                <td>{{ cliente.creado_en|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <div class="action-buttons-small">
+                        <button class="btn-action btn-edit" onclick="openEditClienteModal({{ cliente.id }})">✏️</button>
+                        <button class="btn-action btn-delete" onclick="confirmDeleteCliente({{ cliente.id }}, '{{ cliente.nombre|escapejs }}')">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="sin-resultados">No se encontraron clientes.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Editar Cliente -->
+<div id="editClienteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Cliente</h2>
+            <span class="close" onclick="closeEditClienteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editClienteForm" onsubmit="return submitEditCliente(event)">
+                {% csrf_token %}
+                <input type="hidden" id="edit_cliente_id">
+
+                <div class="form-group">
+                    <label for="edit_nombre">Nombre *</label>
+                    <input type="text" id="edit_nombre" required class="form-control">
+                    <div class="error-message" id="edit_nombreError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_email">Correo *</label>
+                    <input type="email" id="edit_email" required class="form-control">
+                    <div class="error-message" id="edit_emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_telefono">Teléfono</label>
+                    <input type="text" id="edit_telefono" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="edit_direccion">Dirección</label>
+                    <input type="text" id="edit_direccion" class="form-control">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeEditClienteModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de alerta -->
+<div id="customAlert" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2 id="alertTitle">Alerta</h2>
+            <span class="close" onclick="closeCustomAlert()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p id="alertMessage"></p>
+            <div class="form-actions" style="justify-content:center;">
+                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== Función para obtener CSRF =====
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i=0; i<cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// ===== Abrir modal de edición =====
+function openEditClienteModal(id) {
+    fetch(`/clientes/editar/${id}/`, {
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById('edit_cliente_id').value = data.id;
+        document.getElementById('edit_nombre').value = data.nombre;
+        document.getElementById('edit_email').value = data.email;
+        document.getElementById('edit_telefono').value = data.telefono;
+        document.getElementById('edit_direccion').value = data.direccion;
+        document.getElementById('editClienteModal').style.display = 'block';
+    });
+}
+
+
+// ===== Cerrar modal =====
+function closeEditClienteModal() {
+    document.getElementById('editClienteModal').style.display = 'none';
+}
+
+// ===== Enviar cambios =====
+function submitEditCliente(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('edit_cliente_id').value;
+    const data = {
+        nombre: document.getElementById('edit_nombre').value,
+        email: document.getElementById('edit_email').value,
+        telefono: document.getElementById('edit_telefono').value,
+        direccion: document.getElementById('edit_direccion').value
+    };
+
+    fetch(`/clientes/editar/${id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(resp => {
+        if (resp.success) {
+            // Actualizar fila sin recargar
+            const fila = document.querySelector(`tr[data-id='${id}']`);
+            fila.querySelector('.c-nombre').textContent = data.nombre;
+            fila.querySelector('.c-email').textContent = data.email;
+            fila.querySelector('.c-telefono').textContent = data.telefono || '-';
+            fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+
+            closeEditClienteModal();
+            showCustomAlert('Éxito', 'Cliente actualizado correctamente.');
+        } else {
+            showCustomAlert('Error', resp.error || 'No se pudo actualizar.');
+        }
+    })
+    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+}
+
+// ===== Confirmar eliminación =====
+function confirmDeleteCliente(id, nombre) {
+    showCustomAlert('Confirmar Eliminación', `¿Seguro que deseas eliminar al cliente "${nombre}"?`, function() {
+        fetch(`/clientes/eliminar/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(resp => {
+            if (resp.success) {
+                document.querySelector(`tr[data-id='${id}']`).remove();
+                showCustomAlert('Éxito', 'Cliente eliminado correctamente.');
+            } else {
+                showCustomAlert('Error', resp.error || 'No se pudo eliminar.');
+            }
+        })
+        .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+    });
+}
+
+// ===== Alertas personalizadas =====
+function showCustomAlert(title, message, confirmCallback = null) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('customAlert').style.display = 'block';
+
+    const confirmBtn = document.getElementById('alertConfirmBtn');
+    if (confirmCallback) {
+        confirmBtn.onclick = function() {
+            confirmCallback();
+            closeCustomAlert();
+        };
+    } else {
+        confirmBtn.onclick = closeCustomAlert;
+    }
+}
+
+function closeCustomAlert() {
+    document.getElementById('customAlert').style.display = 'none';
+}
+</script>
+{% endblock %}
