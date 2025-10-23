@@ -7,9 +7,9 @@
 
 <link rel="stylesheet" href="{% static 'css/admin_style.css' %}">
 
+
 <div class="admin-bg">
   <section class="contenedor_dashboard">
-    <div class="menu-admin-dashboard">
     <!-- Header del Menú -->
     <div class="dashboard-header">
         <h1 class="welcome-title">Gestión del Menú - BullBurger</h1>
@@ -95,352 +95,168 @@
         {% endfor %}
     </div>
 </div>
-
 </section>
-</div>
 
-<!-- Modal para agregar producto - VERSIÓN MEJORADA -->
+<!-- Modal para agregar producto -->
 <div id="productModal" class="modal">
-    <div class="modal-content" style="max-width: 900px;">
+    <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
-            <div class="modal-header-content">
-                <h2 id="modalTitle">
-                    <span class="icon">🍔</span>
-                    Agregar Nuevo Producto
-                </h2>
-                <p class="modal-subtitle">Completa la información para agregar un nuevo producto al menú</p>
-            </div>
+            <h2 id="modalTitle">Agregar Nuevo Producto</h2>
             <span class="close" onclick="closeModal()">&times;</span>
         </div>
-        
         <div class="modal-body">
             <form id="productForm" method="post" action="{% url 'crear_producto' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 
-                <!-- Progreso del formulario -->
-                <div class="form-progress">
-                    <div class="progress-step active" data-step="1">
-                        <span class="step-number">1</span>
-                        <span class="step-label">Información</span>
+                <!-- Información Básica del Producto -->
+                <div class="form-section">
+                    <h3>📋 Información del Producto</h3>
+                    
+                    <div class="form-group">
+                        <label for="nombre">Nombre del Producto *</label>
+                        <input type="text" id="nombre" name="nombre" required maxlength="100" 
+                               pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
+                               title="Solo se permiten letras y espacios"
+                               oninput="validateLettersOnly(this)"
+                               placeholder="Ej: Hamburguesa Clásica" class="form-control">
+                        <div class="error-message" id="nombreError"></div>
                     </div>
-                    <div class="progress-step" data-step="2">
-                        <span class="step-number">2</span>
-                        <span class="step-label">Receta</span>
+                    
+                    <div class="form-group">
+                        <label for="descripcion">Descripción *</label>
+                        <textarea id="descripcion" name="descripcion" rows="3" 
+                                  placeholder="Describe el producto..." required class="form-control"></textarea>
+                        <div class="error-message" id="descripcionError"></div>
                     </div>
-                    <div class="progress-step" data-step="3">
-                        <span class="step-number">3</span>
-                        <span class="step-label">Precio</span>
-                    </div>
-                    <div class="progress-step" data-step="4">
-                        <span class="step-number">4</span>
-                        <span class="step-label">Imagen</span>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="categoria">Categoría *</label>
+                            <select id="categoria" name="categoria" required class="form-control">
+                                <option value="">Selecciona una categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="error-message" id="categoriaError"></div>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- Paso 1: Información del Producto -->
-                <div class="form-step active" id="step-1">
-                    <div class="form-section">
-                        <div class="section-header">
-                            <div class="section-icon">📋</div>
-                            <h3>Información del Producto</h3>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="nombre" class="form-label">
-                                    <span class="label-text">Nombre del Producto</span>
-                                    <span class="required">*</span>
-                                </label>
-                                <div class="input-with-icon">
-                                    <span class="input-icon">🍽️</span>
-                                    <input type="text" id="nombre" name="nombre" required maxlength="100" 
-                                           pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
-                                           title="Solo se permiten letras y espacios"
-                                           oninput="validateLettersOnly(this)"
-                                           placeholder="Ej: Hamburguesa Clásica" class="form-control">
-                                </div>
-                                <div class="error-message" id="nombreError"></div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="categoria" class="form-label">
-                                    <span class="label-text">Categoría</span>
-                                    <span class="required">*</span>
-                                </label>
-                                <div class="input-with-icon">
-                                    <span class="input-icon">📂</span>
-                                    <select id="categoria" name="categoria" required class="form-control">
-                                        <option value="">Selecciona una categoría</option>
-                                        {% for categoria in categorias %}
-                                        <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="error-message" id="categoriaError"></div>
-                            </div>
+
+                <!-- Receta del Producto -->
+                <div class="form-section">
+                    <h3>🍳 Receta del Producto</h3>
+                    <div class="receta-info">
+                        <p>Agrega los ingredientes necesarios para preparar este producto:</p>
+                    </div>
+                    
+                    <div id="receta-container">
+                        <!-- Los ingredientes se agregarán dinámicamente aquí -->
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ingrediente_select">Ingrediente</label>
+                            <select id="ingrediente_select" class="form-control">
+                                <option value="">Selecciona un ingrediente</option>
+                                {% for ingrediente in ingredientes %}
+                                <option value="{{ ingrediente.id }}" 
+                                        data-unidad="{{ ingrediente.unidad_medida }}"
+                                        data-costo="{{ ingrediente.costo_unitario }}"
+                                        data-stock="{{ ingrediente.stock_actual }}">
+                                    {{ ingrediente.nombre }} (Stock: {{ ingrediente.stock_actual }} {{ ingrediente.unidad_medida }})
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
                         
                         <div class="form-group">
-                            <label for="descripcion" class="form-label">
-                                <span class="label-text">Descripción</span>
-                                <span class="required">*</span>
-                            </label>
-                            <div class="textarea-with-icon">
-                                <span class="input-icon">📝</span>
-                                <textarea id="descripcion" name="descripcion" rows="3" 
-                                          placeholder="Describe el producto, ingredientes principales, características especiales..." 
-                                          required class="form-control"></textarea>
+                            <label for="cantidad_ingrediente">Cantidad</label>
+                            <div class="cantidad-container">
+                                <input type="number" id="cantidad_ingrediente" step="0.01" min="0.01" 
+                                       class="form-control" placeholder="0.00" oninput="calcularCostoIngrediente()">
+                                <span id="unidad_ingrediente" class="unidad-text">-</span>
                             </div>
-                            <div class="help-text">Máximo 250 caracteres</div>
-                            <div class="error-message" id="descripcionError"></div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="checkbox-label large">
-                                <input type="checkbox" id="disponible" name="disponible" checked>
-                                <span class="custom-checkbox"></span>
-                                <span class="checkbox-text">
-                                    <span class="checkbox-title">Producto disponible</span>
-                                    <span class="checkbox-description">Los clientes podrán ver y ordenar este producto</span>
-                                </span>
-                            </label>
+                            <small class="help-text" id="costo_ingrediente_text">Costo: $0.00</small>
                         </div>
                     </div>
                     
-                    <div class="step-actions">
-                        <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
-                        <button type="button" class="btn-next" onclick="nextStep(2)">Siguiente</button>
-                    </div>
-                </div>
-                
-                <!-- Paso 2: Receta del Producto -->
-                <div class="form-step" id="step-2">
-                    <div class="form-section">
-                        <div class="section-header">
-                            <div class="section-icon">🍳</div>
-                            <h3>Receta del Producto</h3>
-                            <p class="section-subtitle">Agrega los ingredientes necesarios para preparar este producto</p>
-                        </div>
-                        
-                        <div id="receta-container">
-                            <!-- Los ingredientes se agregarán dinámicamente aquí -->
-                        </div>
-                        
-                        <div class="ingrediente-selector">
-                            <div class="selector-header">
-                                <h4>Agregar Ingrediente</h4>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="ingrediente_select" class="form-label">Ingrediente</label>
-                                    <div class="input-with-icon">
-                                        <span class="input-icon">🥬</span>
-                                        <select id="ingrediente_select" class="form-control">
-                                            <option value="">Selecciona un ingrediente</option>
-                                            {% for ingrediente in ingredientes %}
-                                            <option value="{{ ingrediente.id }}" 
-                                                    data-unidad="{{ ingrediente.unidad_medida }}"
-                                                    data-costo="{{ ingrediente.costo_unitario }}"
-                                                    data-stock="{{ ingrediente.stock_actual }}">
-                                                {{ ingrediente.nombre }} (Stock: {{ ingrediente.stock_actual }} {{ ingrediente.unidad_medida }})
-                                            </option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="cantidad_ingrediente" class="form-label">Cantidad</label>
-                                    <div class="cantidad-container">
-                                        <div class="input-with-icon">
-                                            <span class="input-icon">📊</span>
-                                            <input type="number" id="cantidad_ingrediente" step="0.01" min="0.01" 
-                                                   class="form-control" placeholder="0.00" oninput="calcularCostoIngrediente()">
-                                        </div>
-                                        <span id="unidad_ingrediente" class="unidad-text">-</span>
-                                    </div>
-                                    <small class="help-text" id="costo_ingrediente_text">Costo: $0.00</small>
-                                </div>
-                            </div>
-                            
-                            <button type="button" class="btn-add-ingrediente" onclick="agregarIngrediente()">
-                                <span class="btn-icon">+</span>
-                                Agregar a la Receta
-                            </button>
-                        </div>
-                        
-                        <!-- Lista de ingredientes agregados -->
-                        <div id="ingredientes-agregados" class="ingredientes-list">
-                            <div class="list-header">
-                                <h4>Ingredientes en la receta</h4>
-                                <span class="ingredientes-count" id="ingredientes-count">0 ingredientes</span>
-                            </div>
-                            
-                            <div id="lista-ingredientes" class="lista-ingredientes">
-                                <div class="no-ingredientes">
-                                    <div class="no-ingredientes-icon">🥄</div>
-                                    <p>No hay ingredientes agregados</p>
-                                    <small>Agrega ingredientes para calcular el costo automáticamente</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <button type="button" class="btn-add-ingrediente" onclick="agregarIngrediente()">
+                        <span>+</span> Agregar a la Receta
+                    </button>
                     
-                    <div class="step-actions">
-                        <button type="button" class="btn-back" onclick="prevStep(1)">Anterior</button>
-                        <button type="button" class="btn-next" onclick="nextStep(3)">Siguiente</button>
-                    </div>
-                </div>
-                
-                <!-- Paso 3: Precios y Costos -->
-                <div class="form-step" id="step-3">
-                    <div class="form-section">
-                        <div class="section-header">
-                            <div class="section-icon">💰</div>
-                            <h3>Precio y Costos</h3>
-                            <p class="section-subtitle">Configura los costos y define el precio de venta</p>
+                    <!-- Lista de ingredientes agregados -->
+                    <div id="ingredientes-agregados" class="ingredientes-list">
+                        <h4>Ingredientes en la receta:</h4>
+                        <div id="lista-ingredientes" class="lista-ingredientes">
+                            <div class="no-ingredientes">No hay ingredientes agregados</div>
                         </div>
                         
+                        <!-- Resumen de costos -->
                         <div class="costos-resumen">
-                            <div class="costo-card">
-                                <div class="costo-header">
-                                    <span class="costo-icon">🧮</span>
-                                    <h4>Resumen de Costos</h4>
-                                </div>
-                                
-                                <div class="costo-item">
-                                    <div class="costo-info">
-                                        <span class="costo-label">Costo de Ingredientes:</span>
-                                        <span class="costo-value" id="costo-total-ingredientes">$0.00</span>
-                                    </div>
-                                    <div class="costo-detail">Suma de todos los ingredientes</div>
-                                </div>
-                                
-                                <div class="costo-item">
-                                    <div class="costo-info">
-                                        <div class="costo-input-group">
-                                            <label for="mano_obra" class="costo-label">Mano de Obra:</label>
-                                            <div class="input-percent">
-                                                <input type="number" id="mano_obra" name="mano_obra" value="30" min="0" max="100" 
-                                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
-                                                <span class="percent-symbol">%</span>
-                                            </div>
-                                        </div>
-                                        <span class="costo-value" id="costo-mano-obra">$0.00</span>
-                                    </div>
-                                    <div class="costo-detail">Porcentaje sobre costo de ingredientes</div>
-                                </div>
-                                
-                                <div class="costo-item">
-                                    <div class="costo-info">
-                                        <div class="costo-input-group">
-                                            <label for="ganancia" class="costo-label">Margen de Ganancia:</label>
-                                            <div class="input-percent">
-                                                <input type="number" id="ganancia" name="ganancia" value="40" min="0" max="100" 
-                                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
-                                                <span class="percent-symbol">%</span>
-                                            </div>
-                                        </div>
-                                        <span class="costo-value" id="costo-ganancia">$0.00</span>
-                                    </div>
-                                    <div class="costo-detail">Porcentaje sobre costo total</div>
-                                </div>
-                                
-                                <div class="costo-total">
-                                    <div class="costo-info">
-                                        <span class="costo-label">Precio Sugerido:</span>
-                                        <span class="costo-value" id="precio-sugerido">$0.00</span>
-                                    </div>
-                                    <div class="costo-detail">Precio calculado automáticamente</div>
-                                </div>
+                            <div class="costo-item">
+                                <span>Costo de Ingredientes:</span>
+                                <span id="costo-total-ingredientes">$0.00</span>
                             </div>
-                            
-                            <div class="precio-final-card">
-                                <div class="precio-header">
-                                    <span class="precio-icon">🏷️</span>
-                                    <h4>Precio Final de Venta</h4>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="precio" class="form-label">
-                                        <span class="label-text">Precio de Venta ($)</span>
-                                        <span class="required">*</span>
-                                    </label>
-                                    <div class="input-with-icon price-input">
-                                        <span class="input-icon">💵</span>
-                                        <input type="number" id="precio" name="precio" step="0.01" min="0" required 
-                                               placeholder="0.00" class="form-control" oninput="actualizarPrecioManual()">
-                                    </div>
-                                    <div class="help-text">
-                                        <span id="precio-suggestion">Puedes usar el precio sugerido o ajustarlo manualmente</span>
-                                    </div>
-                                    <div class="error-message" id="precioError"></div>
-                                </div>
-                                
-                                <div class="precio-actions">
-                                    <button type="button" class="btn-suggested" onclick="usarPrecioSugerido()">
-                                        Usar Precio Sugerido
-                                    </button>
-                                </div>
+                            <div class="costo-item">
+                                <label for="mano_obra">Mano de Obra (%)</label>
+                                <input type="number" id="mano_obra" name="mano_obra" value="30" min="0" max="100" 
+                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                <span id="costo-mano-obra">$0.00</span>
+                            </div>
+                            <div class="costo-item">
+                                <label for="ganancia">Margen de Ganancia (%)</label>
+                                <input type="number" id="ganancia" name="ganancia" value="40" min="0" max="100" 
+                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                <span id="costo-ganancia">$0.00</span>
+                            </div>
+                            <div class="costo-total">
+                                <strong>Precio Sugerido:</strong>
+                                <strong id="precio-sugerido">$0.00</strong>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="step-actions">
-                        <button type="button" class="btn-back" onclick="prevStep(2)">Anterior</button>
-                        <button type="button" class="btn-next" onclick="nextStep(4)">Siguiente</button>
+                </div>
+
+                <!-- Precio Final -->
+                <div class="form-section">
+                    <h3>💰 Precio de Venta</h3>
+                    <div class="form-group">
+                        <label for="precio">Precio Final ($) *</label>
+                        <input type="number" id="precio" name="precio" step="0.01" min="0" required 
+                               placeholder="0.00" class="form-control" oninput="actualizarPrecioManual()">
+                        <small class="help-text">Puedes ajustar el precio sugerido según sea necesario</small>
+                        <div class="error-message" id="precioError"></div>
                     </div>
                 </div>
                 
-                <!-- Paso 4: Imagen del Producto -->
-                <div class="form-step" id="step-4">
-                    <div class="form-section">
-                        <div class="section-header">
-                            <div class="section-icon">🖼️</div>
-                            <h3>Imagen del Producto</h3>
-                            <p class="section-subtitle">Agrega una imagen atractiva para mostrar a los clientes</p>
-                        </div>
-                        
-                        <div class="image-upload-section">
-                            <div class="upload-area" id="uploadArea">
-                                <div class="upload-placeholder">
-                                    <div class="upload-icon">📷</div>
-                                    <h4>Arrastra una imagen o haz clic para seleccionar</h4>
-                                    <p>Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</p>
-                                    <button type="button" class="btn-select-image" onclick="document.getElementById('imagen').click()">
-                                        Seleccionar Imagen
-                                    </button>
-                                </div>
-                                <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input" required
-                                       onchange="previewImage(this)">
-                            </div>
-                            
-                            <div id="imagePreview" class="image-preview">
-                                <div class="preview-placeholder">
-                                    <span>Vista previa de la imagen aparecerá aquí</span>
-                                </div>
-                            </div>
-                            
-                            <div class="error-message" id="imagenError"></div>
-                        </div>
-                        
-                        <div class="form-notice">
-                            <div class="notice-icon">💡</div>
-                            <div class="notice-content">
-                                <strong>Consejo:</strong> Usa imágenes de alta calidad con buen iluminación para mostrar mejor tu producto.
-                                Las imágenes atractivas aumentan las ventas.
-                            </div>
-                        </div>
+                <!-- Imagen del Producto -->
+                <div class="form-section">
+                    <h3>🖼️ Imagen del Producto</h3>
+                    <div class="form-group">
+                        <label for="imagen">Imagen del Producto *</label>
+                        <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input" required
+                               onchange="previewImage(this)">
+                        <small class="file-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</small>
+                        <div id="imagePreview" class="image-preview"></div>
+                        <div class="error-message" id="imagenError"></div>
                     </div>
-                    
-                    <div class="step-actions">
-                        <button type="button" class="btn-back" onclick="prevStep(3)">Anterior</button>
-                        <button type="submit" class="btn-save">
-                            <span class="btn-icon">✓</span>
-                            Guardar Producto
-                        </button>
+                </div>
+                
+                <!-- Disponibilidad -->
+                <div class="form-section">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="disponible" name="disponible" checked>
+                            <span class="checkmark"></span>
+                            Producto disponible
+                        </label>
                     </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Guardar Producto</button>
                 </div>
             </form>
         </div>
@@ -448,6 +264,7 @@
 </div>
 
 <!-- Los otros modales (categoría, gestionar categorías, etc.) se mantienen igual -->
+<!-- Modal para agregar categoría -->
 <div id="categoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -1059,8 +876,4 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Sistema de gestión de menú BullBurger cargado correctamente 🍔');
 });
 </script>
-
-
-
-
 {% endblock %}
