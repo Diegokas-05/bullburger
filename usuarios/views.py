@@ -225,3 +225,49 @@ def eliminar_administrador(request, id):
         return JsonResponse({'ok': False, 'msg': 'No puedes eliminar tu propia cuenta.'}, status=400)
     u.delete()
     return JsonResponse({'ok': True})
+
+@login_required
+def lista_empleados(request):
+    """Muestra los usuarios con rol 'Empleado' y permite buscarlos."""
+    empleados = Usuario.objects.filter(rol__nombre='Empleado')
+
+    query = request.GET.get('buscar')
+    if query:
+        empleados = empleados.filter(
+            Q(nombre__icontains=query) |
+            Q(email__icontains=query)
+        )
+
+    context = {'empleados': empleados}
+    return render(request, 'administrador/lista_empleados.html', context)
+
+
+@login_required
+def editar_empleado(request, id):
+    empleado = get_object_or_404(Usuario, id=id)
+
+    if request.method == 'GET':
+        return JsonResponse({
+            'id': empleado.id,
+            'nombre': empleado.nombre or '',
+            'email': empleado.email or '',
+            'telefono': empleado.telefono or '',
+            'direccion': empleado.direccion or '',
+        })
+
+    if request.method == 'POST':
+        data = json.loads(request.body or '{}')
+        for campo in ('nombre', 'email', 'telefono', 'direccion'):
+            if campo in data:
+                setattr(empleado, campo, (data[campo] or None))
+        empleado.save()
+        return JsonResponse({'success': True})
+
+    return HttpResponseNotAllowed(['GET', 'POST'])
+
+
+@login_required
+@require_POST
+def eliminar_empleado(request, id):
+    get_object_or_404(Usuario, id=id).delete()
+    return JsonResponse({'success': True})
