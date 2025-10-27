@@ -1,224 +1,310 @@
 {% extends 'base.html' %}
 {% block title %}Lista de Empleados{% endblock %}
-
-{% block content %}
 {% load static %}
 
+{% block content %}
 <link rel="stylesheet" href="{% static 'css/listas-Usuarios.css' %}">
 
 <div class="clientes-container">
-    <div class="clientes-header">
-        <h2>Lista de Empleados</h2>
-        <form method="GET" class="buscador">
-            <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
-            <button type="submit">Buscar</button>
-        </form>
-    </div>
+  <div class="clientes-header">
+    <h2>Lista de Empleados</h2>
 
-    <table class="tabla-clientes" id="tabla-empleados">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Dirección</th>
-                <th>Creado en</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for emp in empleados %}
-            <tr class="data-row" data-id="{{ emp.id }}">
-                <td>{{ emp.id }}</td>
-                <td class="c-nombre">{{ emp.nombre }}</td>
-                <td class="c-email">{{ emp.email }}</td>
-                <td class="c-telefono">{{ emp.telefono|default:"-" }}</td>
-                <td class="c-direccion">{{ emp.direccion|default:"-" }}</td>
-                <td>{{ emp.creado_en|date:"d/m/Y H:i" }}</td>
-                <td>
-                    <div class="action-buttons-small">
-                        <button class="btn-action btn-edit" onclick="openEditEmpleadoModal({{ emp.id }})">✏️</button>
-                        <button class="btn-action btn-delete" onclick="confirmDeleteEmpleado({{ emp.id }}, '{{ emp.nombre|escapejs }}')">🗑️</button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" class="sin-resultados">No se encontraron empleados.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="buscador">
+      <form method="GET">
+        <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
+        <button type="submit">Buscar</button>
+      </form>
+      <button class="btn-crear" onclick="openCreateEmpleadoModal()">Crear</button>
+    </div>
+  </div>
+
+  <table class="tabla-clientes" id="tabla-empleados">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Creado en</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for emp in empleados %}
+      <tr class="data-row" data-id="{{ emp.id }}">
+        <td>{{ emp.id }}</td>
+        <td class="c-nombre">{{ emp.nombre }}</td>
+        <td class="c-email">{{ emp.email }}</td>
+        <td class="c-telefono">{{ emp.telefono|default:"-" }}</td>
+        <td class="c-direccion">{{ emp.direccion|default:"-" }}</td>
+        <td>{{ emp.creado_en|date:"d/m/Y H:i" }}</td>
+        <td>
+          <div class="action-buttons-small">
+            <button class="btn-action btn-edit" onclick="openEditEmpleadoModal({{ emp.id }})">✏️</button>
+            <button class="btn-action btn-delete" onclick="confirmDeleteEmpleado({{ emp.id }}, '{{ emp.nombre|escapejs }}')">🗑️</button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="sin-resultados">No se encontraron empleados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
-<!-- ✅ Modal Editar Empleado -->
+<!-- === MODAL CREAR EMPLEADO === -->
+<div id="createEmpleadoModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Crear Empleado</h2>
+      <span class="close" onclick="closeCreateEmpleadoModal()">&times;</span>
+    </div>
+
+    <div class="modal-body">
+      <form id="createEmpleadoForm" onsubmit="return submitCreateEmpleado(event)">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="c_nombre">Nombre *</label>
+          <input type="text" id="c_nombre" required class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="c_email">Correo *</label>
+          <input type="email" id="c_email" required class="form-control">
+          <div class="error-message" id="c_emailError"></div>
+        </div>
+        <div class="form-group">
+          <label for="c_telefono">Teléfono</label>
+          <input type="text" id="c_telefono" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="c_direccion">Dirección</label>
+          <input type="text" id="c_direccion" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="c_password">Contraseña *</label>
+          <input type="password" id="c_password" required class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="c_password2">Confirmar contraseña *</label>
+          <input type="password" id="c_password2" required class="form-control">
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeCreateEmpleadoModal()">Cancelar</button>
+      <button type="submit" form="createEmpleadoForm" class="btn-save">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- === MODAL EDITAR EMPLEADO === -->
 <div id="editEmpleadoModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Editar Empleado</h2>
-            <span class="close" onclick="closeEditEmpleadoModal()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)">
-                {% csrf_token %}
-                <input type="hidden" id="edit_empleado_id">
-
-                <div class="form-group">
-                    <label for="edit_nombre_empleado">Nombre *</label>
-                    <input type="text" id="edit_nombre_empleado" required class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="edit_email_empleado">Correo *</label>
-                    <input type="email" id="edit_email_empleado" required class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="edit_telefono_empleado">Teléfono</label>
-                    <input type="text" id="edit_telefono_empleado" class="form-control">
-                </div>
-
-                <div class="form-group">
-                    <label for="edit_direccion_empleado">Dirección</label>
-                    <input type="text" id="edit_direccion_empleado" class="form-control">
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
-                    <button type="submit" class="btn-save">Actualizar</button>
-                </div>
-            </form>
-        </div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Editar Empleado</h2>
+      <span class="close" onclick="closeEditEmpleadoModal()">&times;</span>
     </div>
+    <div class="modal-body">
+      <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)">
+        {% csrf_token %}
+        <input type="hidden" id="edit_empleado_id">
+        <div class="form-group">
+          <label for="edit_nombre_empleado">Nombre *</label>
+          <input type="text" id="edit_nombre_empleado" required class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="edit_email_empleado">Correo *</label>
+          <input type="email" id="edit_email_empleado" required class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="edit_telefono_empleado">Teléfono</label>
+          <input type="text" id="edit_telefono_empleado" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="edit_direccion_empleado">Dirección</label>
+          <input type="text" id="edit_direccion_empleado" class="form-control">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
+          <button type="submit" class="btn-save">Actualizar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
-<!-- ✅ Modal de Alerta (reutilizable) -->
+<!-- === MODAL ALERTAS === -->
 <div id="customAlert" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h2 id="alertTitle">Alerta</h2>
-            <span class="close" onclick="closeCustomAlert()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p id="alertMessage"></p>
-            <div class="form-actions" style="justify-content: center;">
-                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
-            </div>
-        </div>
+  <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-header">
+      <h2 id="alertTitle">Alerta</h2>
+      <span class="close" onclick="closeCustomAlert()">&times;</span>
     </div>
+    <div class="modal-body">
+      <p id="alertMessage"></p>
+      <div class="form-actions" style="justify-content:center;">
+        <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+        <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-// ===== CSRF =====
+// === CSRF ===
 function getCookie(name) {
-    let cookieValue = null;
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
-    cookies.forEach(cookie => {
-        cookie = cookie.trim();
-        if (cookie.startsWith(name + '=')) {
-            cookieValue = decodeURIComponent(cookie.split('=')[1]);
-        }
-    });
-    return cookieValue;
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.startsWith(name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
 }
-
 const csrftoken = getCookie('csrftoken');
 
-// ===== Abrir modal para Editar =====
+// === ALERTAS ===
+function showCustomAlert(title, message, confirmCallback = null) {
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertMessage').textContent = message;
+  document.getElementById('customAlert').style.display = 'block';
+  const btn = document.getElementById('alertConfirmBtn');
+  btn.onclick = confirmCallback
+    ? () => { confirmCallback(); closeCustomAlert(); }
+    : closeCustomAlert;
+}
+function closeCustomAlert() {
+  document.getElementById('customAlert').style.display = 'none';
+}
+
+// === CREAR EMPLEADO ===
+function openCreateEmpleadoModal() {
+  document.getElementById('createEmpleadoModal').style.display = 'block';
+}
+function closeCreateEmpleadoModal() {
+  document.getElementById('createEmpleadoModal').style.display = 'none';
+}
+function submitCreateEmpleado(e) {
+  e.preventDefault();
+  const data = {
+    nombre: document.getElementById('c_nombre').value,
+    email: document.getElementById('c_email').value,
+    telefono: document.getElementById('c_telefono').value,
+    direccion: document.getElementById('c_direccion').value,
+    password: document.getElementById('c_password').value,
+    password2: document.getElementById('c_password2').value
+  };
+
+  fetch('/empleados/crear/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(json => {
+    if (json.ok) {
+      closeCreateEmpleadoModal();
+      location.reload();
+    } else {
+      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
+      if (emailErr) {
+        const errDiv = document.getElementById('c_emailError');
+        errDiv.style.display = 'block';
+        errDiv.textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
+      }
+      showCustomAlert('Error', 'Revisa los campos del formulario.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  return false;
+}
+
+// === EDITAR EMPLEADO ===
 function openEditEmpleadoModal(id) {
-    fetch(`/empleados/editar/${id}/`, {
-        headers: {'X-Requested-With': 'XMLHttpRequest'}
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById('edit_empleado_id').value = data.id;
-        document.getElementById('edit_nombre_empleado').value = data.nombre;
-        document.getElementById('edit_email_empleado').value = data.email;
-        document.getElementById('edit_telefono_empleado').value = data.telefono;
-        document.getElementById('edit_direccion_empleado').value = data.direccion;
-        document.getElementById('editEmpleadoModal').style.display = 'block';
-    });
+  fetch(`/empleados/editar/${id}/`, {
+    headers: {'X-Requested-With': 'XMLHttpRequest'}
+  })
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById('edit_empleado_id').value = data.id;
+    document.getElementById('edit_nombre_empleado').value = data.nombre;
+    document.getElementById('edit_email_empleado').value = data.email;
+    document.getElementById('edit_telefono_empleado').value = data.telefono;
+    document.getElementById('edit_direccion_empleado').value = data.direccion;
+    document.getElementById('editEmpleadoModal').style.display = 'block';
+  });
 }
-
 function closeEditEmpleadoModal() {
-    document.getElementById('editEmpleadoModal').style.display = 'none';
+  document.getElementById('editEmpleadoModal').style.display = 'none';
+}
+function submitEditEmpleado(event) {
+  event.preventDefault();
+  const id = document.getElementById('edit_empleado_id').value;
+  const data = {
+    nombre: document.getElementById('edit_nombre_empleado').value,
+    email: document.getElementById('edit_email_empleado').value,
+    telefono: document.getElementById('edit_telefono_empleado').value,
+    direccion: document.getElementById('edit_direccion_empleado').value,
+  };
+
+  fetch(`/empleados/editar/${id}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(resp => {
+    if (resp.success) {
+      const fila = document.querySelector(`tr[data-id='${id}']`);
+      fila.querySelector('.c-nombre').textContent = data.nombre;
+      fila.querySelector('.c-email').textContent = data.email;
+      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
+      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+      closeEditEmpleadoModal();
+      showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
+    } else {
+      showCustomAlert('Error', 'No se pudo actualizar.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
 }
 
-// ===== Guardar cambios =====
-function submitEditEmpleado(event) {
-    event.preventDefault();
-    const id = document.getElementById('edit_empleado_id').value;
-
-    const data = {
-        nombre: document.getElementById('edit_nombre_empleado').value,
-        email: document.getElementById('edit_email_empleado').value,
-        telefono: document.getElementById('edit_telefono_empleado').value,
-        direccion: document.getElementById('edit_direccion_empleado').value,
-    };
-
-    fetch(`/empleados/editar/${id}/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken,
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-        body: JSON.stringify(data)
+// === ELIMINAR EMPLEADO ===
+function confirmDeleteEmpleado(id, nombre) {
+  showCustomAlert(`Eliminar Empleado`, `¿Seguro que deseas eliminar a "${nombre}"?`, function () {
+    fetch(`/empleados/eliminar/${id}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
     })
     .then(res => res.json())
     .then(resp => {
-        if (resp.success) {
-            const fila = document.querySelector(`tr[data-id='${id}']`);
-            fila.querySelector('.c-nombre').textContent = data.nombre;
-            fila.querySelector('.c-email').textContent = data.email;
-            fila.querySelector('.c-telefono').textContent = data.telefono || '-';
-            fila.querySelector('.c-direccion').textContent = data.direccion || '-';
-
-            closeEditEmpleadoModal();
-            showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
-        } else {
-            showCustomAlert('Error', 'No se pudo actualizar.');
-        }
+      if (resp.success) {
+        document.querySelector(`tr[data-id='${id}']`).remove();
+        showCustomAlert('Éxito', 'Empleado eliminado correctamente.');
+      } else {
+        showCustomAlert('Error', 'No se pudo eliminar.');
+      }
     })
     .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-}
-
-// ===== Eliminar Empleado =====
-function confirmDeleteEmpleado(id, nombre) {
-    showCustomAlert(`Eliminar Empleado`, `¿Seguro que deseas eliminar a "${nombre}"?`, function () {
-        fetch(`/empleados/eliminar/${id}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrftoken,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(res => res.json())
-        .then(resp => {
-            if (resp.success) {
-                document.querySelector(`tr[data-id='${id}']`).remove();
-                showCustomAlert('Éxito', 'Empleado eliminado correctamente.');
-            }
-        });
-    });
-}
-
-// Modal de alertas reutilizable
-function showCustomAlert(title, message, confirmCallback = null) {
-    document.getElementById('alertTitle').textContent = title;
-    document.getElementById('alertMessage').textContent = message;
-    document.getElementById('customAlert').style.display = 'block';
-
-    const btn = document.getElementById('alertConfirmBtn');
-    btn.onclick = confirmCallback
-        ? () => { confirmCallback(); closeCustomAlert(); }
-        : closeCustomAlert;
-}
-
-function closeCustomAlert() {
-    document.getElementById('customAlert').style.display = 'none';
+  });
 }
 </script>
 {% endblock %}

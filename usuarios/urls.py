@@ -21,6 +21,8 @@ urlpatterns = [
      path('administrador/empleados/', views.lista_empleados, name='lista_empleados'),
      path('empleados/editar/<int:id>/', views.editar_empleado, name='editar_empleado'),
      path('empleados/eliminar/<int:id>/', views.eliminar_empleado, name='eliminar_empleado'),
+     path('empleados/crear/', views.crear_empleado, name='crear_empleado'),
+
 
     # Administradores
 
