@@ -12,7 +12,8 @@ from .forms import UsuarioAdminForm
 
 from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario
-
+import json
+from .models import Rol
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -271,3 +272,20 @@ def editar_empleado(request, id):
 def eliminar_empleado(request, id):
     get_object_or_404(Usuario, id=id).delete()
     return JsonResponse({'success': True})
+
+
+def crear_empleado(request):
+    if request.method == "GET":
+        return JsonResponse({'ok': True, 'data': {}})
+
+    data = json.loads(request.body or '{}')
+
+    rol_empleado, _ = Rol.objects.get_or_create(nombre='Empleado')
+    data.setdefault('rol', rol_empleado.id)
+    data.setdefault('is_active', True)
+
+    form = UsuarioAdminForm(data=data)
+    if form.is_valid():
+        empleado = form.save()
+        return JsonResponse({'ok': True, 'id': empleado.id})
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
