@@ -142,3 +142,15 @@ def eliminar_categoria(request, categoria_id):
             messages.success(request, 'Categoría eliminada exitosamente')
     
     return redirect('menu_administrador')  # ✅ CAMBIADO
+
+# views.py
+from django.shortcuts import render
+from .models import Categoria, Producto
+
+def menu_cliente(request):
+    categorias = Categoria.objects.all().order_by('nombre')
+    productos = Producto.objects.filter(disponible=True).select_related('categoria')
+    return render(request, 'cliente/menu_cliente.html', {
+        'categorias': categorias,
+        'productos': productos
+    })
