@@ -100,7 +100,7 @@
         <!-- Elementos específicos para clientes -->
         {% elif user.rol.nombre == 'Cliente' %}
             <li><a href="{% url 'cliente_dashboard' %}">Inicio</a></li>
-            <li><a href="#">Menú</a></li>
+            <li><a href="{% url 'menu_cliente' %}">Menú</a></li>
             <li><a href="#">Mis Pedidos</a></li>
             <li><a href="#">Mi Perfil</a></li>
         {% endif %}

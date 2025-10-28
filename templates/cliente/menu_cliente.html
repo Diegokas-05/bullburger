@@ -1,67 +1,90 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BullBurger - Menú</title>
-  <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
-</head>
 
-<body>
-  <header class="header">
-    <div class="header-top">
-      <img src="{% static 'usuarios/img/logoBullBurger.png' %}" alt="BullBurger Logo" class="logo-img">
-      <nav class="nav">
-        <a href="{% url 'inicio_cliente' %}">Inicio</a>
-        <a href="#" class="activo">Menú</a>
-        <a href="{% url 'ubicacion_cliente' %}">Nuestra Ubicación</a>
-        <a href="{% url 'pedidos_cliente' %}">Mis Pedidos</a>
-      </nav>
-      <a href="{% url 'carrito_cliente' %}" class="btn_carrito">
-      🛒&nbsp; <span class="carrito-amount">${{ total_carrito|default:"0.00" }}</span>
-    </a>
-    </div>
-    <div class="separator"></div>
-    <div class="separator dos"></div>
-  </header>
+{% block title %}Menú - BullBurger{% endblock %}
 
-  <section class="menu">
-    <div class="categorias">
-      <button class="categoria activo">Todos</button>
-      <button class="categoria">Hamburguesas</button>
-      <button class="categoria">Bebidas</button>
-      <button class="categoria">Snack</button>
-      <button class="categoria">Combos</button>
-      <button class="categoria">Postres</button>
-    </div>
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
 
-    <div class="productos-grid">
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Clasic-Bull.jpg' %}" alt="Clasic Bull">
-        <h3>CLASIC-BULL</h3>
-      </div>
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Batidos.jpg' %}" alt="Batidos">
-        <h3>BATIDOS</h3>
-      </div>
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Papas.jpg' %}" alt="Papas">
-        <h3>PAPAS</h3>
-      </div>
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Combo-1.png' %}" alt="Combo 1">
-        <h3>COMBO-1</h3>
-      </div>
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Postre.jpg' %}" alt="Postre">
-        <h3>POSTRE</h3>
-      </div>
-      <div class="producto">
-        <img src="{% static 'usuarios/img/Mini-Michis.jpg' %}" alt="MiniMichis">
-        <h3>MINI-MICHIS</h3>
-      </div>
+
+<section class="cliente-bg">
+  <h1 class="titulo-menu">Menú BullBurger 🍔</h1>
+
+  <!-- Categorías -->
+  <div class="categorias">
+    <button class="categoria activo" data-category="all">
+      <span>🍽️ Todos</span>
+    {% for categoria in categorias %}
+      <button class="categoria" data-category="{{ categoria.id }}">
+        <span>
+                {% if categoria.nombre == 'Hamburguesas' %}🍔
+                {% elif categoria.nombre == 'Bebidas' %}🥤
+                {% elif categoria.nombre == 'Snacks' %}🍟
+                {% elif categoria.nombre == 'Combos' %}📦
+                {% elif categoria.nombre == 'Postres' %}🍦
+                {% else %}🍽️{% endif %}
+                {{ categoria.nombre }}
+            </span>
+    {% endfor %}
+  </div>
+
+  <!-- Productos -->
+  <div class="products-grid">
+        {% for producto in productos %}
+        <div class="product-card" data-category="{{ producto.categoria.id }}">
+            <div class="product-image">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                {% elif producto.imagen_url %}
+                <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                {% endif %}
+                <div class="image-placeholder" {% if producto.imagen or producto.imagen_url %}style="display: none;"{% endif %}>
+                    {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
+                    {% elif producto.categoria.nombre == 'Bebidas' %}🥤
+                    {% elif producto.categoria.nombre == 'Snacks' %}🍟
+                    {% elif producto.categoria.nombre == 'Combos' %}📦
+                    {% elif producto.categoria.nombre == 'Postres' %}🍦
+                    {% else %}🍽️{% endif %}
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>{{ producto.nombre }}</h3>
+                <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
+                <div class="product-price">${{ producto.precio }}</div>
+                <div class="product-category">
+                    <small>Categoría: {{ producto.categoria.nombre }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-products">
+            <h3>No hay productos en el menú</h3>
+            <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
+        </div>
+        {% endfor %}
     </div>
-  </section>
-</body>
-</html>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const categoryButtons = document.querySelectorAll('.categoria');
+  const productos = document.querySelectorAll('.product-card');
+
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      categoryButtons.forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      const categoria = btn.getAttribute('data-category');
+
+      productos.forEach(prod => {
+        if (categoria === 'all' || prod.getAttribute('data-category') === categoria) {
+          prod.style.display = 'block';
+        } else {
+          prod.style.display = 'none';
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
