@@ -154,3 +154,88 @@ def menu_cliente(request):
         'categorias': categorias,
         'productos': productos
     })
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+import json
+from .models import CarritoItem, Producto
+
+@csrf_exempt
+@require_POST
+def agregar_al_carrito(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'ok': False, 'error': 'Debe iniciar sesión para agregar productos.'}, status=403)
+
+    try:
+        data = json.loads(request.body)
+        producto_id = data.get('producto_id')
+        cantidad = int(data.get('cantidad', 1))
+    except (ValueError, json.JSONDecodeError):
+        return JsonResponse({'ok': False, 'error': 'Datos inválidos'}, status=400)
+
+    try:
+        producto = Producto.objects.get(id=producto_id)
+    except Producto.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Producto no encontrado'}, status=404)
+
+    # Buscar si ya existe el mismo producto en el carrito del usuario
+    item, creado = CarritoItem.objects.get_or_create(usuario=request.user, producto=producto)
+    if not creado:
+        item.cantidad += cantidad
+    else:
+        item.cantidad = cantidad
+    item.save()
+
+    return JsonResponse({'ok': True, 'mensaje': 'Producto añadido al carrito correctamente'})
+
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def ver_carrito(request):
+    items = CarritoItem.objects.filter(usuario=request.user).select_related('producto')
+    total = sum(item.subtotal() for item in items)
+    return render(request, 'cliente/carrito_cliente.html', {
+        'pedidos': items,
+        'total': total
+    })
+
+
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from .models import CarritoItem
+
+@login_required
+@require_POST
+def editar_cantidad(request, item_id):
+    """Actualizar la cantidad de un producto en el carrito del usuario"""
+    try:
+        data = json.loads(request.body)
+        nueva_cantidad = int(data.get("cantidad", 1))
+
+        if nueva_cantidad < 1:
+            return JsonResponse({"ok": False, "error": "Cantidad no válida"}, status=400)
+
+        item = CarritoItem.objects.get(id=item_id, usuario=request.user)
+        item.cantidad = nueva_cantidad
+        item.save()
+        return JsonResponse({"ok": True, "mensaje": "Cantidad actualizada correctamente"})
+
+    except CarritoItem.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=404)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def eliminar_item_carrito(request, item_id):
+    """Eliminar un producto del carrito del usuario"""
+    try:
+        item = CarritoItem.objects.get(id=item_id, usuario=request.user)
+        item.delete()
+        return JsonResponse({"ok": True, "mensaje": "Producto eliminado del carrito"})
+    except CarritoItem.DoesNotExist:
+        return JsonResponse({"ok": False, "error": "El producto no existe en el carrito"}, status=404)
+    except Exception as e:
+        return JsonResponse({"ok": False, "error": str(e)}, status=500)

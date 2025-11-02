@@ -149,250 +149,479 @@
     color: #95a5a6;
     font-size: 0.8rem;
 }
-/* ---------- SECCIÓN CARRITO ---------- */
-.carrito {
-  background-color: #f7efe2;
-  border-radius: 10px;
-  margin: 2rem;
-  padding: 2rem;
-  text-align: center;
+
+/* === MODAL DETALLE PRODUCTO (versión moderna) === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(3px);
 }
 
-.titulo-carrito {
+.modal-contenido {
+  background: #fffaf3;
+  border-radius: 24px;
+  max-width: 800px;
+  width: 95%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  animation: modalFade 0.35s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes modalFade {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cerrar {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  font-size: 1.8rem;
+  color: #333;
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.cerrar:hover {
+  transform: scale(1.1);
+  color: #f4c542;
+}
+
+.modal-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.modal-imagen {
+  flex: 1 1 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff5da;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.modal-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-info {
+  flex: 1 1 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.modal-titulo {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.9rem;
+  color: #3e2c1c;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.5px;
+}
+
+.modal-descripcion {
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.modal-precio {
+  font-size: 1.7rem;
+  font-weight: bold;
+  color: #27ae60;
+  margin-bottom: 1.2rem;
+}
+
+.cantidad-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.cantidad-container label {
+  font-weight: bold;
+  color: #3e2c1c;
+}
+
+.cantidad-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cantidad-control button {
+  background: #f4c542;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.cantidad-control button:hover {
+  background: #ffd95b;
+  transform: scale(1.1);
+}
+
+.cantidad-control input {
+  width: 65px;
+  text-align: center;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 1rem;
+  padding: 0.4rem;
+  font-weight: bold;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.btn-cancelar,
+.btn-agregar {
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.6rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-cancelar {
+  background: #ccc;
+  color: #333;
+}
+
+.btn-cancelar:hover {
+  background: #b3b3b3;
+  transform: scale(1.05);
+}
+
+.btn-agregar {
+  background: #27ae60;
+  color: white;
+}
+
+.btn-agregar:hover {
+  background: #2ecc71;
+  transform: scale(1.05);
+}
+
+/* === Modal del Producto === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 20px;
+  max-width: 700px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
   font-size: 2rem;
-  font-weight: 900;
+  color: #888;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.close:hover {
+  color: #d33;
+}
+
+.modal-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.modal-img {
+  flex: 1 1 250px;
+  height: 230px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.modal-info {
+  flex: 1 1 300px;
+}
+
+.modal-info h2 {
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+  font-size: 1.6rem;
+}
+
+.modal-info p {
+  color: #555;
+  line-height: 1.5;
+}
+
+.modal-precio {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #27ae60;
+  margin-top: 1rem;
+}
+
+#modalCantidad {
+  width: 80px;
+  padding: 0.3rem;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  font-size: 1rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.modal-buttons button:first-child {
+  background-color: #27ae60;
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #219150;
+}
+
+.modal-buttons .btn-secondary {
+  background-color: #ccc;
+  color: #333;
+}
+
+.modal-buttons .btn-secondary:hover {
+  background-color: #b5b5b5;
+}
+
+/* === Responsivo === */
+@media (max-width: 600px) {
+  .modal-body {
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+
+  .modal-img {
+    width: 100%;
+    height: 200px;
+  }
+
+  .modal-info h2 {
+    text-align: center;
+  }
+
+  .modal-buttons {
+    flex-direction: column;
+  }
+}
+
+
+/* ---------- SECCIÓN CARRITO ---------- */
+.titulo {
+  text-align: center;
+  color: #3e2c1c;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.separador {
+  border: 2px solid #3e2c1c;
+  width: 80%;
+  margin: 0 auto 2rem auto;
+}
+
+.carrito-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 15px;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  gap: 1rem;
+}
+
+.item-img {
+  width: 250px;
+  height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-info h3 {
+  font-family: 'Luckiest Guy', cursive;
   color: #3e2c1c;
   margin-bottom: 0.5rem;
 }
 
-.linea-titulo {
-  width: 80%;
-  border: none;
-  border-top: 2px solid #3e2c1c;
-  margin-bottom: 2rem;
-}
-
-.carrito-items {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  align-items: center;
-  margin: 0 5.5rem;
-}
-
-.item-carrito {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 1rem 1.5rem;
-  width: 90%;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.item-carrito img {
-  width: 120px;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-.info-producto {
-  flex: 1;
-  text-align: left;
-  margin-left: 1.5rem;
-}
-
-.info-producto h3 {
-  font-size: 1.2rem;
-  margin: 0;
-  color: #3e2c1c;
-}
-
-.info-producto p {
+.item-descripcion {
   font-size: 0.9rem;
-  color: #4d3b29;
-  margin: 0.5rem 0;
+  color: #555;
+  margin-bottom: 0.5rem;
 }
 
-.precio {
-  display: block;
+.item-precio {
+  color: #27ae60;
   font-weight: bold;
-  color: #000;
+  margin-bottom: 0.5rem;
+}
+
+.cantidad-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.5rem;
 }
 
-.btn-eliminar {
-  background-color: #861400;
-  color: #fff;
-  border: none;
+.input-cantidad {
+  width: 60px;
+  text-align: center;
+  border: 2px solid #f4c542;
   border-radius: 8px;
-  padding: 0.5rem 1.2rem;
-  cursor: pointer;
+  padding: 0.3rem;
   font-weight: bold;
-  transition: all 0.3s;
+}
+
+.acciones-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-editar {
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-editar:hover {
+  background: #2ecc71;
+}
+
+.btn-eliminar {
+  background: #c0392b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
 .btn-eliminar:hover {
-  background-color: #a31b00;
+  background: #e74c3c;
 }
 
+
 .carrito-total {
+  text-align: center;
   margin-top: 2rem;
 }
 
 .btn-pagar {
-  background-color: #f4c542;
-  color: #3e2c1c;
-  font-weight: bold;
+  background: #f4c542;
   border: none;
-  border-radius: 10px;
-  padding: 1rem 3rem;
+  border-radius: 20px;
+  padding: 1rem 2rem;
+  color: #ffffff;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: transform 0.3s;
+  transition: transform 0.2s;
 }
 
 .btn-pagar:hover {
   transform: scale(1.05);
+  background: #f8cd57;
 }
 
-
-.stock {
-  display: block;
-  font-size: 0.85rem;
-  color: #861400;
-  margin-top: 0.3rem;
-}
-
-.acciones-producto {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-left: 20px;
-}
-
-/* Botón EDITAR */
-.btn-editar {
-  background-color: #e0b837;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 0.5rem 1.2rem;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.btn-editar:hover {
-  background-color: #b89213;
-}
-
-/* ---------- SECCIÓN UBICACIÓN ---------- */
-.ubicacion {
-  background-color: #f7efe2;
-  border-radius: 15px;
-  margin: 2rem;
-  padding: 2rem;
-  text-align: center;
-}
-
-.titulo-ubicacion {
-  font-family: 'Luckiest Guy', cursive;
-  font-size: 2rem;
-  color: #3e2c1c;
-  margin-bottom: 1.5rem;
-}
-
-.mapa-container {
-  background-color: #d2c5b4;
-  border-radius: 20px;
-  padding: 1rem;
-  width: 80%;
-  margin: 0 auto;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-.mapa-container iframe {
-  width: 100%;
-  height: 350px;
-  border: none;
-  border-radius: 20px;
-}
-
-/* ---------- SECCIÓN MIS PEDIDOS ---------- */
-.pedidos {
-  background-color: #f7efe2;
-  border-radius: 15px;
-  margin: 2rem;
-  padding: 2rem;
-  text-align: center;
-}
-
-.titulo-pedidos {
-  font-family: 'Luckiest Guy', cursive;
-  font-size: 2rem;
-  color: #3e2c1c;
-  margin-bottom: 2rem;
-}
-
-.contenedor-pedidos {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  align-items: center;
-}
-
-.pedido-card {
-  width: 80%;
-  background-color: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  padding: 1.5rem;
-  text-align: left;
-  border-left: 8px solid #d2c5b4;
-  transition: all 0.3s ease;
-}
-
-.pedido-card:hover {
-  transform: translateY(-5px);
-}
-
-.pedido-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.pedido-header h3 {
-  margin: 0;
-  color: #3e2c1c;
-}
-
-.estado {
-  padding: 0.3rem 1rem;
+.btn-volver {
+  display: inline-block;
+  margin-top: 1rem;
+  background: #3e2c1c;
+  color: white;
+  padding: 0.8rem 1.5rem;
   border-radius: 10px;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-/* Colores según estado */
-.completado {
-  border-left-color: #2e7d32;
-}
-
-.completado .estado {
-  background-color: #c8e6c9;
-  color: #2e7d32;
-}
-
-.pendiente {
-  border-left-color: #b89213;
-}
-
-.pendiente .estado {
-  background-color: #fff3cd;
-  color: #b89213;
+  text-decoration: none;
 }
