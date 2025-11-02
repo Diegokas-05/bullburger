@@ -5,7 +5,7 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <section class="cliente-bg">
   <h1 class="titulo-menu">Menú BullBurger 🍔</h1>
@@ -14,56 +14,79 @@
   <div class="categorias">
     <button class="categoria activo" data-category="all">
       <span>🍽️ Todos</span>
+    </button>
     {% for categoria in categorias %}
       <button class="categoria" data-category="{{ categoria.id }}">
         <span>
-                {% if categoria.nombre == 'Hamburguesas' %}🍔
-                {% elif categoria.nombre == 'Bebidas' %}🥤
-                {% elif categoria.nombre == 'Snacks' %}🍟
-                {% elif categoria.nombre == 'Combos' %}📦
-                {% elif categoria.nombre == 'Postres' %}🍦
-                {% else %}🍽️{% endif %}
-                {{ categoria.nombre }}
-            </span>
+          {% if categoria.nombre == 'Hamburguesas' %}🍔
+          {% elif categoria.nombre == 'Bebidas' %}🥤
+          {% elif categoria.nombre == 'Snacks' %}🍟
+          {% elif categoria.nombre == 'Combos' %}📦
+          {% elif categoria.nombre == 'Postres' %}🍦
+          {% else %}🍽️{% endif %}
+          {{ categoria.nombre }}
+        </span>
+      </button>
     {% endfor %}
   </div>
 
   <!-- Productos -->
   <div class="products-grid">
-        {% for producto in productos %}
-        <div class="product-card" data-category="{{ producto.categoria.id }}">
-            <div class="product-image">
-                {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                {% elif producto.imagen_url %}
-                <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                {% endif %}
-                <div class="image-placeholder" {% if producto.imagen or producto.imagen_url %}style="display: none;"{% endif %}>
-                    {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
-                    {% elif producto.categoria.nombre == 'Bebidas' %}🥤
-                    {% elif producto.categoria.nombre == 'Snacks' %}🍟
-                    {% elif producto.categoria.nombre == 'Combos' %}📦
-                    {% elif producto.categoria.nombre == 'Postres' %}🍦
-                    {% else %}🍽️{% endif %}
-                </div>
-            </div>
-            <div class="product-info">
-                <h3>{{ producto.nombre }}</h3>
-                <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
-                <div class="product-price">${{ producto.precio }}</div>
-                <div class="product-category">
-                    <small>Categoría: {{ producto.categoria.nombre }}</small>
-                </div>
-            </div>
+    {% for producto in productos %}
+    <div class="product-card" data-category="{{ producto.categoria.id }}"
+         onclick="openModal('{{ producto.nombre }}', '{{ producto.descripcion|escapejs }}', '{{ producto.precio }}', '{% if producto.imagen %}{{ producto.imagen.url }}{% elif producto.imagen_url %}{{ producto.imagen_url }}{% endif %}', '{{ producto.id }}')">
+
+      <div class="product-image">
+        {% if producto.imagen %}
+          <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% elif producto.imagen_url %}
+          <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}">
+        {% else %}
+          <div class="image-placeholder">🍔</div>
+        {% endif %}
+      </div>
+
+      <div class="product-info">
+        <h3>{{ producto.nombre }}</h3>
+        <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
+        <div class="product-price">${{ producto.precio }}</div>
+        <div class="product-category">
+          <small>Categoría: {{ producto.categoria.nombre }}</small>
         </div>
-        {% empty %}
-        <div class="no-products">
-            <h3>No hay productos en el menú</h3>
-            <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
-        </div>
-        {% endfor %}
+      </div>
     </div>
+    {% empty %}
+      <div class="no-products">
+        <h3>No hay productos en el menú</h3>
+        <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
+      </div>
+    {% endfor %}
+  </div>
 </section>
+
+<!-- Modal del producto -->
+<div id="productoModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+
+    <div class="modal-body">
+      <img id="modalImagen" src="" alt="Producto" class="modal-img">
+      <div class="modal-info">
+        <h2 id="modalNombre"></h2>
+        <p id="modalDescripcion"></p>
+        <p class="modal-precio">Precio: <span id="modalPrecio"></span></p>
+
+        <label for="modalCantidad">Cantidad:</label>
+        <input type="number" id="modalCantidad" value="1" min="1" step="1">
+
+        <div class="modal-buttons">
+          <button onclick="agregarAlCarrito()">Agregar a la bolsa</button>
+          <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -86,5 +109,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+let productoSeleccionado = null;
+
+function openModal(nombre, descripcion, precio, imagen, id) {
+  productoSeleccionado = { id, nombre, precio };
+  document.getElementById('modalNombre').textContent = nombre;
+  document.getElementById('modalDescripcion').textContent = descripcion || 'Sin descripción';
+  document.getElementById('modalPrecio').textContent = `$${precio}`;
+  document.getElementById('modalImagen').src = imagen;
+  document.getElementById('modalCantidad').value = 1;
+  document.getElementById('productoModal').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('productoModal').style.display = 'none';
+}
+
+function agregarAlCarrito() {
+  const cantidad = document.getElementById('modalCantidad').value;
+
+  fetch('/carrito/agregar/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({
+      producto_id: productoSeleccionado.id,
+      cantidad: cantidad
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    closeModal();
+    if (data.ok) {
+      Swal.fire({
+        title: '¡Producto añadido!',
+        text: `${productoSeleccionado.nombre} fue agregado a tu carrito.`,
+        icon: 'success',
+        showCancelButton: true,
+        confirmButtonColor: '#27ae60',
+        cancelButtonColor: '#f4c542',
+        confirmButtonText: 'Ver bolsa',
+        cancelButtonText: 'Seguir comprando',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = '/cliente/carrito/';
+        }
+      });
+    } else {
+      Swal.fire('Error', data.error || 'No se pudo añadir el producto', 'error');
+    }
+  })
+  .catch(() => Swal.fire('Error', 'Error en la solicitud al servidor', 'error'));
+}
+
+// Evitar valores inválidos en cantidad
+document.addEventListener("input", (e) => {
+  if (e.target.id === "modalCantidad") {
+    let val = parseInt(e.target.value);
+    if (isNaN(val) || val < 1) {
+      e.target.value = 1;
+    }
+  }
+});
+
 </script>
 {% endblock %}

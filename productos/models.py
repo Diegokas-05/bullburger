@@ -40,3 +40,19 @@ class Promocion(models.Model):
     
     def __str__(self):
         return self.codigo
+
+from django.db import models
+from django.conf import settings
+from .models import Producto  # asegúrate de importar correctamente el modelo Producto
+
+class CarritoItem(models.Model):
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField(default=1)
+    agregado_en = models.DateTimeField(auto_now_add=True)
+
+    def subtotal(self):
+        return self.cantidad * self.producto.precio
+
+    def __str__(self):
+        return f"{self.cantidad}x {self.producto.nombre} ({self.usuario.email})"

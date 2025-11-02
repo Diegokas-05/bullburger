@@ -1,74 +1,113 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BullBurger - Mi Carrito</title>
-  <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
-</head>
 
-<body>
-  <header class="header">
-    <div class="header-top">
-      <img src="{% static 'usuarios/img/logoBullBurger.png' %}" alt="BullBurger Logo" class="logo-img">
+{% block title %}Mi Carrito - BullBurger{% endblock %}
 
-      <nav class="nav">
-        <a href="{% url 'inicio_cliente' %}">Inicio</a>
-        <a href="{% url 'menu_cliente' %}">Menú</a>
-        <a href="{% url 'ubicacion_cliente' %}">Nuestra Ubicación</a>
-        <a href="{% url 'pedidos_cliente' %}">Mis Pedidos</a>
-      </nav>
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
 
-      <a href="{% url 'carrito_cliente' %}" class="btn_carrito">
-      🛒&nbsp; <span class="carrito-amount">${{ total_carrito|default:"0.00" }}</span>
-    </a>
-    </div>
+<section class="cliente-bg">
+  <h1 class="titulo"> MI BOLSA</h1>
+  <hr class="separador">
 
-    <div class="separator"></div>
-    <div class="separator dos"></div>
-  </header>
+  {% if pedidos %}
+  {% for item in pedidos %}
+<div class="carrito-item">
+  <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" class="item-img">
 
-  <main class="carrito">
-    <h1 class="titulo-carrito">MI BOLSA</h1>
-    <hr class="linea-titulo">
+  <div class="item-info">
+    <h3>{{ item.producto.nombre }}</h3>
+    <p class="item-descripcion">{{ item.producto.descripcion|default:"Sin descripción" }}</p>
+    <p class="item-precio">${{ item.producto.precio }}</p>
 
-    <div class="carrito-items">
+    <div class="cantidad-container">
+      <label for="cantidad-{{ item.id }}">Cantidad:</label>
+      <input type="number" id="cantidad-{{ item.id }}" value="{{ item.cantidad }}" min="1" class="input-cantidad">
 
-      <!-- ITEM 1 -->
-      <div class="item-carrito">
-        <img src="{% static 'usuarios/img/Clasic-Bull.jpg' %}" alt="CLASIC-BULL">
-        <div class="info-producto">
-          <h3>CLASIC-BULL</h3>
-          <p>Descripción breve del producto. Ingredientes principales o detalle corto.</p>
-          <span class="stock">Cantidad: 1</span>
-          <span class="precio">$ 0.00</span>
-        </div>
-        <div class="acciones-producto">
-          <button class="btn-editar">EDITAR</button>
-          <button class="btn-eliminar">ELIMINAR</button>
-        </div>
-      </div>
-
-      <!-- ITEM 2 -->
-      <div class="item-carrito">
-        <img src="{% static 'usuarios/img/Papas.jpg' %}" alt="PAPAS">
-        <div class="info-producto">
-          <h3>PAPAS</h3>
-          <p>Descripción breve del producto. Ingredientes principales o detalle corto.</p>
-          <span class="stock">Cantidad: 1</span>
-          <span class="precio">$ 0.00</span>
-        </div>
-        <div class="acciones-producto">
-          <button class="btn-editar">EDITAR</button>
-          <button class="btn-eliminar">ELIMINAR</button>
-        </div>
+      <div class="acciones-container">
+        <button class="btn-editar" onclick="editarCantidad('{{ item.id }}')">Actualizar</button>
+        <button class="btn-eliminar" onclick="eliminarItem('{{ item.id }}')">Eliminar</button>
       </div>
     </div>
+  </div>
+</div>
+{% endfor %}
 
-    <div class="carrito-total">
-      <button class="btn-pagar">PAGAR CARRITO<br><span>$0.00</span></button>
-    </div>
-  </main>
-</body>
-</html>
+  <div class="carrito-total">
+    <p>Total: <span id="total">${{ total }}</span></p>
+    <button class="btn-pagar">PAGAR BOLSA</button>
+  </div>
+
+  {% else %}
+  <div class="carrito-vacio">
+    <h2>🛒 Tu bolsa está vacía</h2>
+    <a href="{% url 'menu_cliente' %}" class="btn-volver">Volver al menú</a>
+  </div>
+  {% endif %}
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function eliminarItem(id) {
+  Swal.fire({
+    title: '¿Eliminar producto?',
+    text: 'Esta acción eliminará el producto de tu bolsa.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      fetch(`/carrito/eliminar/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok) {
+          Swal.fire({
+            title: 'Eliminado',
+            text: 'El producto se eliminó correctamente.',
+            icon: 'success',
+            timer: 1200,
+            showConfirmButton: false
+          }).then(() => location.reload());
+        } else {
+          Swal.fire('Error', data.error || 'No se pudo eliminar el producto', 'error');
+        }
+      });
+    }
+  });
+}
+
+function editarCantidad(id) {
+  const nuevaCantidad = document.getElementById(`cantidad-${id}`).value;
+  fetch(`/carrito/editar/${id}/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ cantidad: nuevaCantidad })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.ok) {
+      Swal.fire({
+        title: 'Cantidad actualizada',
+        text: 'Tu bolsa se ha modificado correctamente.',
+        icon: 'success',
+        timer: 1200,
+        showConfirmButton: false
+      }).then(() => location.reload());
+    } else {
+      Swal.fire('Error', data.error || 'No se pudo actualizar la cantidad', 'error');
+    }
+  });
+}
+</script>
+
+{% endblock %}
