@@ -1,10 +1,34 @@
 # productos/views.py
+from decimal import Decimal
+import json
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Producto, Categoria
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.http import JsonResponse
+from django.urls import reverse, NoReverseMatch
+
+# Modelos propios
+from .models import Producto, Categoria, CarritoItem
 from .forms import ProductoForm
-from inventario.models import Ingrediente, Receta
+
+# Inventario / Recetas / Movimientos
+from inventario.models import Ingrediente, Receta, MovimientoInventario
+
+# Pedido y detalle
+from pedidos.models import Pedido, DetallePedido
+
+# (opcional) Usuario si lo necesitas en otras vistas
+from usuarios.models import Usuario
+
+_INV_PRODUCTO_OK = False
+try:
+    from inventario.models import Inventario
+    _INV_PRODUCTO_OK = True
+except Exception:
+    Inventario = None 
 
 @login_required
 def lista_productos(request):
@@ -239,3 +263,144 @@ def eliminar_item_carrito(request, item_id):
         return JsonResponse({"ok": False, "error": "El producto no existe en el carrito"}, status=404)
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
+@login_required
+@require_POST
+def carrito_checkout(request):
+    """
+    Crea Pedido + Detalles desde el carrito del usuario.
+    Descuenta inventario de:
+      - Producto terminado (Inventario) si existe
+      - Ingredientes según Receta (consumo por venta)
+    Devuelve JSON: { ok, pedido_id, total, factura_url? }
+    """
+    # 1) Parseo de JSON
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'JSON inválido'}, status=400)
+
+    nombre      = (payload.get('nombre') or '').strip()
+    telefono    = (payload.get('telefono') or '').strip()
+    metodo      = (payload.get('metodo') or '').strip()        # 'efectivo' | 'tarjeta'
+    entrega     = (payload.get('entrega') or '').strip()       # 'local' | 'domicilio'
+    direccion   = (payload.get('direccion') or '').strip()
+    numero_pago = (payload.get('numero_pago') or '').strip()
+
+    # 2) Validaciones
+    if metodo not in ('efectivo', 'tarjeta') or entrega not in ('local', 'domicilio'):
+        return JsonResponse({'ok': False, 'error': 'Datos incompletos o inválidos'}, status=400)
+
+    if entrega == 'domicilio' and not direccion:
+        return JsonResponse({'ok': False, 'error': 'La dirección es obligatoria para domicilio'}, status=400)
+
+    if metodo == 'tarjeta':
+        if not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19):
+            return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
+
+    # 3) Items del carrito
+    items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
+    if not items.exists():
+        return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
+
+    # 4) Total
+    subtotal = sum((it.producto.precio * it.cantidad for it in items), Decimal('0.00'))
+    total = subtotal  # sin promociones/descuentos
+
+    # 5) Transacción: crear pedido, detalles y descontar inventario
+    try:
+        with transaction.atomic():
+            # Pedido base
+            pedido = Pedido.objects.create(
+                usuario=request.user,
+                promocion=None,
+                descuento_aplicado=Decimal('0.00'),
+                estado='pendiente',
+                tipo_entrega=entrega,
+                metodo_pago=metodo,
+                direccion_entrega=direccion if entrega == 'domicilio' else '',
+                total=total
+            )
+
+            # Detalles
+            for it in items:
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    producto=it.producto,
+                    cantidad=it.cantidad,
+                    subtotal=it.producto.precio * it.cantidad
+                )
+
+            # (A) Descuento de INVENTARIO por PRODUCTO terminado (si existe)
+            if _INV_PRODUCTO_OK:
+                for it in items.select_for_update():
+                    try:
+                        inv = Inventario.objects.select_for_update().get(producto=it.producto)
+                        anterior = int(inv.stock)
+                        nuevo = max(0, anterior - int(it.cantidad))
+                        inv.stock = nuevo
+                        inv.save(update_fields=['stock'])
+
+                        MovimientoInventario.objects.create(
+                            producto=it.producto,
+                            ingrediente=None,
+                            tipo='salida',
+                            cantidad=Decimal(it.cantidad),
+                            cantidad_anterior=Decimal(anterior),
+                            cantidad_nueva=Decimal(nuevo),
+                            motivo=f'Venta - Pedido {pedido.id}',
+                            usuario=request.user
+                        )
+                    except Inventario.DoesNotExist:
+                        pass  # si no hay inventario por ese producto, lo ignoramos
+
+            # (B) Descuento de INGREDIENTES según RECETA (consumo)
+            for it in items:
+                recetas = Receta.objects.select_related('ingrediente').filter(producto=it.producto)
+                if not recetas.exists():
+                    continue  # sin receta, no hay consumo de ingredientes
+
+                for rec in recetas.select_for_update():
+                    ing = rec.ingrediente
+                    requerido = (Decimal(rec.cantidad) * Decimal(it.cantidad))
+                    anterior = Decimal(ing.stock_actual)
+
+                    if anterior < requerido:
+                        # Si prefieres permitir negativos o consumir lo disponible, ajusta aquí.
+                        raise ValueError(f'Sin stock suficiente del ingrediente "{ing.nombre}"')
+
+                    ing.stock_actual = anterior - requerido
+                    ing.save(update_fields=['stock_actual'])
+
+                    MovimientoInventario.objects.create(
+                        ingrediente=ing,
+                        producto=None,
+                        tipo='salida',
+                        cantidad=requerido,
+                        cantidad_anterior=anterior,
+                        cantidad_nueva=ing.stock_actual,
+                        motivo=f'Consumo por venta de "{it.producto.nombre}" (Pedido {pedido.id})',
+                        usuario=request.user
+                    )
+
+            # Vaciar carrito
+            items.delete()
+
+        # 6) URL de factura (no rompe si no existe la ruta)
+        factura_url = None
+        try:
+            factura_url = reverse('pedido_factura', args=[pedido.id])
+        except NoReverseMatch:
+            factura_url = None
+
+        return JsonResponse({
+            'ok': True,
+            'pedido_id': pedido.id,
+            'total': f'{total:.2f}',
+            'factura_url': factura_url
+        })
+
+    except ValueError as ve:
+        return JsonResponse({'ok': False, 'error': str(ve)}, status=400)
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': f'Error interno: {e}'}, status=500)
