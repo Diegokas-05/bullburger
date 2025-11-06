@@ -28,8 +28,11 @@ ALLOWED_HOSTS = []
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+# --- DEV: CSRF/Hosts ---
 
 ALLOWED_HOSTS = []
+
+
 
 
 # Application definition

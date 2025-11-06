@@ -4,51 +4,60 @@
 {% block title %}Mi Carrito - BullBurger{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
+<link rel="stylesheet" href="{% static 'css/checkout_modal.css' %}">
 
 <section class="cliente-bg">
   <h1 class="titulo"> MI BOLSA</h1>
   <hr class="separador">
 
   {% if pedidos %}
-  {% for item in pedidos %}
-<div class="carrito-item">
-  <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" class="item-img">
+    {% for item in pedidos %}
+      <div class="carrito-item">
+        {% if item.producto.imagen %}
+          <img src="{{ item.producto.imagen.url }}" alt="{{ item.producto.nombre }}" class="item-img">
+        {% elif item.producto.imagen_url %}
+          <img src="{{ item.producto.imagen_url }}" alt="{{ item.producto.nombre }}" class="item-img">
+        {% else %}
+          <img src="{% static 'img/placeholder.png' %}" alt="{{ item.producto.nombre }}" class="item-img">
+        {% endif %}
 
-  <div class="item-info">
-    <h3>{{ item.producto.nombre }}</h3>
-    <p class="item-descripcion">{{ item.producto.descripcion|default:"Sin descripción" }}</p>
-    <p class="item-precio">${{ item.producto.precio }}</p>
+        <div class="item-info">
+          <h3>{{ item.producto.nombre }}</h3>
+          <p class="item-descripcion">{{ item.producto.descripcion|default:"Sin descripción" }}</p>
+          <p class="item-precio">${{ item.producto.precio }}</p>
 
-    <div class="cantidad-container">
-      <label for="cantidad-{{ item.id }}">Cantidad:</label>
-      <input type="number" id="cantidad-{{ item.id }}" value="{{ item.cantidad }}" min="1" class="input-cantidad">
+          <div class="cantidad-container">
+            <label for="cantidad-{{ item.id }}">Cantidad:</label>
+            <input type="number" id="cantidad-{{ item.id }}" value="{{ item.cantidad }}" min="1" class="input-cantidad">
 
-      <div class="acciones-container">
-        <button class="btn-editar" onclick="editarCantidad('{{ item.id }}')">Actualizar</button>
-        <button class="btn-eliminar" onclick="eliminarItem('{{ item.id }}')">Eliminar</button>
+            <div class="acciones-container">
+              <button class="btn-editar" onclick="editarCantidad('{{ item.id }}')">Actualizar</button>
+              <button class="btn-eliminar" onclick="eliminarItem('{{ item.id }}')">Eliminar</button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-{% endfor %}
+    {% endfor %}
 
-  <div class="carrito-total">
-    <p>Total: <span id="total">${{ total }}</span></p>
-    <button class="btn-pagar">PAGAR BOLSA</button>
-  </div>
+    <div class="carrito-total">
+      <p>Total: <span id="total">${{ total }}</span></p>
+      <button id="btnPagar" class="btn-pagar">PAGAR BOLSA</button>
+    </div>
 
   {% else %}
-  <div class="carrito-vacio">
-    <h2>🛒 Tu bolsa está vacía</h2>
-    <a href="{% url 'menu_cliente' %}" class="btn-volver">Volver al menú</a>
-  </div>
+    <div class="carrito-vacio">
+      <h2>🛒 Tu bolsa está vacía</h2>
+      <a href="{% url 'menu_cliente' %}" class="btn-volver">Volver al menú</a>
+    </div>
   {% endif %}
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+// Eliminar item
 function eliminarItem(id) {
   Swal.fire({
     title: '¿Eliminar producto?',
@@ -83,6 +92,7 @@ function eliminarItem(id) {
   });
 }
 
+// Editar cantidad
 function editarCantidad(id) {
   const nuevaCantidad = document.getElementById(`cantidad-${id}`).value;
   fetch(`/carrito/editar/${id}/`, {
@@ -108,6 +118,143 @@ function editarCantidad(id) {
     }
   });
 }
-</script>
 
+// ===== Modal de pago (2 columnas, sin promociones) =====
+document.getElementById('btnPagar')?.addEventListener('click', async () => {
+  const { value: formValues } = await Swal.fire({
+    title: 'Confirmar pedido',
+    customClass: { popup: 'bb-checkout' }, // usa tu CSS si lo tienes
+    html: `
+      <div class="bb-grid">
+        <!-- Columna izquierda: Dirección -->
+        <div class="bb-card">
+          <div class="bb-h2">Entrega</div>
+
+          <label class="bb-label">Tipo de entrega</label>
+          <div class="bb-radio" id="bb-entrega">
+            <label><input type="radio" name="bb-entrega" value="local" checked> Recoger en local</label>
+            <label><input type="radio" name="bb-entrega" value="domicilio"> Envío a domicilio</label>
+          </div>
+
+          <div id="bb-direccion-wrap" style="margin-top:10px; display:none;">
+            <label class="bb-label">Dirección de entrega</label>
+            <textarea id="bb-direccion" class="bb-textarea" placeholder="Colonia, calle/avenida, referencias"></textarea>
+          </div>
+        </div>
+
+        <!-- Columna derecha: Datos + pago -->
+        <div class="bb-card">
+          <div class="bb-h2">Datos y pago</div>
+
+          <label class="bb-label">Nombre completo</label>
+          <input id="swal-nombre" class="bb-input" value="{{ request.user.nombre|default:'' }}" disabled>
+
+          <label class="bb-label">Teléfono</label>
+          <input id="swal-telefono" class="bb-input" value="{{ request.user.telefono|default:'' }}" disabled>
+
+          <label class="bb-label" style="margin-top:10px;">Método de pago</label>
+          <select id="swal-metodo" class="bb-select">
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+
+          <div id="bb-numero-tarjeta-wrap" style="margin-top:10px; display:none;">
+            <label class="bb-label">Número de tarjeta</label>
+            <input id="bb-numero-tarjeta" class="bb-input" placeholder="Solo dígitos"
+                   inputmode="numeric" maxlength="19">
+            <div class="bb-muted">Se requieren 12 a 19 dígitos.</div>
+          </div>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar',
+    focusConfirm: false,
+    didOpen: () => {
+      const entregaWrap = document.getElementById('bb-entrega');
+      const direccionWrap = document.getElementById('bb-direccion-wrap');
+      const metodoSel = document.getElementById('swal-metodo');
+      const tarjetaWrap = document.getElementById('bb-numero-tarjeta-wrap');
+      const tarjetaInput = document.getElementById('bb-numero-tarjeta');
+
+      // Mostrar/ocultar dirección según entrega
+      const toggleEntrega = () => {
+        const v = entregaWrap.querySelector('input[name="bb-entrega"]:checked')?.value;
+        direccionWrap.style.display = v === 'domicilio' ? 'block' : 'none';
+        if (v !== 'domicilio') document.getElementById('bb-direccion').value = '';
+      };
+      entregaWrap.addEventListener('change', toggleEntrega);
+      toggleEntrega();
+
+      // Mostrar/ocultar número de tarjeta
+      const togglePago = () => {
+        tarjetaWrap.style.display = metodoSel.value === 'tarjeta' ? 'block' : 'none';
+        if (metodoSel.value !== 'tarjeta') tarjetaInput.value = '';
+      };
+      metodoSel.addEventListener('change', togglePago);
+      togglePago();
+
+      // Forzar solo dígitos en tarjeta
+      tarjetaInput.addEventListener('input', () => {
+        tarjetaInput.value = tarjetaInput.value.replace(/\D+/g, '').slice(0, 19);
+      });
+    },
+    preConfirm: () => {
+      const nombre   = (document.getElementById('swal-nombre').value || '').trim();
+      const telefono = (document.getElementById('swal-telefono').value || '').trim();
+      const entrega  = (document.querySelector('input[name="bb-entrega"]:checked')||{}).value || 'local';
+      const metodo   = document.getElementById('swal-metodo').value;
+      const direccion = (document.getElementById('bb-direccion')?.value || '').trim();
+      const numero_pago = (document.getElementById('bb-numero-tarjeta')?.value || '').trim();
+
+      // Validaciones según tu modelo
+      if (!nombre)  { Swal.showValidationMessage('Nombre inválido'); return false; }
+      if (!telefono){ Swal.showValidationMessage('Teléfono inválido'); return false; }
+      if (entrega === 'domicilio' && !direccion) {
+        Swal.showValidationMessage('La dirección es obligatoria para domicilio');
+        return false;
+      }
+      if (metodo === 'tarjeta') {
+        if (numero_pago.length < 12 || numero_pago.length > 19) {
+          Swal.showValidationMessage('Número de tarjeta inválido (12–19 dígitos)');
+          return false;
+        }
+      }
+
+      // Solo devolvemos lo que usa tu backend (los extra puede ignorarlos)
+      return { nombre, telefono, entrega, metodo, direccion, numero_pago };
+    }
+  });
+
+  if (!formValues) return;
+
+  try {
+    const resp = await fetch("{% url 'carrito_checkout' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify(formValues)
+    });
+    const data = await resp.json();
+
+    if (data.ok) {
+      await Swal.fire({
+        icon: 'success',
+        title: 'Pedido confirmado',
+        html: `Número de pedido: <b>${data.pedido_id}</b><br>Total: <b>$${data.total}</b>`,
+        timer: 1800,
+        showConfirmButton: false
+      });
+      location.reload();
+    } else {
+      Swal.fire('No se pudo completar el pago', data.error || 'Inténtalo más tarde', 'error');
+    }
+  } catch (e) {
+    Swal.fire('Error de red', 'No fue posible comunicar con el servidor', 'error');
+  }
+});
+</script>
 {% endblock %}
