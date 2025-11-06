@@ -31,4 +31,8 @@ urlpatterns = [
     path('administradores/editar/<int:id>/', views.editar_administrador, name='editar_administrador'),
     path('administradores/eliminar/<int:id>/', views.eliminar_administrador, name='eliminar_administrador'),
 
+    # Perfil de usuario
+    path('perfil/', views.perfil_usuario, name='perfil_usuario'),
+    path('perfil/actualizar/', views.perfil_actualizar, name='perfil_actualizar'),
+    path('perfil/cambiar-password/', views.perfil_cambiar_password, name='perfil_cambiar_password'),
 ]

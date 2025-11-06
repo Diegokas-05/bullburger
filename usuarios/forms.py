@@ -245,3 +245,40 @@ class UsuarioAdminForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+# ========== PERFIL ==========
+class PerfilForm(forms.ModelForm):
+    """Formulario para editar el perfil del usuario actual."""
+    class Meta:
+        model = Usuario
+        fields = ['nombre', 'email', 'telefono', 'direccion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre completo'}),
+            'email':  forms.EmailInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'}),
+            'direccion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Dirección', 'rows': 3}),
+        }
+
+
+# (Opcional pero recomendado si lo estás importando en views)
+class CambiarPasswordForm(forms.Form):
+    password_actual = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña actual'})
+    )
+    password_nueva = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nueva contraseña', 'minlength': 8})
+    )
+    password_nueva2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar nueva contraseña'})
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get('password_nueva')
+        p2 = cleaned.get('password_nueva2')
+        if p1 or p2:
+            if p1 != p2:
+                raise ValidationError({'password_nueva2': 'Las contraseñas no coinciden'})
+            if p1 and p1.isdigit():
+                raise ValidationError({'password_nueva': 'La contraseña no puede ser solo números'})
+        return cleaned

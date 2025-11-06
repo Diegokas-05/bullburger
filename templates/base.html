@@ -79,6 +79,7 @@
             <li><a href="{% url 'menu_administrador' %}">Gestión de menú</a></li>
             <li><a href="{% url 'inventario' %}">Inventario</a></li>
             <li><a href="#">Pedidos</a></li>
+            <a href="{% url 'perfil_usuario' %}">Mi perfil</a>
 
             <li class="dropdown">
                 <a href="#">Usuarios</a>
@@ -102,7 +103,7 @@
             <li><a href="{% url 'cliente_dashboard' %}">Inicio</a></li>
             <li><a href="{% url 'menu_cliente' %}">Menú</a></li>
             <li><a href="#">Mis Pedidos</a></li>
-            <li><a href="#">Mi Perfil</a></li>
+            <a href="{% url 'perfil_usuario' %}">Mi perfil</a>
             <li><a href="{% url 'ver_carrito' %}">Mi Bolsa</a></li>
         {% endif %}
     </ul>
@@ -142,5 +143,172 @@
 
 {% block scripts %}
 {% endblock %}
+
+<!-- Validador en vivo BullBurger -->
+<script>
+/* ====== BB Live Validator (colócalo tal cual) ====== */
+(function(){
+  function getErrorEl(input){
+    const id = input.id || input.name || '';
+    let el = id ? document.getElementById(id + 'Error') : null;
+    if (!el){
+      el = document.createElement('div');
+      el.className = 'error-message';
+      input.insertAdjacentElement('afterend', el);
+    }
+    return el;
+  }
+  function showError(input, msg){
+    const error = getErrorEl(input);
+    input.classList.add('error-field');
+    error.textContent = msg;
+    error.style.display = 'block';
+  }
+  function hideError(input){
+    const error = getErrorEl(input);
+    input.classList.remove('error-field');
+    error.style.display = 'none';
+    error.textContent = '';
+  }
+
+  function validateLettersOnly(input){
+    const value = (input.value || '').trim();
+    const lettersOnly = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-.,!¡¿?()&]+$/;
+    if (!value){ showError(input,'Este campo es obligatorio'); return false; }
+    if (!lettersOnly.test(value)){ showError(input,'Solo se permiten letras y espacios'); return false; }
+    if (value.length < 2){ showError(input,'El nombre debe tener al menos 2 caracteres'); return false; }
+    hideError(input); return true;
+  }
+  function validateEmail(input){
+    const value = (input.value || '').trim();
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!value){ showError(input,'El email es obligatorio'); return false; }
+    if (!re.test(value)){ showError(input,'Por favor ingresa un email válido'); return false; }
+    hideError(input); return true;
+  }
+  function validatePhone(input, isRequired=false){
+    const value = (input.value || '').trim();
+    if (!value){
+      if (isRequired){ showError(input,'El teléfono es obligatorio'); return false; }
+      hideError(input); return true;
+    }
+    const re = /^\d{4}-\d{4}$/;
+    if (!re.test(value)){ showError(input,'Formato inválido. Use: 1234-5678'); return false; }
+    hideError(input); return true;
+  }
+  function validatePassword(input){
+    const v = input.value || '';
+    if (!v){ showError(input,'La contraseña es obligatoria'); return false; }
+    if (v.length < 8){ showError(input,'La contraseña debe tener al menos 8 caracteres'); return false; }
+    hideError(input); return true;
+  }
+  function validatePasswordConfirm(confirmInput, passInput){
+    const v = confirmInput.value || '';
+    const p1 = passInput ? (passInput.value || '') : '';
+    if (!v){ showError(confirmInput,'Por favor confirma tu contraseña'); return false; }
+    if (v !== p1){ showError(confirmInput,'Las contraseñas no coinciden'); return false; }
+    hideError(confirmInput); return true;
+  }
+
+  function sanitizeNameWhileTyping(input){
+    input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s\-.,!¡¿?()&]/g,'');
+  }
+  function sanitizeEmailWhileTyping(input){
+    const pos = input.selectionStart;
+    const before = input.value;
+    const after = before.replace(/\s+/g,'').toLowerCase();
+    if (before !== after){
+      input.value = after;
+      const delta = before.length - after.length;
+      const newPos = Math.max(0, pos - delta);
+      input.setSelectionRange(newPos,newPos);
+    }
+  }
+  function formatPhoneWhileTyping(input){
+    let digits = input.value.replace(/\D/g,'').slice(0,8);
+    let formatted = digits.length > 4 ? digits.slice(0,4)+'-'+digits.slice(4) : digits;
+    const old = input.value;
+    const start = input.selectionStart;
+    input.value = formatted;
+    if (old.length < formatted.length && start === 4){ input.setSelectionRange(start+1, start+1); }
+  }
+
+  function bindForm(form){
+    if (!form || form._bbBound) return;
+    form._bbBound = true;
+
+    const nombre   = form.querySelector('input[name="nombre"], #nombre');
+    const email    = form.querySelector('input[name="email"], #email');
+    const telefono = form.querySelector('input[name="telefono"], #telefono, input[type="tel"]');
+    // pass: soporta name=password1 o id=password1; y name=password2 o id=password2
+    const pass1    = form.querySelector('input[name="password1"], #password1');
+    const pass2    = form.querySelector('input[name="password2"], #password2');
+
+    if (nombre){
+      nombre.addEventListener('input', ()=> sanitizeNameWhileTyping(nombre));
+      nombre.addEventListener('blur',  ()=> validateLettersOnly(nombre));
+    }
+    if (email){
+      email.addEventListener('input', ()=> sanitizeEmailWhileTyping(email));
+      email.addEventListener('blur',  ()=> validateEmail(email));
+    }
+    if (telefono){
+      telefono.setAttribute('inputmode','numeric');
+      telefono.setAttribute('maxlength','9');
+      telefono.addEventListener('input', ()=> { formatPhoneWhileTyping(telefono); });
+      telefono.addEventListener('blur',  ()=> validatePhone(telefono, telefono.required));
+      formatPhoneWhileTyping(telefono);
+    }
+    if (pass1){ pass1.addEventListener('blur', ()=> validatePassword(pass1)); }
+    if (pass2){ pass2.addEventListener('blur', ()=> validatePasswordConfirm(pass2, pass1)); }
+
+    form.addEventListener('submit', function(e){
+      let ok = true;
+      if (nombre)   ok = validateLettersOnly(nombre) && ok;
+      if (email)    ok = validateEmail(email) && ok;
+      if (telefono) ok = validatePhone(telefono, telefono.required) && ok;
+      if (pass1)    ok = validatePassword(pass1) && ok;
+      if (pass2)    ok = validatePasswordConfirm(pass2, pass1) && ok;
+      if (!ok){
+        e.preventDefault();
+        if (window.showCustomAlert){
+          showCustomAlert('Error de Validación','Por favor corrige los errores en el formulario antes de continuar.');
+        }
+      }
+    });
+  }
+
+  function initAll(root){
+    (root || document).querySelectorAll('form.bb-validate').forEach(bindForm);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', ()=> initAll(document));
+  }else{
+    initAll(document);
+  }
+  const mo = new MutationObserver(muts=>{
+    muts.forEach(m=>{
+      m.addedNodes.forEach(n=>{
+        if (!(n instanceof HTMLElement)) return;
+        if (n.matches && n.matches('form.bb-validate')) bindForm(n);
+        initAll(n);
+      });
+    });
+  });
+  mo.observe(document.body, {childList:true, subtree:true});
+
+  window.bbValidateForm = function(formOrSelector){
+    const form = typeof formOrSelector === 'string' ? document.querySelector(formOrSelector) : formOrSelector;
+    if (!form) return true;
+    // fuerza evaluación de handlers "submit"
+    const evt = new Event('submit', {cancelable:true});
+    const canceled = !form.dispatchEvent(evt);
+    return !canceled;
+  };
+})();
+</script>
+<!-- /Validador en vivo -->
+
 </body>
 </html>
