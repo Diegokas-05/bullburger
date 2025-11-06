@@ -12,8 +12,8 @@ from .forms import UsuarioAdminForm
 
 from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario
-import json
 from .models import Rol
+from .forms import PerfilForm
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -289,3 +289,32 @@ def crear_empleado(request):
         empleado = form.save()
         return JsonResponse({'ok': True, 'id': empleado.id})
     return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+@login_required
+def perfil_usuario(request):
+    # Server-render de la vista (los datos los tomamos de request.user)
+    return render(request, 'usuarios/perfil.html', {})
+
+@login_required
+@require_POST
+def perfil_actualizar(request):
+    data = json.loads(request.body or '{}')
+    data.setdefault('email', request.user.email)
+    form = PerfilForm(data, instance=request.user)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({'ok': True})
+    # devolver primer error amigable
+    err = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
+    return JsonResponse({'ok': False, 'msg': err}, status=400)
+
+@login_required
+@require_POST
+def perfil_cambiar_password(request):
+    data = json.loads(request.body or '{}')
+    form = CambiarPasswordForm(user=request.user, data=data)
+    if form.is_valid():
+        form.save()  # set_password + user.save()
+        return JsonResponse({'ok': True})
+    err = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
+    return JsonResponse({'ok': False, 'msg': err}, status=400)

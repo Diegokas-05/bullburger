@@ -62,7 +62,7 @@
     </div>
 
     <div class="modal-body">
-      <form id="createEmpleadoForm" onsubmit="return submitCreateEmpleado(event)">
+      <form id="createEmpleadoForm" class="bb-validate" onsubmit="return submitCreateEmpleado(event)">
         {% csrf_token %}
         <div class="form-group">
           <label for="c_nombre">Nombre *</label>
