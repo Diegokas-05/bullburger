@@ -8,7 +8,7 @@ from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.http import require_http_methods, require_POST
 from django.db import transaction
 from django.db.models import Q  # Útil si usas buscadores con filtros dinámicos
-from .forms import UsuarioAdminForm 
+from .forms import CambiarPasswordForm, UsuarioAdminForm 
 
 from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario

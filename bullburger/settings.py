@@ -155,3 +155,6 @@ LOGIN_REDIRECT_URL = 'redireccionar_por_rol'
 # Configuración para archivos multimedia
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
