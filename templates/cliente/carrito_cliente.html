@@ -119,7 +119,7 @@ function editarCantidad(id) {
   });
 }
 
-// ===== Modal de pago (2 columnas, sin promociones) =====
+// ===== Modal de pago =====
 document.getElementById('btnPagar')?.addEventListener('click', async () => {
   const { value: formValues } = await Swal.fire({
     title: 'Confirmar pedido',
@@ -216,7 +216,8 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
         return false;
       }
       if (metodo === 'tarjeta') {
-        if (numero_pago.length < 12 || numero_pago.length > 19) {
+        if (numero_pago.length < 12 || numero_pago.length > 19 || !/^\d+$/.test(numero_pago)) {
+          document.getElementById('bb-numero-tarjeta').style.borderColor = '#e74c3c';
           Swal.showValidationMessage('Número de tarjeta inválido (12–19 dígitos)');
           return false;
         }
@@ -242,12 +243,26 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
 
     if (data.ok) {
       await Swal.fire({
-        icon: 'success',
-        title: 'Pedido confirmado',
-        html: `Número de pedido: <b>${data.pedido_id}</b><br>Total: <b>$${data.total}</b>`,
-        timer: 1800,
-        showConfirmButton: false
-      });
+  icon: 'success',
+  title: '¡Pedido confirmado!',
+  html: `
+    <p>Tu pedido <b></b> se registró correctamente.</p>
+    <p>Total: <b>$${data.total}</b></p>
+    ${data.factura_url ? `<a href="${data.factura_url}" target="_blank" style="color:#27ae60;font-weight:bold;">📄 Ver factura</a>` : ''}
+  `,
+  customClass: {
+  popup: 'bb-checkout',
+  confirmButton: 'swal2-confirm',
+  cancelButton: 'swal2-cancel'
+},
+buttonsStyling: false,
+
+  confirmButtonColor: '#27ae60',
+  confirmButtonText: 'Entendido',
+  background: '#fffef9'
+  
+});
+
       location.reload();
     } else {
       Swal.fire('No se pudo completar el pago', data.error || 'Inténtalo más tarde', 'error');
@@ -256,5 +271,6 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
     Swal.fire('Error de red', 'No fue posible comunicar con el servidor', 'error');
   }
 });
+
 </script>
 {% endblock %}

@@ -20,30 +20,37 @@ from inventario.models import Ingrediente, Receta, MovimientoInventario
 # Pedido y detalle
 from pedidos.models import Pedido, DetallePedido
 
-# (opcional) Usuario si lo necesitas en otras vistas
+# Usuario
 from usuarios.models import Usuario
 
+# ✅ Generador de facturas
+from inventario.utils_factura import generar_factura_pdf
+
+# Chequeo opcional de Inventario
 _INV_PRODUCTO_OK = False
 try:
     from inventario.models import Inventario
     _INV_PRODUCTO_OK = True
 except Exception:
-    Inventario = None 
+    Inventario = None
+
+
+# ==============================================
+# 🔹 ADMINISTRADOR — CRUD PRODUCTOS Y CATEGORÍAS
+# ==============================================
 
 @login_required
 def lista_productos(request):
     """Vista para listar todos los productos"""
     productos = Producto.objects.all().select_related('categoria')
     categorias = Categoria.objects.all()
-    ingredientes = Ingrediente.objects.filter(activo=True) 
-    
-    context = {
+    ingredientes = Ingrediente.objects.filter(activo=True)
+    return render(request, 'administrador/menu.html', {
         'productos': productos,
         'categorias': categorias,
         'ingredientes': ingredientes,
-    }
-    
-    return render(request, 'administrador/menu.html', context)
+    })
+
 
 @login_required
 def crear_producto(request):
@@ -58,8 +65,8 @@ def crear_producto(request):
                 disponible=request.POST.get('disponible') == 'on',
                 imagen=request.FILES.get('imagen')
             )
-            
-            # Procesar la receta si hay ingredientes
+
+            # Receta (ingredientes)
             ingredientes_data = []
             for key in request.POST.keys():
                 if key.startswith('ingredientes[') and key.endswith('][id]'):
@@ -72,22 +79,21 @@ def crear_producto(request):
                             'ingrediente_id': ingrediente_id,
                             'cantidad': cantidad
                         })
-            
-            # Crear las recetas
-            for ingrediente_data in ingredientes_data:
+
+            for ing in ingredientes_data:
                 Receta.objects.create(
                     producto=producto,
-                    ingrediente_id=ingrediente_data['ingrediente_id'],
-                    cantidad=ingrediente_data['cantidad']
+                    ingrediente_id=ing['ingrediente_id'],
+                    cantidad=ing['cantidad']
                 )
-            
+
             messages.success(request, 'Producto creado exitosamente con su receta')
             return redirect('menu_administrador')  # ✅ CAMBIADO
             
         except Exception as e:
-            messages.error(request, f'Error al crear producto: {str(e)}')
-    
-    return redirect('menu_administrador')  # ✅ CAMBIADO
+            messages.error(request, f'Error al crear producto: {e}')
+    return redirect('menu_administrador')
+
 
 @login_required
 def editar_producto(request, producto_id):
@@ -97,19 +103,19 @@ def editar_producto(request, producto_id):
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
-            producto = form.save()
+            form.save()
             messages.success(request, 'Producto actualizado exitosamente')
-            return redirect('menu_administrador')  # ✅ CAMBIADO
+            return redirect('menu_administrador')
     else:
         form = ProductoForm(instance=producto)
-    
+
     productos = Producto.objects.all()
     categorias = Categoria.objects.all()
     ingredientes = Ingrediente.objects.filter(activo=True)
     
     # Obtener la receta actual del producto
     recetas_actuales = Receta.objects.filter(producto=producto)
-    
+
     return render(request, 'administrador/menu.html', {
         'form': form,
         'producto_editar': producto,
@@ -118,6 +124,7 @@ def editar_producto(request, producto_id):
         'ingredientes': ingredientes,
         'recetas_actuales': recetas_actuales,
     })
+
 
 @login_required
 def eliminar_producto(request, producto_id):
@@ -138,38 +145,31 @@ def crear_categoria(request):
     """Vista para crear una nueva categoría"""
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
-        if nombre:
-            # Verificar si ya existe
-            if Categoria.objects.filter(nombre__iexact=nombre).exists():
-                messages.error(request, 'Ya existe una categoría con ese nombre')
-            else:
-                Categoria.objects.create(nombre=nombre)
-                messages.success(request, 'Categoría creada exitosamente')
-        else:
+        if not nombre:
             messages.error(request, 'El nombre de la categoría es requerido')
-    
-    return redirect('menu_administrador')  # ✅ CAMBIADO
+        elif Categoria.objects.filter(nombre__iexact=nombre).exists():
+            messages.error(request, 'Ya existe una categoría con ese nombre')
+        else:
+            Categoria.objects.create(nombre=nombre)
+            messages.success(request, 'Categoría creada exitosamente')
+    return redirect('menu_administrador')
+
 
 @login_required
 def eliminar_categoria(request, categoria_id):
-    """Vista para eliminar una categoría"""
     categoria = get_object_or_404(Categoria, id=categoria_id)
-    
     if request.method == 'POST':
-        # Verificar si hay productos usando esta categoría
-        productos_count = Producto.objects.filter(categoria=categoria).count()
-        
-        if productos_count > 0:
-            messages.error(request, 'No se puede eliminar una categoría que tiene productos asociados')
+        if Producto.objects.filter(categoria=categoria).exists():
+            messages.error(request, 'No se puede eliminar una categoría con productos asociados')
         else:
             categoria.delete()
             messages.success(request, 'Categoría eliminada exitosamente')
-    
-    return redirect('menu_administrador')  # ✅ CAMBIADO
+    return redirect('menu_administrador')
 
-# views.py
-from django.shortcuts import render
-from .models import Categoria, Producto
+
+# ==============================================
+# 🔹 CLIENTE — MENÚ Y CARRITO
+# ==============================================
 
 def menu_cliente(request):
     categorias = Categoria.objects.all().order_by('nombre')
@@ -179,11 +179,9 @@ def menu_cliente(request):
         'productos': productos
     })
 
-from django.http import JsonResponse
+
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-import json
-from .models import CarritoItem, Producto
+
 
 @csrf_exempt
 @require_POST
@@ -203,17 +201,12 @@ def agregar_al_carrito(request):
     except Producto.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Producto no encontrado'}, status=404)
 
-    # Buscar si ya existe el mismo producto en el carrito del usuario
     item, creado = CarritoItem.objects.get_or_create(usuario=request.user, producto=producto)
-    if not creado:
-        item.cantidad += cantidad
-    else:
-        item.cantidad = cantidad
+    item.cantidad = item.cantidad + cantidad if not creado else cantidad
     item.save()
 
     return JsonResponse({'ok': True, 'mensaje': 'Producto añadido al carrito correctamente'})
 
-from django.contrib.auth.decorators import login_required
 
 @login_required
 def ver_carrito(request):
@@ -225,26 +218,18 @@ def ver_carrito(request):
     })
 
 
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from .models import CarritoItem
-
 @login_required
 @require_POST
 def editar_cantidad(request, item_id):
-    """Actualizar la cantidad de un producto en el carrito del usuario"""
     try:
         data = json.loads(request.body)
         nueva_cantidad = int(data.get("cantidad", 1))
-
         if nueva_cantidad < 1:
             return JsonResponse({"ok": False, "error": "Cantidad no válida"}, status=400)
-
         item = CarritoItem.objects.get(id=item_id, usuario=request.user)
         item.cantidad = nueva_cantidad
         item.save()
         return JsonResponse({"ok": True, "mensaje": "Cantidad actualizada correctamente"})
-
     except CarritoItem.DoesNotExist:
         return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=404)
     except Exception as e:
@@ -254,7 +239,6 @@ def editar_cantidad(request, item_id):
 @login_required
 @require_POST
 def eliminar_item_carrito(request, item_id):
-    """Eliminar un producto del carrito del usuario"""
     try:
         item = CarritoItem.objects.get(id=item_id, usuario=request.user)
         item.delete()
@@ -264,53 +248,45 @@ def eliminar_item_carrito(request, item_id):
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
+
+# ==============================================
+# 🔹 CHECKOUT — PAGO Y GENERACIÓN DE FACTURA
+# ==============================================
+
 @login_required
 @require_POST
 def carrito_checkout(request):
-    """
-    Crea Pedido + Detalles desde el carrito del usuario.
-    Descuenta inventario de:
-      - Producto terminado (Inventario) si existe
-      - Ingredientes según Receta (consumo por venta)
-    Devuelve JSON: { ok, pedido_id, total, factura_url? }
-    """
-    # 1) Parseo de JSON
+    """Crea Pedido + Detalles + Factura PDF"""
     try:
         payload = json.loads(request.body.decode('utf-8'))
     except Exception:
         return JsonResponse({'ok': False, 'error': 'JSON inválido'}, status=400)
 
-    nombre      = (payload.get('nombre') or '').strip()
-    telefono    = (payload.get('telefono') or '').strip()
-    metodo      = (payload.get('metodo') or '').strip()        # 'efectivo' | 'tarjeta'
-    entrega     = (payload.get('entrega') or '').strip()       # 'local' | 'domicilio'
-    direccion   = (payload.get('direccion') or '').strip()
-    numero_pago = (payload.get('numero_pago') or '').strip()
+    nombre = payload.get('nombre', '').strip()
+    telefono = payload.get('telefono', '').strip()
+    metodo = payload.get('metodo', '').strip()
+    entrega = payload.get('entrega', '').strip()
+    direccion = payload.get('direccion', '').strip()
+    numero_pago = payload.get('numero_pago', '').strip()
 
-    # 2) Validaciones
     if metodo not in ('efectivo', 'tarjeta') or entrega not in ('local', 'domicilio'):
         return JsonResponse({'ok': False, 'error': 'Datos incompletos o inválidos'}, status=400)
 
     if entrega == 'domicilio' and not direccion:
         return JsonResponse({'ok': False, 'error': 'La dirección es obligatoria para domicilio'}, status=400)
 
-    if metodo == 'tarjeta':
-        if not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19):
-            return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
+    if metodo == 'tarjeta' and (not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19)):
+        return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
 
-    # 3) Items del carrito
     items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
     if not items.exists():
         return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
 
-    # 4) Total
     subtotal = sum((it.producto.precio * it.cantidad for it in items), Decimal('0.00'))
-    total = subtotal  # sin promociones/descuentos
+    total = subtotal
 
-    # 5) Transacción: crear pedido, detalles y descontar inventario
     try:
         with transaction.atomic():
-            # Pedido base
             pedido = Pedido.objects.create(
                 usuario=request.user,
                 promocion=None,
@@ -322,7 +298,6 @@ def carrito_checkout(request):
                 total=total
             )
 
-            # Detalles
             for it in items:
                 DetallePedido.objects.create(
                     pedido=pedido,
@@ -331,7 +306,7 @@ def carrito_checkout(request):
                     subtotal=it.producto.precio * it.cantidad
                 )
 
-            # (A) Descuento de INVENTARIO por PRODUCTO terminado (si existe)
+            # Inventario: productos terminados
             if _INV_PRODUCTO_OK:
                 for it in items.select_for_update():
                     try:
@@ -340,7 +315,6 @@ def carrito_checkout(request):
                         nuevo = max(0, anterior - int(it.cantidad))
                         inv.stock = nuevo
                         inv.save(update_fields=['stock'])
-
                         MovimientoInventario.objects.create(
                             producto=it.producto,
                             ingrediente=None,
@@ -352,29 +326,21 @@ def carrito_checkout(request):
                             usuario=request.user
                         )
                     except Inventario.DoesNotExist:
-                        pass  # si no hay inventario por ese producto, lo ignoramos
+                        pass
 
-            # (B) Descuento de INGREDIENTES según RECETA (consumo)
+            # Ingredientes según receta
             for it in items:
                 recetas = Receta.objects.select_related('ingrediente').filter(producto=it.producto)
-                if not recetas.exists():
-                    continue  # sin receta, no hay consumo de ingredientes
-
                 for rec in recetas.select_for_update():
                     ing = rec.ingrediente
-                    requerido = (Decimal(rec.cantidad) * Decimal(it.cantidad))
+                    requerido = Decimal(rec.cantidad) * Decimal(it.cantidad)
                     anterior = Decimal(ing.stock_actual)
-
                     if anterior < requerido:
-                        # Si prefieres permitir negativos o consumir lo disponible, ajusta aquí.
                         raise ValueError(f'Sin stock suficiente del ingrediente "{ing.nombre}"')
-
                     ing.stock_actual = anterior - requerido
                     ing.save(update_fields=['stock_actual'])
-
                     MovimientoInventario.objects.create(
                         ingrediente=ing,
-                        producto=None,
                         tipo='salida',
                         cantidad=requerido,
                         cantidad_anterior=anterior,
@@ -386,12 +352,8 @@ def carrito_checkout(request):
             # Vaciar carrito
             items.delete()
 
-        # 6) URL de factura (no rompe si no existe la ruta)
-        factura_url = None
-        try:
-            factura_url = reverse('pedido_factura', args=[pedido.id])
-        except NoReverseMatch:
-            factura_url = None
+            # ✅ Generar factura PDF
+            factura_url = generar_factura_pdf(pedido)
 
         return JsonResponse({
             'ok': True,
