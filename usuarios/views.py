@@ -14,6 +14,8 @@ from .forms import RegistroClienteForm, CustomAuthenticationForm
 from .models import Usuario
 from .models import Rol
 from .forms import PerfilForm
+from django.contrib.auth import update_session_auth_hash
+from django.views.decorators.http import require_POST
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -311,10 +313,21 @@ def perfil_actualizar(request):
 @login_required
 @require_POST
 def perfil_cambiar_password(request):
-    data = json.loads(request.body or '{}')
+    # Soporta JSON (fetch) o form-data tradicional
+    if request.headers.get('Content-Type', '').startswith('application/json'):
+        data = json.loads(request.body or '{}')
+    else:
+        data = request.POST
+
     form = CambiarPasswordForm(user=request.user, data=data)
     if form.is_valid():
-        form.save()  # set_password + user.save()
+        user = form.save()                         # set_password + save()
+        update_session_auth_hash(request, user)    # evita cerrar sesión
         return JsonResponse({'ok': True})
-    err = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
-    return JsonResponse({'ok': False, 'msg': err}, status=400)
+
+    # Errores legibles para tu toast del front
+    # (mantenemos el 400 para que el front no diga “error de red” sin detalle)
+    errores = {k: v for k, v in form.errors.items()}
+    return JsonResponse({'ok': False, 'errors': errores, 'msg': '; '.join(
+        f"{k}: {', '.join(v)}" for k, v in errores.items()
+    )}, status=400)

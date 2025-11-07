@@ -8,28 +8,19 @@
     --c-brown:#5a3b2e;
     --c-brown-2:#8b5e3c;
     --c-cream:#f8f4ef;
-    --c-cream-2:#d8c3a5;
     --c-text:#493428;
-    --c-ok:#2ecc71;
-    --c-danger:#e74c3c;
     --radius:16px;
     --shadow:0 4px 12px rgba(0,0,0,.1);
   }
 
   body{ background:#fff; }
-  .perfil-wrap{
-    max-width:1100px; margin:32px auto; padding:0 14px;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
+  .perfil-wrap{ max-width:1100px; margin:32px auto; padding:0 14px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-  /* Header */
   .perfil-head{
     background:var(--c-cream);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
-    padding:24px;
-    display:flex; gap:18px; align-items:center; justify-content:space-between;
-    flex-wrap:wrap;
+    padding:24px; display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:wrap;
   }
   .ph-left{ display:flex; gap:18px; align-items:center; }
   .avatar{
@@ -41,18 +32,15 @@
   .u-main h2{ margin:0; color:var(--c-brown); font-weight:800; }
   .u-sub{ color:#6b5546; font-size:14px; margin-top:2px; }
   .pill{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600;
+    display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600;
     background:#fff; color:var(--c-brown); border:1px solid #eaded3;
   }
   .pill .dot{ width:8px; height:8px; border-radius:50%; background:#27ae60; }
 
   .ph-actions{ display:flex; gap:10px; }
   .btn{
-    border:none; border-radius:10px; padding:10px 16px; font-weight:700;
-    cursor:pointer; transition:transform .04s ease, opacity .15s ease, box-shadow .15s ease;
-    box-shadow:0 2px 6px rgba(0,0,0,.08);
-    user-select:none;
+    border:none; border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer;
+    transition:transform .04s ease, opacity .15s ease, box-shadow .15s ease; box-shadow:0 2px 6px rgba(0,0,0,.08);
   }
   .btn:active{ transform:translateY(1px) scale(.99); }
   .btn-edit{ background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2)); color:#fff; }
@@ -60,180 +48,70 @@
   .btn-sec{ background:#fff; color:var(--c-brown); border:1px solid #eaded3; }
   .btn-sec:hover{ box-shadow:0 4px 12px rgba(0,0,0,.12); }
 
-  /* Grid */
-  .grid{
-    margin-top:18px;
-    display:grid; gap:18px;
-    grid-template-columns:1fr 1fr;
-  }
+  .grid{ margin-top:18px; display:grid; gap:18px; grid-template-columns:1fr 1fr; }
   @media(max-width:900px){ .grid{ grid-template-columns:1fr; } }
 
-  .card{
-    background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:20px;
-  }
+  .card{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
   .card h3{ margin:0 0 12px; color:var(--c-brown); }
-  .dl{
-    display:grid; grid-template-columns:220px 1fr; row-gap:10px; column-gap:10px;
-    color:var(--c-text);
-  }
+  .dl{ display:grid; grid-template-columns:220px 1fr; row-gap:10px; column-gap:10px; color:var(--c-text); }
   .dl dt{ font-weight:700; color:#6b5546; }
   .dl dd{ margin:0; }
 
-  /* Modal */
-  .modal{ 
-    display:none; 
-    position:fixed; 
-    inset:0; 
-    z-index:1000; 
-    background:rgba(0,0,0,.5); 
-    backdrop-filter:blur(4px);
-    align-items: center;
-    justify-content: center; 
-    padding: 24px;
-    box-sizing: border-box;
-    }
-  
-    .modal-content{
-    background:#fff; margin:3vh auto; width:90%; max-width:680px; max-height:82vh;
-    border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.28);
-    display:flex; flex-direction:column;
-  }
-  .modal-header{
-    padding:14px 20px; background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
-    color:#fff; border-radius:14px 14px 0 0; display:flex; justify-content:space-between; align-items:center;
-  }
+  .modal{ display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.5); backdrop-filter:blur(4px);
+          align-items:center; justify-content:center; padding:24px; }
+  .modal-content{ background:#fff; margin:3vh auto; width:90%; max-width:680px; max-height:82vh;
+                  border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.28); display:flex; flex-direction:column; }
+  .modal-header{ padding:14px 20px; background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
+                 color:#fff; border-radius:14px 14px 0 0; display:flex; justify-content:space-between; align-items:center; }
   .modal-body{ padding:16px 20px; overflow-y:auto; max-height:calc(82vh - 56px - 64px); }
   .close{ font-size:22px; line-height:1; cursor:pointer; }
 
   .form-group{ margin-bottom:10px; }
   label{ display:block; margin-bottom:.35rem; font-weight:600; color:#2c3e50; }
   .form-control{
-    width:100%; padding:.65rem .8rem; border:2px solid #e0e0e0; border-radius:8px; font-size:1rem;
-    transition:border-color .2s ease;
+    width:100%; padding:.65rem .8rem; border:2px solid #e0e0e0; border-radius:8px; font-size:1rem; transition:border-color .2s ease;
   }
   .form-control:focus{ border-color:var(--c-brown-2); outline:none; }
-  .form-actions{
-    position:sticky; bottom:0; background:#fff; padding:10px 0 2px; margin-top:8px; border-top:1px solid #eee;
-    display:flex; gap:10px; justify-content:flex-end;
-  }
+  .form-actions{ position:sticky; bottom:0; background:#fff; padding:10px 0 2px; margin-top:8px; border-top:1px solid #eee;
+                 display:flex; gap:10px; justify-content:flex-end; }
   .btn-cancel{ background:#95a5a6; color:#fff; }
   .btn-save{ background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; }
 
-  /* Toast */
-  .toast{
-    position:fixed; right:20px; bottom:20px; z-index:1200;
-    background:#1f2937; color:#fff; padding:12px 16px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.25);
-    display:none; min-width:240px;
-  }
+  .toast{ position:fixed; right:20px; bottom:20px; z-index:1200; background:#1f2937; color:#fff; padding:12px 16px;
+          border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.25); display:none; min-width:240px; }
   .toast.ok{ background:#10b981; }
   .toast.err{ background:#ef4444; }
-
-
-/* === Hover solo con movimiento en botones del modal === */
-.modal .btn-cancel,
-.modal .btn-save{
-  transition: transform .22s ease, box-shadow .22s ease; /* sin transición de color */
-}
-
-/* hover: solo “flotar” un poquito */
-.modal .btn-cancel:hover,
-.modal .btn-save:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,.18);
-  background: inherit !important;   /* NO cambiar color */
-  filter: none;                      /* por si algún gradiente aplica filtros */
-}
-
-/* clic (feedback de presión) */
-.modal .btn-cancel:active,
-.modal .btn-save:active{
-  transform: translateY(0);          /* vuelve a su lugar al presionar */
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
-}
-
-/* === Fix: mantener color en hover (solo movimiento) === */
-.modal .btn-cancel{
-  background-color:#95a5a6 !important; /* gris base */
-  color:#fff;
-  border:none;
-  transition: transform .22s ease, box-shadow .22s ease;
-}
-.modal .btn-cancel:hover{
-  background-color:#95a5a6 !important; /* NO cambia color */
-  transform: translateY(-2px);
-  box-shadow:0 6px 16px rgba(0,0,0,.18);
-}
-.modal .btn-cancel:active{
-  transform: translateY(0);
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-
-/* “Actualizar/Crear” con el mismo gradiente siempre */
-.modal .btn-save{
-  background-image:linear-gradient(135deg,#27ae60,#2ecc71) !important;
-  color:#fff;
-  border:none;
-  transition: transform .22s ease, box-shadow .22s ease;
-}
-.modal .btn-save:hover{
-  background-image:linear-gradient(135deg,#27ae60,#2ecc71) !important; /* NO cambia color */
-  transform: translateY(-2px);
-  box-shadow:0 6px 16px rgba(0,0,0,.18);
-}
-.modal .btn-save:active{
-  transform: translateY(0);
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-
-/* Accesibilidad: evita anillo azul fuerte pero mantenemos indicación */
-.modal .btn-cancel:focus-visible,
-.modal .btn-save:focus-visible{
-  outline:2px solid rgba(0,0,0,.15);
-  outline-offset:2px;
-}
-
-
 </style>
 
 <div class="perfil-wrap">
-  <!-- Header -->
   <div class="perfil-head">
     <div class="ph-left">
-      <div class="avatar" id="avatar-iniciales">
-        {{ request.user.nombre|default:request.user.email|first|upper }}
-      </div>
+      <div class="avatar">{{ request.user.nombre|default:request.user.email|first|upper }}</div>
       <div class="u-main">
         <h2 id="u-nombre">{{ request.user.nombre|default:"Usuario" }}</h2>
         <div class="u-sub">
-          {{ request.user.email }}
+          <span id="i-email">{{ request.user.email }}</span>
           &nbsp;&nbsp;
-          <span class="pill">
-            <span class="dot"></span>
-            {{ request.user.rol.nombre|default:"Sin rol" }}
-          </span>
+          <span class="pill"><span class="dot"></span>{{ request.user.rol.nombre|default:"Sin rol" }}</span>
         </div>
       </div>
     </div>
-
     <div class="ph-actions">
       <button class="btn btn-sec" onclick="openPassModal()">Cambiar contraseña</button>
       <button class="btn btn-edit" onclick="openEditModal()">Editar información</button>
     </div>
   </div>
 
-  <!-- Grid -->
   <div class="grid">
     <div class="card">
       <h3>Datos personales</h3>
       <dl class="dl">
         <dt>Nombre</dt><dd id="i-nombre">{{ request.user.nombre|default:"—" }}</dd>
-        <dt>Correo</dt><dd id="i-email">{{ request.user.email }}</dd>
+        <dt>Correo</dt><dd>{{ request.user.email }}</dd>
         <dt>Teléfono</dt><dd id="i-tel">{{ request.user.telefono|default:"—" }}</dd>
         <dt>Dirección</dt><dd id="i-dir">{{ request.user.direccion|default:"—" }}</dd>
       </dl>
     </div>
-
     <div class="card">
       <h3>Seguridad</h3>
       <p style="color:#6b5546;margin:8px 0 16px;">
@@ -244,7 +122,7 @@
   </div>
 </div>
 
-<!-- Modal Editar Perfil -->
+<!-- Modal Editar -->
 <div id="modalEdit" class="modal" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -256,12 +134,11 @@
         {% csrf_token %}
         <div class="form-group">
           <label for="f_nombre">Nombre *</label>
-          <input type="text" id="f_nombre" class="form-control" required
-                 value="{{ request.user.nombre }}">
+          <input type="text" id="f_nombre" class="form-control" required value="{{ request.user.nombre }}">
         </div>
         <div class="form-group">
           <label for="f_email">Correo (solo lectura)</label>
-          <input type="email" id="f_email" class="form-control" value="{{ request.user.email }}" readonly>
+          <input type="email" id="f_email" class="form-control" readonly value="{{ request.user.email }}">
         </div>
         <div class="form-group">
           <label for="f_tel">Teléfono</label>
@@ -271,7 +148,6 @@
           <label for="f_dir">Dirección</label>
           <textarea id="f_dir" class="form-control" rows="3">{{ request.user.direccion }}</textarea>
         </div>
-
         <div class="form-actions">
           <button type="button" class="btn btn-cancel" onclick="closeEditModal()">Cancelar</button>
           <button type="submit" class="btn btn-save">Guardar cambios</button>
@@ -281,7 +157,7 @@
   </div>
 </div>
 
-<!-- Modal Cambiar Contraseña -->
+<!-- Modal Password -->
 <div id="modalPass" class="modal" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -289,19 +165,19 @@
       <span class="close" onclick="closePassModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <form id="formPass" onsubmit="return submitPass(event)">
+      <form id="formPass" onsubmit="return submitPass(event)" autocomplete="off">
         {% csrf_token %}
         <div class="form-group">
           <label for="p_actual">Contraseña actual *</label>
-          <input type="password" id="p_actual" class="form-control" required>
+          <input type="password" id="p_actual" class="form-control" required autocomplete="current-password">
         </div>
         <div class="form-group">
           <label for="p_nueva">Nueva contraseña *</label>
-          <input type="password" id="p_nueva" class="form-control" required>
+          <input type="password" id="p_nueva" class="form-control" required autocomplete="new-password">
         </div>
         <div class="form-group">
           <label for="p_nueva2">Confirmar nueva contraseña *</label>
-          <input type="password" id="p_nueva2" class="form-control" required>
+          <input type="password" id="p_nueva2" class="form-control" required autocomplete="new-password">
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-cancel" onclick="closePassModal()">Cancelar</button>
@@ -312,118 +188,160 @@
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast" class="toast"></div>
 
 <script>
-  // ===== CSRF =====
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let c of cookies) {
-        c = c.trim();
-        if (c.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(c.substring(name.length + 1));
-          break;
-        }
+/* ===== Utilidades ===== */
+function getCookie(name){
+  let cookieValue=null;
+  if(document.cookie&&document.cookie!==''){
+    const cookies=document.cookie.split(';');
+    for(let c of cookies){
+      c=c.trim();
+      if(c.substring(0,name.length+1)===(name+'=')){
+        cookieValue=decodeURIComponent(c.substring(name.length+1));
+        break;
       }
     }
-    return cookieValue;
   }
-  const csrftoken = getCookie('csrftoken');
+  return cookieValue;
+}
+const csrftoken=getCookie('csrftoken');
 
-  // ===== Toast =====
-  function toast(msg, ok=true){
-    const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = 'toast ' + (ok ? 'ok' : 'err');
-    t.style.display = 'block';
-    setTimeout(()=>{ t.style.display='none'; }, 2600);
-  }
+function toast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.className='toast '+(ok?'ok':'err');
+  t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},2600);
+}
 
-  // ===== Modals =====
-  const MEdit = document.getElementById('modalEdit');
-  const MPass = document.getElementById('modalPass');
-  function openEditModal(){ MEdit.style.display='block'; }
-  function closeEditModal(){ MEdit.style.display='none'; }
-  function openPassModal(){ MPass.style.display='block'; }
-  function closePassModal(){ MPass.style.display='none'; }
+/* ===== Modales ===== */
+const MEdit=document.getElementById('modalEdit');
+const MPass=document.getElementById('modalPass');
 
-  // Cerrar con click fuera
-  window.addEventListener('click', (e)=>{
-    if(e.target === MEdit) closeEditModal();
-    if(e.target === MPass) closePassModal();
+/* --- EDITAR: resetear siempre desde lo visible en la tarjeta --- */
+function resetEditFormFromDisplay(){
+  const asValue=(v)=> (v && v.trim() !== '—') ? v.trim() : '';
+  const nombreTxt = asValue(document.getElementById('i-nombre')?.textContent || '');
+  const emailTxt  = asValue(document.getElementById('i-email')?.textContent  || '');
+  const telTxt    = asValue(document.getElementById('i-tel')?.textContent    || '');
+  const dirTxt    = asValue(document.getElementById('i-dir')?.textContent    || '');
+
+  const fNombre=document.getElementById('f_nombre');
+  const fEmail =document.getElementById('f_email');
+  const fTel   =document.getElementById('f_tel');
+  const fDir   =document.getElementById('f_dir');
+
+  if(fNombre) fNombre.value = nombreTxt;
+  if(fEmail)  fEmail.value  = emailTxt;    // readonly
+  if(fTel)    fTel.value    = telTxt;
+  if(fDir)    fDir.value    = dirTxt;
+}
+
+function openEditModal(){
+  resetEditFormFromDisplay();   // <-- limpia/repone al abrir
+  MEdit.style.display='block';
+}
+function closeEditModal(){
+  MEdit.style.display='none';
+  resetEditFormFromDisplay();   // <-- revierte al cerrar
+}
+
+/* --- PASSWORD: limpieza fuerte para vencer autofill --- */
+function resetPassForm(){
+  const f=document.getElementById('formPass');
+  if(!f) return;
+  f.reset();
+  ['p_actual','p_nueva','p_nueva2'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.value=''; el.setAttribute('value','');
+    el.readOnly=true; setTimeout(()=>{el.readOnly=false;},120);
   });
+}
+function openPassModal(){ resetPassForm(); MPass.style.display='block'; }
+function closePassModal(){ MPass.style.display='none'; resetPassForm(); }
 
-  // ===== Submit Editar Perfil (AJAX) =====
-  function submitEdit(e){
-    e.preventDefault();
-    const payload = {
-      nombre: document.getElementById('f_nombre').value.trim(),
-      telefono: document.getElementById('f_tel').value.trim(),
-      direccion: document.getElementById('f_dir').value.trim()
-    };
-    fetch("{% url 'perfil_actualizar' %}", {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'X-CSRFToken': csrftoken,
-        'X-Requested-With':'XMLHttpRequest'
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(j => {
-      if(j.ok){
-        // Reflejar cambios en la UI
-        document.getElementById('u-nombre').textContent = payload.nombre || 'Usuario';
-        document.getElementById('i-nombre').textContent = payload.nombre || '—';
-        document.getElementById('i-tel').textContent = payload.telefono || '—';
-        document.getElementById('i-dir').textContent = payload.direccion || '—';
-        closeEditModal();
-        toast('Perfil actualizado');
-      }else{
-        toast(j.msg || 'No se pudo actualizar', false);
-      }
-    })
-    .catch(()=> toast('Error de red', false));
-    return false;
+/* Cerrar al hacer click fuera */
+window.addEventListener('click',(e)=>{
+  if(e.target===MEdit) closeEditModal();
+  if(e.target===MPass) closePassModal();
+});
+/* Cerrar con ESC */
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Escape'){
+    if(MEdit.style.display==='block') closeEditModal();
+    if(MPass.style.display==='block') closePassModal();
   }
+});
 
-  // ===== Submit Cambiar Password (AJAX) =====
-  function submitPass(e){
-    e.preventDefault();
-    const p1 = document.getElementById('p_nueva').value;
-    const p2 = document.getElementById('p_nueva2').value;
-    if(p1 !== p2){ toast('Las contraseñas no coinciden', false); return false; }
+/* ===== Envíos ===== */
+function submitEdit(e){
+  e.preventDefault();
+  const payload={
+    nombre: (document.getElementById('f_nombre').value||'').trim(),
+    telefono:(document.getElementById('f_tel').value||'').trim(),
+    direccion:(document.getElementById('f_dir').value||'').trim()
+  };
+  fetch("{% url 'perfil_actualizar' %}",{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRFToken':csrftoken,
+      'X-Requested-With':'XMLHttpRequest'
+    },
+    body:JSON.stringify(payload)
+  })
+  .then(r=>r.json())
+  .then(j=>{
+    if(j.ok){
+      // reflejar en tarjeta
+      document.getElementById('u-nombre').textContent = payload.nombre || 'Usuario';
+      document.getElementById('i-nombre').textContent = payload.nombre || '—';
+      document.getElementById('i-tel').textContent    = payload.telefono || '—';
+      document.getElementById('i-dir').textContent    = payload.direccion || '—';
+      closeEditModal(); // y al cerrar, vuelve a cargar el form desde lo mostrado
+      toast('Perfil actualizado');
+    }else{
+      toast(j.msg || 'No se pudo actualizar',false);
+    }
+  })
+  .catch(()=> toast('Error de red',false));
+  return false;
+}
 
-    const payload = {
-      password_actual: document.getElementById('p_actual').value,
-      password_nueva: p1,
-      password_nueva2: p2
-    };
-    fetch("{% url 'perfil_cambiar_password' %}", {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'X-CSRFToken': csrftoken,
-        'X-Requested-With':'XMLHttpRequest'
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(j => {
-      if(j.ok){
-        closePassModal();
-        document.getElementById('formPass').reset();
-        toast('Contraseña actualizada');
-      }else{
-        toast(j.msg || 'No se pudo actualizar la contraseña', false);
-      }
-    })
-    .catch(()=> toast('Error de red', false));
-    return false;
-  }
+function submitPass(e){
+  e.preventDefault();
+  const p1=document.getElementById('p_nueva').value;
+  const p2=document.getElementById('p_nueva2').value;
+  if(p1!==p2){ toast('Las contraseñas no coinciden',false); return false; }
+
+  const payload={
+    password_actual:document.getElementById('p_actual').value,
+    password_nueva:p1,
+    password_nueva2:p2
+  };
+  fetch("{% url 'perfil_cambiar_password' %}",{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'X-CSRFToken':csrftoken,
+      'X-Requested-With':'XMLHttpRequest'
+    },
+    body:JSON.stringify(payload)
+  })
+  .then(r=>r.json())
+  .then(j=>{
+    if(j.ok){
+      closePassModal(); // esto ya limpia
+      toast('Contraseña actualizada');
+    }else{
+      toast(j.msg || 'No se pudo actualizar la contraseña',false);
+    }
+  })
+  .catch(()=> toast('Error de red',false));
+  return false;
+}
 </script>
 {% endblock %}
