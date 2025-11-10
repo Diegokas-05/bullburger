@@ -4,83 +4,327 @@
 
 {% block content %}
 <style>
-  :root{
-    --c-brown:#5a3b2e;
-    --c-brown-2:#8b5e3c;
-    --c-cream:#f8f4ef;
-    --c-text:#493428;
-    --radius:16px;
-    --shadow:0 4px 12px rgba(0,0,0,.1);
+:root {
+  --c-brown: #5a3b2e;
+  --c-brown-2: #8b5e3c;
+  --c-cream: #f8f4ef;
+  --c-text: #493428;
+  --radius: 16px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, .1);
+}
+
+body {
+  background: #fff;
+}
+
+.perfil-wrap {
+  max-width: 1100px;
+  margin: 32px auto;
+  padding: 0 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* === Header === */
+.perfil-head {
+  background: var(--c-cream);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.ph-left {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
+  color: #fff;
+  display: grid;
+  place-content: center;
+  font-weight: 700;
+  font-size: 28px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+}
+
+.u-main h2 {
+  margin: 0;
+  color: var(--c-brown);
+  font-weight: 800;
+}
+
+.u-sub {
+  color: #6b5546;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fff;
+  color: var(--c-brown);
+  border: 1px solid #eaded3;
+}
+
+.pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #27ae60;
+}
+
+.ph-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .04s ease, opacity .15s ease, box-shadow .15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(.99);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
+  color: #fff;
+}
+
+.btn-edit:hover {
+  opacity: .92;
+}
+
+.btn-sec {
+  background: #fff;
+  color: var(--c-brown);
+  border: 1px solid #eaded3;
+}
+
+.btn-sec:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+}
+
+/* === Grid principal === */
+.grid {
+  margin-top: 18px;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr 1fr;
+}
+
+@media(max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
+}
 
-  body{ background:#fff; }
-  .perfil-wrap{ max-width:1100px; margin:32px auto; padding:0 14px; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
 
-  .perfil-head{
-    background:var(--c-cream);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:24px; display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-  }
-  .ph-left{ display:flex; gap:18px; align-items:center; }
-  .avatar{
-    width:72px; height:72px; border-radius:50%;
-    background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
-    color:#fff; display:grid; place-content:center; font-weight:700; font-size:28px;
-    box-shadow:0 8px 20px rgba(0,0,0,.15);
-  }
-  .u-main h2{ margin:0; color:var(--c-brown); font-weight:800; }
-  .u-sub{ color:#6b5546; font-size:14px; margin-top:2px; }
-  .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:600;
-    background:#fff; color:var(--c-brown); border:1px solid #eaded3;
-  }
-  .pill .dot{ width:8px; height:8px; border-radius:50%; background:#27ae60; }
+.card h3 {
+  margin: 0 0 12px;
+  color: var(--c-brown);
+}
 
-  .ph-actions{ display:flex; gap:10px; }
-  .btn{
-    border:none; border-radius:10px; padding:10px 16px; font-weight:700; cursor:pointer;
-    transition:transform .04s ease, opacity .15s ease, box-shadow .15s ease; box-shadow:0 2px 6px rgba(0,0,0,.08);
-  }
-  .btn:active{ transform:translateY(1px) scale(.99); }
-  .btn-edit{ background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2)); color:#fff; }
-  .btn-edit:hover{ opacity:.92; }
-  .btn-sec{ background:#fff; color:var(--c-brown); border:1px solid #eaded3; }
-  .btn-sec:hover{ box-shadow:0 4px 12px rgba(0,0,0,.12); }
+.dl {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  row-gap: 10px;
+  column-gap: 10px;
+  color: var(--c-text);
+}
 
-  .grid{ margin-top:18px; display:grid; gap:18px; grid-template-columns:1fr 1fr; }
-  @media(max-width:900px){ .grid{ grid-template-columns:1fr; } }
+.dl dt {
+  font-weight: 700;
+  color: #6b5546;
+}
 
-  .card{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; }
-  .card h3{ margin:0 0 12px; color:var(--c-brown); }
-  .dl{ display:grid; grid-template-columns:220px 1fr; row-gap:10px; column-gap:10px; color:var(--c-text); }
-  .dl dt{ font-weight:700; color:#6b5546; }
-  .dl dd{ margin:0; }
+.dl dd {
+  margin: 0;
+}
 
-  .modal{ display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.5); backdrop-filter:blur(4px);
-          align-items:center; justify-content:center; padding:24px; }
-  .modal-content{ background:#fff; margin:3vh auto; width:90%; max-width:680px; max-height:82vh;
-                  border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.28); display:flex; flex-direction:column; }
-  .modal-header{ padding:14px 20px; background:linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
-                 color:#fff; border-radius:14px 14px 0 0; display:flex; justify-content:space-between; align-items:center; }
-  .modal-body{ padding:16px 20px; overflow-y:auto; max-height:calc(82vh - 56px - 64px); }
-  .close{ font-size:22px; line-height:1; cursor:pointer; }
+/* === Modales === */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, .5);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
 
-  .form-group{ margin-bottom:10px; }
-  label{ display:block; margin-bottom:.35rem; font-weight:600; color:#2c3e50; }
-  .form-control{
-    width:100%; padding:.65rem .8rem; border:2px solid #e0e0e0; border-radius:8px; font-size:1rem; transition:border-color .2s ease;
-  }
-  .form-control:focus{ border-color:var(--c-brown-2); outline:none; }
-  .form-actions{ position:sticky; bottom:0; background:#fff; padding:10px 0 2px; margin-top:8px; border-top:1px solid #eee;
-                 display:flex; gap:10px; justify-content:flex-end; }
-  .btn-cancel{ background:#95a5a6; color:#fff; }
-  .btn-save{ background:linear-gradient(135deg,#27ae60,#2ecc71); color:#fff; }
+.modal-content {
+  background: #fff;
+  margin: 3vh auto;
+  width: 90%;
+  max-width: 680px;
+  max-height: 82vh;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .28);
+  display: flex;
+  flex-direction: column;
+}
 
-  .toast{ position:fixed; right:20px; bottom:20px; z-index:1200; background:#1f2937; color:#fff; padding:12px 16px;
-          border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,.25); display:none; min-width:240px; }
-  .toast.ok{ background:#10b981; }
-  .toast.err{ background:#ef4444; }
+.modal-header {
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--c-brown), var(--c-brown-2));
+  color: #fff;
+  border-radius: 14px 14px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  max-height: calc(82vh - 56px - 64px);
+  color: #2c3e50 !important;
+}
+
+/* ✅ Fix visual: espaciado y visibilidad de etiquetas */
+.modal-body .form-group {
+  margin-bottom: 16px !important;
+}
+
+.modal-body label {
+  display: block;
+  margin-bottom: 6px !important;
+  color: #2c3e50 !important;
+  font-weight: 600;
+}
+
+.modal-body .form-control {
+  margin-bottom: 4px;
+}
+
+.close {
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* === Campos === */
+.form-group {
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-bottom: .35rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.form-control {
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color .2s ease;
+}
+
+.form-control:focus {
+  border-color: var(--c-brown-2);
+  outline: none;
+}
+
+textarea.form-control {
+  resize: none;
+}
+
+/* === Acciones (botones dentro del modal) === */
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 10px 0 2px;
+  margin-top: 8px;
+  border-top: 1px solid #eee;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  background: #95a5a6;
+  color: #fff;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+}
+
+/* === Toast === */
+.toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1200;
+  background: #1f2937;
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .25);
+  display: none;
+  min-width: 240px;
+}
+
+.toast.ok {
+  background: #10b981;
+}
+
+.toast.err {
+  background: #ef4444;
+}
+
+/* === Validaciones === */
+.form-group .error-message {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+  background: rgba(231, 76, 60, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid #e74c3c;
+  display: none;
+}
+
+.form-control.error-field {
+  border-color: #e74c3c !important;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.15);
+}
+
 </style>
 
 <div class="perfil-wrap">
@@ -130,11 +374,12 @@
       <span class="close" onclick="closeEditModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <form id="formEdit" onsubmit="return submitEdit(event)">
+      <form id="formEdit" onsubmit="return submitEdit(event)" novalidate>
         {% csrf_token %}
         <div class="form-group">
           <label for="f_nombre">Nombre *</label>
           <input type="text" id="f_nombre" class="form-control" required value="{{ request.user.nombre }}">
+          <div class="error-message" id="f_nombreError"></div>
         </div>
         <div class="form-group">
           <label for="f_email">Correo (solo lectura)</label>
@@ -142,11 +387,12 @@
         </div>
         <div class="form-group">
           <label for="f_tel">Teléfono</label>
-          <input type="text" id="f_tel" class="form-control" value="{{ request.user.telefono }}">
+          <input type="text" id="f_tel" class="form-control" value="{{ request.user.telefono|default:'' }}">
+          <div class="error-message" id="f_telError"></div>
         </div>
         <div class="form-group">
           <label for="f_dir">Dirección</label>
-          <textarea id="f_dir" class="form-control" rows="3">{{ request.user.direccion }}</textarea>
+          <textarea id="f_dir" class="form-control" rows="3">{{ request.user.direccion|default:'' }}</textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-cancel" onclick="closeEditModal()">Cancelar</button>
@@ -157,7 +403,6 @@
   </div>
 </div>
 
-<!-- Modal Password -->
 <div id="modalPass" class="modal" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -165,19 +410,22 @@
       <span class="close" onclick="closePassModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <form id="formPass" onsubmit="return submitPass(event)" autocomplete="off">
+      <form id="formPass" onsubmit="return submitPass(event)" autocomplete="off" novalidate>
         {% csrf_token %}
         <div class="form-group">
           <label for="p_actual">Contraseña actual *</label>
           <input type="password" id="p_actual" class="form-control" required autocomplete="current-password">
+          <div class="error-message" id="p_actualError"></div>
         </div>
         <div class="form-group">
           <label for="p_nueva">Nueva contraseña *</label>
           <input type="password" id="p_nueva" class="form-control" required autocomplete="new-password">
+          <div class="error-message" id="p_nuevaError"></div>
         </div>
         <div class="form-group">
           <label for="p_nueva2">Confirmar nueva contraseña *</label>
           <input type="password" id="p_nueva2" class="form-control" required autocomplete="new-password">
+          <div class="error-message" id="p_nueva2Error"></div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-cancel" onclick="closePassModal()">Cancelar</button>
@@ -208,6 +456,147 @@ function getCookie(name){
 }
 const csrftoken=getCookie('csrftoken');
 
+/* ===== 1. FUNCIONES DE VALIDACIÓN (AÑADIDAS) ===== */
+function showError(input, message) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.add('error-field');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function hideError(input) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.remove('error-field');
+        errorElement.style.display = 'none';
+    }
+}
+
+function clearAllErrors(formElement) {
+    if (!formElement) return;
+    const errors = formElement.querySelectorAll('.error-message');
+    const errorInputs = formElement.querySelectorAll('.error-field');
+    
+    errors.forEach(error => {
+        error.textContent = '';
+        error.style.display = 'none';
+    });
+    errorInputs.forEach(input => input.classList.remove('error-field'));
+}
+
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 4) {
+        value = value.substring(0, 4) + '-' + value.substring(4, 8);
+    }
+    input.value = value;
+}
+
+function validateNameInput(input) {
+    input.value = input.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
+}
+
+function validateRequired(input) {
+    const value = input.value.trim();
+    if (!value) {
+        showError(input, 'Este campo es obligatorio');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validateLettersOnly(input) {
+    const value = input.value.trim();
+    if (!value) {
+        showError(input, 'Este campo es obligatorio');
+        return false;
+    }
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    if (!lettersOnly.test(value)) {
+        showError(input, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    if (value.length < 2) {
+        showError(input, 'Debe tener al menos 2 caracteres');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePhone(input) {
+    const value = input.value.trim();
+    if (!value) { // Opcional
+        hideError(input);
+        return true;
+    }
+    const phoneRegex = /^\d{4}-\d{4}$/;
+    if (!phoneRegex.test(value)) {
+        showError(input, 'Formato inválido. Use: 1234-5678');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePassword(input) {
+    const value = input.value;
+    if (!value) {
+        showError(input, 'La contraseña es obligatoria');
+        return false;
+    }
+    if (value.length < 8) {
+        showError(input, 'La contraseña debe tener al menos 8 caracteres');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePasswordConfirm(passwordInput, confirmInput) {
+    const passValue = passwordInput.value;
+    const confirmValue = confirmInput.value;
+    
+    if (!confirmValue) {
+        showError(confirmInput, 'Por favor confirma tu contraseña');
+        return false;
+    }
+    if (confirmValue !== passValue) {
+        showError(confirmInput, 'Las contraseñas no coinciden');
+        return false;
+    }
+    hideError(confirmInput);
+    return true;
+}
+
+/* ===== 2. FUNCIONES "MAESTRAS" (AÑADIDAS) ===== */
+function validateEditProfileForm() {
+    let isValid = true;
+    const nombre = document.getElementById('f_nombre');
+    const telefono = document.getElementById('f_tel');
+
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validatePhone(telefono)) isValid = false;
+    
+    return isValid;
+}
+
+function validateChangePassForm() {
+    let isValid = true;
+    const p_actual = document.getElementById('p_actual');
+    const p_nueva = document.getElementById('p_nueva');
+    const p_nueva2 = document.getElementById('p_nueva2');
+
+    if (!validateRequired(p_actual)) isValid = false; 
+    if (!validatePassword(p_nueva)) isValid = false; 
+    if (!validatePasswordConfirm(p_nueva, p_nueva2)) isValid = false;
+
+    return isValid;
+}
+
 function toast(msg,ok=true){
   const t=document.getElementById('toast');
   t.textContent=msg;
@@ -234,18 +623,20 @@ function resetEditFormFromDisplay(){
   const fDir   =document.getElementById('f_dir');
 
   if(fNombre) fNombre.value = nombreTxt;
-  if(fEmail)  fEmail.value  = emailTxt;    // readonly
+  if(fEmail)  fEmail.value  = emailTxt;  
   if(fTel)    fTel.value    = telTxt;
   if(fDir)    fDir.value    = dirTxt;
 }
 
 function openEditModal(){
-  resetEditFormFromDisplay();   // <-- limpia/repone al abrir
   MEdit.style.display='block';
+  resetEditFormFromDisplay();
 }
+
 function closeEditModal(){
   MEdit.style.display='none';
-  resetEditFormFromDisplay();   // <-- revierte al cerrar
+  resetEditFormFromDisplay();
+  clearAllErrors(MEdit); // <-- AÑADIDO
 }
 
 /* --- PASSWORD: limpieza fuerte para vencer autofill --- */
@@ -261,7 +652,11 @@ function resetPassForm(){
   });
 }
 function openPassModal(){ resetPassForm(); MPass.style.display='block'; }
-function closePassModal(){ MPass.style.display='none'; resetPassForm(); }
+function closePassModal(){ 
+  MPass.style.display='none'; 
+  resetPassForm(); 
+  clearAllErrors(MPass); // <-- AÑADIDO
+}
 
 /* Cerrar al hacer click fuera */
 window.addEventListener('click',(e)=>{
@@ -279,6 +674,15 @@ document.addEventListener('keydown',(e)=>{
 /* ===== Envíos ===== */
 function submitEdit(e){
   e.preventDefault();
+  
+  // VALIDACIÓN AÑADIDA
+  clearAllErrors(document.getElementById('formEdit'));
+  if (!validateEditProfileForm()) {
+      toast('Por favor corrige los errores en el formulario', false);
+      return false; // Detiene el envío
+  }
+
+  // TU CÓDIGO ORIGINAL
   const payload={
     nombre: (document.getElementById('f_nombre').value||'').trim(),
     telefono:(document.getElementById('f_tel').value||'').trim(),
@@ -304,6 +708,11 @@ function submitEdit(e){
       closeEditModal(); // y al cerrar, vuelve a cargar el form desde lo mostrado
       toast('Perfil actualizado');
     }else{
+      // MANEJO DE ERROR AÑADIDO (para errores del servidor)
+      if (j.errors && j.errors.telefono) {
+          showError(document.getElementById('f_tel'), j.errors.telefono[0]);
+      }
+      /* === 'bu' ELIMINADO DE LA LÍNEA DE ABAJO === */
       toast(j.msg || 'No se pudo actualizar',false);
     }
   })
@@ -313,14 +722,19 @@ function submitEdit(e){
 
 function submitPass(e){
   e.preventDefault();
-  const p1=document.getElementById('p_nueva').value;
-  const p2=document.getElementById('p_nueva2').value;
-  if(p1!==p2){ toast('Las contraseñas no coinciden',false); return false; }
-
+  
+  // VALIDACIÓN AÑADIDA
+  clearAllErrors(document.getElementById('formPass'));
+  if (!validateChangePassForm()) {
+      toast('Por favor corrige los errores en el formulario', false);
+      return false; // Detiene el envío
+  }
+  
+  // TU CÓDIGO ORIGINAL (eliminando la validación duplicada)
   const payload={
     password_actual:document.getElementById('p_actual').value,
-    password_nueva:p1,
-    password_nueva2:p2
+    password_nueva:document.getElementById('p_nueva').value,
+    password_nueva2:document.getElementById('p_nueva2').value
   };
   fetch("{% url 'perfil_cambiar_password' %}",{
     method:'POST',
@@ -337,11 +751,47 @@ function submitPass(e){
       closePassModal(); // esto ya limpia
       toast('Contraseña actualizada');
     }else{
+      // MANEJO DE ERROR AÑADIDO (para errores del servidor)
+      if (j.errors && j.errors.password_actual) {
+          showError(document.getElementById('p_actual'), j.errors.password_actual[0]);
+      }
       toast(j.msg || 'No se pudo actualizar la contraseña',false);
     }
   })
   .catch(()=> toast('Error de red',false));
   return false;
 }
+
+/* ===== 4. Event Listeners de Validación (AÑADIDOS) ===== */
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- Formulario Editar Perfil ---
+    const f_nombre = document.getElementById('f_nombre');
+    const f_tel = document.getElementById('f_tel');
+
+    if (f_nombre) {
+        f_nombre.addEventListener('input', () => validateNameInput(f_nombre));
+        f_nombre.addEventListener('blur', () => validateLettersOnly(f_nombre));
+    }
+    if (f_tel) {
+        f_tel.addEventListener('input', () => formatPhone(f_tel));
+        f_tel.addEventListener('blur', () => validatePhone(f_tel));
+    }
+
+    // --- Formulario Cambiar Contraseña ---
+    const p_actual = document.getElementById('p_actual');
+    const p_nueva = document.getElementById('p_nueva');
+    const p_nueva2 = document.getElementById('p_nueva2');
+
+    if (p_actual) {
+        p_actual.addEventListener('blur', () => validateRequired(p_actual));
+    }
+    if (p_nueva) {
+        p_nueva.addEventListener('blur', () => validatePassword(p_nueva));
+    }
+    if (p_nueva2) {
+        p_nueva2.addEventListener('blur', () => validatePasswordConfirm(p_nueva, p_nueva2));
+    }
+});
 </script>
 {% endblock %}
