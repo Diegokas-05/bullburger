@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 from .models import Usuario, Rol
+from django.contrib.auth.password_validation import validate_password
 
 class RegistroClienteForm(UserCreationForm):
     nombre = forms.CharField(
@@ -260,25 +261,69 @@ class PerfilForm(forms.ModelForm):
         }
 
 
-# (Opcional pero recomendado si lo estás importando en views)
 class CambiarPasswordForm(forms.Form):
     password_actual = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña actual'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Contraseña actual'
+        })
     )
     password_nueva = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nueva contraseña', 'minlength': 8})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Nueva contraseña',
+            'minlength': 8
+        })
     )
     password_nueva2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar nueva contraseña'})
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirmar nueva contraseña'
+        })
     )
+
+    def __init__(self, user, *args, **kwargs):
+        """
+        Recibe el usuario autenticado para validar la contraseña actual
+        y poder aplicar el cambio al guardar.
+        """
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_password_actual(self):
+        old = self.cleaned_data.get('password_actual') or ''
+        if not self.user.check_password(old):
+            raise ValidationError('La contraseña actual no es correcta.')
+        return old
 
     def clean(self):
         cleaned = super().clean()
-        p1 = cleaned.get('password_nueva')
-        p2 = cleaned.get('password_nueva2')
-        if p1 or p2:
-            if p1 != p2:
-                raise ValidationError({'password_nueva2': 'Las contraseñas no coinciden'})
-            if p1 and p1.isdigit():
-                raise ValidationError({'password_nueva': 'La contraseña no puede ser solo números'})
+        p1 = cleaned.get('password_nueva') or ''
+        p2 = cleaned.get('password_nueva2') or ''
+
+        if p1 != p2:
+            self.add_error('password_nueva2', 'Las contraseñas no coinciden.')
+
+        # Evitar que sea igual a la actual
+        if p1 and 'password_actual' in cleaned and p1 == cleaned.get('password_actual'):
+            self.add_error('password_nueva', 'La nueva contraseña no puede ser igual a la actual.')
+
+        # Validadores de Django (complejidad, longitud, etc.)
+        if p1:
+            try:
+                validate_password(p1, self.user)
+            except ValidationError as e:
+                self.add_error('password_nueva', e.messages)
+
         return cleaned
+
+    def save(self, commit=True):
+        """
+        Aplica el cambio de contraseña al usuario.
+        Devuelve el usuario para poder usar update_session_auth_hash.
+        """
+        new_password = self.cleaned_data['password_nueva']
+        self.user.set_password(new_password)
+        if commit:
+            self.user.save()
+        return self.user
