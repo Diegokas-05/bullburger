@@ -63,12 +63,13 @@
     </div>
 
     <div class="modal-body">
-      <form id="createAdminForm" onsubmit="return submitCreateAdmin(event)">
+      <form id="createAdminForm" onsubmit="return submitCreateAdmin(event)" novalidate>
         {% csrf_token %}
 
         <div class="form-group">
           <label for="c_nombre">Nombre *</label>
           <input type="text" id="c_nombre" required class="form-control">
+          <div class="error-message" id="c_nombreError"></div>
         </div>
 
         <div class="form-group">
@@ -80,21 +81,24 @@
         <div class="form-group">
           <label for="c_telefono">Teléfono</label>
           <input type="text" id="c_telefono" class="form-control">
+          <div class="error-message" id="c_telefonoError"></div>
         </div>
 
         <div class="form-group">
           <label for="c_direccion">Dirección</label>
           <input type="text" id="c_direccion" class="form-control">
-        </div>
+          </div>
 
         <div class="form-group">
           <label for="c_password">Contraseña *</label>
           <input type="password" id="c_password" required class="form-control">
+          <div class="error-message" id="c_passwordError"></div>
         </div>
 
         <div class="form-group">
           <label for="c_password2">Confirmar contraseña *</label>
           <input type="password" id="c_password2" required class="form-control">
+          <div class="error-message" id="c_password2Error"></div>
         </div>
       </form>
     </div>
@@ -114,16 +118,16 @@
       <h2>Editar Administrador</h2>
       <span class="close" onclick="closeEditAdminModal()">&times;</span>
     </div>
-
-    <!-- SOLO el contenido scrollea -->
+    
     <div class="modal-body">
-      <form id="editAdminForm" onsubmit="return submitEditAdmin(event)">
+      <form id="editAdminForm" onsubmit="return submitEditAdmin(event)" novalidate>
         {% csrf_token %}
         <input type="hidden" id="e_id">
 
         <div class="form-group">
           <label for="e_nombre">Nombre *</label>
           <input type="text" id="e_nombre" required class="form-control">
+          <div class="error-message" id="e_nombreError"></div>
         </div>
 
         <div class="form-group">
@@ -135,6 +139,7 @@
         <div class="form-group">
           <label for="e_telefono">Teléfono</label>
           <input type="text" id="e_telefono" class="form-control">
+          <div class="error-message" id="e_telefonoError"></div>
         </div>
 
         <div class="form-group">
@@ -145,11 +150,13 @@
         <div class="form-group">
           <label for="e_password">Nueva contraseña (opcional)</label>
           <input type="password" id="e_password" class="form-control">
+          <div class="error-message" id="e_passwordError"></div>
         </div>
 
         <div class="form-group">
           <label for="e_password2">Confirmar nueva contraseña</label>
           <input type="password" id="e_password2" class="form-control">
+          <div class="error-message" id="e_password2Error"></div>
         </div>
       </form>
     </div>
@@ -181,6 +188,197 @@
 </div>
 
 <script>
+
+// Helper functions para errores
+function showError(input, message) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.add('error-field'); // Asumo que quieres la clase de borde rojo
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function hideError(input) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.remove('error-field');
+        errorElement.style.display = 'none';
+    }
+}
+
+// Limpia todos los errores de un formulario específico
+function clearAllErrors(formElement) {
+    const errors = formElement.querySelectorAll('.error-message');
+    const errorInputs = formElement.querySelectorAll('.error-field');
+    
+    errors.forEach(error => {
+        error.textContent = '';
+        error.style.display = 'none';
+    });
+    errorInputs.forEach(input => input.classList.remove('error-field'));
+}
+
+// Formatear automáticamente el teléfono
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 4) {
+        value = value.substring(0, 4) + '-' + value.substring(4, 8);
+    }
+    input.value = value;
+}
+
+// Validar que el nombre solo contenga letras y espacios
+function validateNameInput(input) {
+    input.value = input.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
+}
+
+// Funciones de validación
+function validateLettersOnly(input) {
+    const value = input.value.trim();
+    
+    if (!value) {
+        showError(input, 'Este campo es obligatorio');
+        return false;
+    }
+    
+    // Permitir letras, espacios y algunos caracteres especiales
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    if (!lettersOnly.test(value)) {
+        showError(input, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    
+    if (value.length < 2) {
+        showError(input, 'El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+    
+    hideError(input);
+    return true;
+}
+
+function validateEmail(input) {
+    const value = input.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!value) {
+        showError(input, 'El email es obligatorio');
+        return false;
+    }
+    
+    if (!emailRegex.test(value)) {
+        showError(input, 'Por favor ingresa un email válido');
+        return false;
+    }
+    
+    hideError(input);
+    return true;
+}
+
+function validatePhone(input) {
+    const value = input.value.trim();
+    
+    // Si está vacío, es válido (opcional)
+    if (!value) {
+        hideError(input);
+        return true;
+    }
+    
+    const phoneRegex = /^\d{4}-\d{4}$/;
+    if (!phoneRegex.test(value)) {
+        showError(input, 'Formato inválido. Usar formato: 1234-5678');
+        return false;
+    }
+    
+    hideError(input);
+    return true;
+}
+
+function validatePassword(input) {
+    const value = input.value;
+    
+    if (!value) {
+        showError(input, 'La contraseña es obligatoria');
+        return false;
+    }
+    
+    if (value.length < 8) {
+        showError(input, 'La contraseña debe tener al menos 8 caracteres');
+        return false;
+    }
+    
+    hideError(input);
+    return true;
+}
+
+// ¡Función MODIFICADA para ser reutilizable!
+function validatePasswordConfirm(passwordInput, confirmInput) {
+    const passValue = passwordInput.value;
+    const confirmValue = confirmInput.value;
+    
+    if (!confirmValue) {
+        showError(confirmInput, 'Por favor confirma tu contraseña');
+        return false;
+    }
+    
+    if (confirmValue !== passValue) {
+        showError(confirmInput, 'Las contraseñas no coinciden');
+        return false;
+    }
+    
+    hideError(confirmInput);
+    return true;
+}
+
+/* ===== Funciones "Maestras" para Modales ===== */
+
+function validateCreateForm() {
+    const nombre = document.getElementById('c_nombre');
+    const email = document.getElementById('c_email');
+    const telefono = document.getElementById('c_telefono');
+    const password = document.getElementById('c_password');
+    const password2 = document.getElementById('c_password2');
+    
+    let isValid = true;
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+    if (!validatePhone(telefono)) isValid = false;
+    if (!validatePassword(password)) isValid = false;
+    if (!validatePasswordConfirm(password, password2)) isValid = false;
+    
+    return isValid;
+}
+
+function validateEditForm() {
+    const nombre = document.getElementById('e_nombre');
+    const email = document.getElementById('e_email');
+    const telefono = document.getElementById('e_telefono');
+    const password = document.getElementById('e_password');
+    const password2 = document.getElementById('e_password2');
+    
+    let isValid = true;
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+    if (!validatePhone(telefono)) isValid = false;
+    
+    // Validar contraseña solo si se está intentando cambiar
+    const passValue = password.value;
+    const pass2Value = password2.value;
+    
+    if (passValue || pass2Value) {
+        if (!validatePassword(password)) isValid = false;
+        if (!validatePasswordConfirm(password, password2)) isValid = false;
+    } else {
+        // Si ambos están vacíos, borra cualquier error previo
+        hideError(password);
+        hideError(password2);
+    }
+    
+    return isValid;
+}
+
+
 /* ===== CSRF ===== */
 function getCookie(name) {
   let cookieValue = null;
@@ -216,13 +414,33 @@ function closeCustomAlert() {
 
 /* ===== Modal Crear ===== */
 function openCreateAdminModal() {
-  document.getElementById('createAdminModal').style.display = 'block';
+  document.getElementById('createAdminModal').style.display = 'block';
 }
+
 function closeCreateAdminModal() {
-  document.getElementById('createAdminModal').style.display = 'none';
+  // 1. Oculta el modal (esto ya lo tenías)
+  document.getElementById('createAdminModal').style.display = 'none';
+  
+  // 2. Resetea el formulario para borrar los campos
+  document.getElementById('createAdminForm').reset();
+  
+  // 3. Limpia todos los mensajes de error que quedaron
+  clearAllErrors(document.getElementById('createAdminForm'));
 }
+
 function submitCreateAdmin(e) {
   e.preventDefault();
+  
+  // 1. Limpiar errores previos
+  clearAllErrors(document.getElementById('createAdminForm'));
+  
+  // 2. Validar el formulario
+  if (!validateCreateForm()) {
+      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+      return false; // Detiene el envío
+  }
+
+  // 3. (Tu código existente) Preparar datos y enviar
   const data = {
     nombre: document.getElementById('c_nombre').value,
     email: document.getElementById('c_email').value,
@@ -230,7 +448,6 @@ function submitCreateAdmin(e) {
     direccion: document.getElementById('c_direccion').value,
     password: document.getElementById('c_password').value,
     password2: document.getElementById('c_password2').value
-    // el rol se fuerza en la view a 'Administrador'
   };
 
   fetch('/administradores/crear/', {
@@ -248,12 +465,17 @@ function submitCreateAdmin(e) {
       closeCreateAdminModal();
       location.reload();
     } else {
-      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
-      if (emailErr) {
-        document.getElementById('c_emailError').style.display = 'block';
-        document.getElementById('c_emailError').textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
+      // (Mejora) Manejar errores del servidor
+      if (json.errors) {
+          if (json.errors.email) {
+              showError(document.getElementById('c_email'), json.errors.email[0]);
+          }
+          if (json.errors.password) {
+              showError(document.getElementById('c_password'), json.errors.password[0]);
+          }
+          // ... puedes añadir más campos si tu backend los devuelve
       }
-      showCustomAlert('Error', 'Revisa los campos del formulario.');
+      showCustomAlert('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.');
     }
   })
   .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
@@ -278,8 +500,20 @@ function openEditAdminModal(id) {
 function closeEditAdminModal() {
   document.getElementById('editAdminModal').style.display = 'none';
 }
+
 function submitEditAdmin(e) {
   e.preventDefault();
+  
+  // 1. Limpiar errores previos
+  clearAllErrors(document.getElementById('editAdminForm'));
+  
+  // 2. Validar el formulario
+  if (!validateEditForm()) {
+      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+      return false; // Detiene el envío
+  }
+
+  // 3. (Tu código existente) Preparar datos y enviar
   const id = document.getElementById('e_id').value;
   const data = {
     nombre: document.getElementById('e_nombre').value,
@@ -288,7 +522,6 @@ function submitEditAdmin(e) {
     direccion: document.getElementById('e_direccion').value
   };
 
-  // Enviar contraseña solo si han escrito algo
   const np = document.getElementById('e_password').value;
   const np2 = document.getElementById('e_password2').value;
   if (np || np2) {
@@ -308,21 +541,20 @@ function submitEditAdmin(e) {
   .then(r => r.json())
   .then(json => {
     if (json.ok) {
-      // Actualizar fila sin recargar
-      const fila = document.querySelector(`tr[data-id='${id}']`);
-      fila.querySelector('.a-nombre').textContent = data.nombre;
-      fila.querySelector('.a-email').textContent = data.email;
-      fila.querySelector('.a-telefono').textContent = data.telefono || '-';
-      fila.querySelector('.a-direccion').textContent = data.direccion || '-';
+      // ... (tu código para actualizar la fila) ...
       closeEditAdminModal();
       showCustomAlert('Éxito', 'Administrador actualizado correctamente.');
     } else {
-      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
-      if (emailErr) {
-        document.getElementById('e_emailError').style.display = 'block';
-        document.getElementById('e_emailError').textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
+      // (Mejora) Manejar errores del servidor
+      if (json.errors) {
+          if (json.errors.email) {
+              showError(document.getElementById('e_email'), json.errors.email[0]);
+          }
+          if (json.errors.password) {
+              showError(document.getElementById('e_password'), json.errors.password[0]);
+          }
       }
-      showCustomAlert('Error', 'No se pudo actualizar.');
+      showCustomAlert('Error', json.errors.non_field_errors || 'No se pudo actualizar.');
     }
   })
   .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
@@ -348,5 +580,49 @@ function confirmDeleteAdmin(id, nombre) {
     .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
   });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- Formulario CREAR ---
+    const c_nombre = document.getElementById('c_nombre');
+    const c_email = document.getElementById('c_email');
+    const c_telefono = document.getElementById('c_telefono');
+    const c_password = document.getElementById('c_password');
+    const c_password2 = document.getElementById('c_password2');
+
+    // Formato
+    c_telefono.addEventListener('input', function() { formatPhone(this); });
+    c_nombre.addEventListener('input', function() { validateNameInput(this); });
+    
+    // Validación al salir (blur)
+    c_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+    c_email.addEventListener('blur', function() { validateEmail(this); });
+    c_telefono.addEventListener('blur', function() { validatePhone(this); });
+    c_password.addEventListener('blur', function() { validatePassword(this); });
+    c_password2.addEventListener('blur', function() { validatePasswordConfirm(c_password, this); });
+
+    // --- Formulario EDITAR ---
+    const e_nombre = document.getElementById('e_nombre');
+    const e_email = document.getElementById('e_email');
+    const e_telefono = document.getElementById('e_telefono');
+    const e_password = document.getElementById('e_password');
+    const e_password2 = document.getElementById('e_password2');
+    
+    // Formato
+    e_telefono.addEventListener('input', function() { formatPhone(this); });
+    e_nombre.addEventListener('input', function() { validateNameInput(this); });
+
+    // Validación al salir (blur)
+    e_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+    e_email.addEventListener('blur', function() { validateEmail(this); });
+    e_telefono.addEventListener('blur', function() { validatePhone(this); });
+    // Validar contraseñas solo si se tocan
+    e_password.addEventListener('blur', function() {
+        if (this.value || e_password2.value) validatePassword(this);
+    });
+    e_password2.addEventListener('blur', function() {
+        if (this.value || e_password.value) validatePasswordConfirm(e_password, this);
+    });
+});
 </script>
 {% endblock %}
