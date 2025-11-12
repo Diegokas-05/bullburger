@@ -35,4 +35,8 @@ urlpatterns = [
     path('perfil/', views.perfil_usuario, name='perfil_usuario'),
     path('perfil/actualizar/', views.perfil_actualizar, name='perfil_actualizar'),
     path('perfil/cambiar-password/', views.perfil_cambiar_password, name='perfil_cambiar_password'),
+    
+    #mis pedidos
+    path('cliente/pedidos/', views.pedidos_cliente_view, name='pedidos_cliente'),
+    path('cliente/menu/', views.cliente_dashboard, name='menu_cliente'), 
 ]

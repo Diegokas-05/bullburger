@@ -12,7 +12,6 @@ urlpatterns = [
     path('', include('usuarios.urls')),
     path('', include('productos.urls')),
     path('', include('inventario.urls')), 
-    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

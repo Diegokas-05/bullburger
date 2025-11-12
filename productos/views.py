@@ -25,6 +25,7 @@ from usuarios.models import Usuario
 
 # ✅ Generador de facturas
 from inventario.utils_factura import generar_factura_pdf
+from django.conf import settings
 
 # Chequeo opcional de Inventario
 _INV_PRODUCTO_OK = False
@@ -354,7 +355,14 @@ def carrito_checkout(request):
 
             # ✅ Generar factura PDF
             factura_url = generar_factura_pdf(pedido)
-
+            
+            factura_path_relativo = None
+            if factura_url and factura_url.startswith(settings.MEDIA_URL):
+                factura_path_relativo = factura_url[len(settings.MEDIA_URL):]
+                if factura_path_relativo:
+                    pedido.factura_pdf = factura_path_relativo
+                    pedido.save(update_fields=['factura_pdf'])
+                     
         return JsonResponse({
             'ok': True,
             'pedido_id': pedido.id,
