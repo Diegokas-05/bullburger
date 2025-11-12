@@ -14,7 +14,7 @@
 }
 
 body {
-  background: #fff;
+  background: #f6ecd5;
 }
 
 .perfil-wrap {
@@ -658,11 +658,12 @@ function closePassModal(){
   clearAllErrors(MPass); // <-- AÑADIDO
 }
 
-/* Cerrar al hacer click fuera */
+{% comment %} /* Cerrar al hacer click fuera */
 window.addEventListener('click',(e)=>{
   if(e.target===MEdit) closeEditModal();
   if(e.target===MPass) closePassModal();
-});
+}); {% endcomment %}
+
 /* Cerrar con ESC */
 document.addEventListener('keydown',(e)=>{
   if(e.key==='Escape'){

@@ -8,7 +8,6 @@
 <div class="clientes-container">
   <div class="clientes-header">
     <h2>Lista de Empleados</h2>
-
     <div class="buscador">
       <form method="GET">
         <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
@@ -17,7 +16,7 @@
       <button class="btn-crear" onclick="openCreateEmpleadoModal()">Crear</button>
     </div>
   </div>
-
+  
   <table class="tabla-clientes" id="tabla-empleados">
     <thead>
       <tr>
@@ -53,20 +52,19 @@
   </table>
 </div>
 
-<!-- === MODAL CREAR EMPLEADO === -->
 <div id="createEmpleadoModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h2>Crear Empleado</h2>
       <span class="close" onclick="closeCreateEmpleadoModal()">&times;</span>
     </div>
-
+    
     <div class="modal-body">
-      <form id="createEmpleadoForm" class="bb-validate" onsubmit="return submitCreateEmpleado(event)">
-        {% csrf_token %}
-        <div class="form-group">
+      <form id="createEmpleadoForm" onsubmit="return submitCreateEmpleado(event)" novalidate>
+        {% csrf_token %}<div class="form-group">
           <label for="c_nombre">Nombre *</label>
           <input type="text" id="c_nombre" required class="form-control">
+          <div class="error-message" id="c_nombreError"></div>
         </div>
         <div class="form-group">
           <label for="c_email">Correo *</label>
@@ -76,6 +74,7 @@
         <div class="form-group">
           <label for="c_telefono">Teléfono</label>
           <input type="text" id="c_telefono" class="form-control">
+          <div class="error-message" id="c_telefonoError"></div>
         </div>
         <div class="form-group">
           <label for="c_direccion">Dirección</label>
@@ -84,10 +83,12 @@
         <div class="form-group">
           <label for="c_password">Contraseña *</label>
           <input type="password" id="c_password" required class="form-control">
+          <div class="error-message" id="c_passwordError"></div>
         </div>
         <div class="form-group">
           <label for="c_password2">Confirmar contraseña *</label>
           <input type="password" id="c_password2" required class="form-control">
+          <div class="error-message" id="c_password2Error"></div>
         </div>
       </form>
     </div>
@@ -99,7 +100,6 @@
   </div>
 </div>
 
-<!-- === MODAL EDITAR EMPLEADO === -->
 <div id="editEmpleadoModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -107,204 +107,418 @@
       <span class="close" onclick="closeEditEmpleadoModal()">&times;</span>
     </div>
     <div class="modal-body">
-      <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)">
+      <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)" novalidate>
         {% csrf_token %}
-        <input type="hidden" id="edit_empleado_id">
+        <input type="hidden" id="e_id">
         <div class="form-group">
-          <label for="edit_nombre_empleado">Nombre *</label>
-          <input type="text" id="edit_nombre_empleado" required class="form-control">
+          <label for="e_nombre">Nombre *</label>
+          <input type="text" id="e_nombre" required class="form-control">
+          <div class="error-message" id="e_nombreError"></div>
         </div>
         <div class="form-group">
-          <label for="edit_email_empleado">Correo *</label>
-          <input type="email" id="edit_email_empleado" required class="form-control">
+          <label for="e_email">Correo *</label>
+          <input type="email" id="e_email" required class="form-control">
+          <div class="error-message" id="e_emailError"></div>
         </div>
         <div class="form-group">
-          <label for="edit_telefono_empleado">Teléfono</label>
-          <input type="text" id="edit_telefono_empleado" class="form-control">
+          <label for="e_telefono">Teléfono</label>
+          <input type="text" id="e_telefono" class="form-control">
+          <div class="error-message" id="e_telefonoError"></div>
         </div>
         <div class="form-group">
-          <label for="edit_direccion_empleado">Dirección</label>
-          <input type="text" id="edit_direccion_empleado" class="form-control">
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
-          <button type="submit" class="btn-save">Actualizar</button>
+          <label for="e_direccion">Dirección</label>
+          <input type="text" id="e_direccion" class="form-control">
         </div>
       </form>
     </div>
-  </div>
-</div>
-
-<!-- === MODAL ALERTAS === -->
-<div id="customAlert" class="modal">
-  <div class="modal-content" style="max-width: 400px;">
-    <div class="modal-header">
-      <h2 id="alertTitle">Alerta</h2>
-      <span class="close" onclick="closeCustomAlert()">&times;</span>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
+      <button type="submit" form="editEmpleadoForm" class="btn-save">Actualizar</button></div></div>
     </div>
-    <div class="modal-body">
-      <p id="alertMessage"></p>
-      <div class="form-actions" style="justify-content:center;">
-        <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-        <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+
+    <div id="customAlert" class="modal">
+      <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+          <h2 id="alertTitle">Alerta</h2>
+          <span class="close" onclick="closeCustomAlert()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p id="alertMessage"></p>
+          <div class="form-actions" style="justify-content:center;">
+            <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
+            <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
 <script>
-// === CSRF ===
+/* ===== Funciones de Validación (Copiadas de Admin) ===== */
+function showError(input, message) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.add('error-field');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+    }
+}
+
+function hideError(input) {
+    const errorElement = document.getElementById(input.id + 'Error');
+    if (errorElement) {
+        input.classList.remove('error-field');
+        errorElement.style.display = 'none';
+    }
+}
+
+function clearAllErrors(formElement) {
+    const errors = formElement.querySelectorAll('.error-message');
+    const errorInputs = formElement.querySelectorAll('.error-field');
+    errors.forEach(error => {
+        error.textContent = '';
+        error.style.display = 'none';
+    });
+    errorInputs.forEach(input => input.classList.remove('error-field'));
+}
+
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 4) {
+        value = value.substring(0, 4) + '-' + value.substring(4, 8);
+    }
+    input.value = value;
+}
+
+function validateNameInput(input) {
+    input.value = input.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
+}
+
+function validateLettersOnly(input) {
+    const value = input.value.trim();
+    if (!value) {
+        showError(input, 'Este campo es obligatorio');
+        return false;
+    }
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    if (!lettersOnly.test(value)) {
+        showError(input, 'Solo se permiten letras y espacios');
+        return false;
+    }
+    if (value.length < 2) {
+        showError(input, 'El nombre debe tener al menos 2 caracteres');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validateEmail(input) {
+    const value = input.value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!value) {
+        showError(input, 'El email es obligatorio');
+        return false;
+    }
+    if (!emailRegex.test(value)) {
+        showError(input, 'Por favor ingresa un email válido');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePhone(input) {
+    const value = input.value.trim();
+    if (!value) {
+        hideError(input);
+        return true;
+    }
+    const phoneRegex = /^\d{4}-\d{4}$/;
+    if (!phoneRegex.test(value)) {
+        showError(input, 'Formato inválido. Usar formato: 1234-5678');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePassword(input) {
+    const value = input.value;
+    if (!value) {
+        showError(input, 'La contraseña es obligatoria');
+        return false;
+    }
+    if (value.length < 8) {
+        showError(input, 'La contraseña debe tener al menos 8 caracteres');
+        return false;
+    }
+    hideError(input);
+    return true;
+}
+
+function validatePasswordConfirm(passwordInput, confirmInput) {
+    const passValue = passwordInput.value;
+    const confirmValue = confirmInput.value;
+    if (!confirmValue) {
+        showError(confirmInput, 'Por favor confirma tu contraseña');
+        return false;
+    }
+    if (confirmValue !== passValue) {
+        showError(confirmInput, 'Las contraseñas no coinciden');
+        return false;
+    }
+    hideError(confirmInput);
+    return true;
+}
+
+/* ===== Funciones "Maestras" para Modales (Adaptadas) ===== */
+
+// Valida el formulario de CREAR (con contraseña)
+function validateCreateForm() {
+    const nombre = document.getElementById('c_nombre');
+    const email = document.getElementById('c_email');
+    const telefono = document.getElementById('c_telefono');
+    const password = document.getElementById('c_password');
+    const password2 = document.getElementById('c_password2');
+    
+    let isValid = true;
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+    if (!validatePhone(telefono)) isValid = false;
+    if (!validatePassword(password)) isValid = false;
+    if (!validatePasswordConfirm(password, password2)) isValid = false;
+    
+    return isValid;
+}
+
+// Valida el formulario de EDITAR (SIN contraseña)
+function validateEditForm() {
+    const nombre = document.getElementById('e_nombre');
+    const email = document.getElementById('e_email');
+    const telefono = document.getElementById('e_telefono');
+    
+    let isValid = true;
+    if (!validateLettersOnly(nombre)) isValid = false;
+    if (!validateEmail(email)) isValid = false;
+    if (!validatePhone(telefono)) isValid = false;
+    
+    return isValid;
+}
+
+
+/* ===== CSRF ===== */
 function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i].trim();
-      if (cookie.startsWith(name + '=')) {
-        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-        break;
-      }
-    }
-  }
-  return cookieValue;
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i=0; i<cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
 }
 const csrftoken = getCookie('csrftoken');
 
-// === ALERTAS ===
+/* ===== Helpers Alert ===== */
 function showCustomAlert(title, message, confirmCallback = null) {
-  document.getElementById('alertTitle').textContent = title;
-  document.getElementById('alertMessage').textContent = message;
-  document.getElementById('customAlert').style.display = 'block';
-  const btn = document.getElementById('alertConfirmBtn');
-  btn.onclick = confirmCallback
-    ? () => { confirmCallback(); closeCustomAlert(); }
-    : closeCustomAlert;
+  document.getElementById('alertTitle').textContent = title;
+  document.getElementById('alertMessage').textContent = message;
+  document.getElementById('customAlert').style.display = 'block';
+  const confirmBtn = document.getElementById('alertConfirmBtn');
+  if (confirmCallback) {
+      confirmBtn.onclick = function() { confirmCallback(); closeCustomAlert(); };
+  } else {
+      confirmBtn.onclick = closeCustomAlert;
+  }
 }
 function closeCustomAlert() {
-  document.getElementById('customAlert').style.display = 'none';
+  document.getElementById('customAlert').style.display = 'none';
 }
 
-// === CREAR EMPLEADO ===
+/* ===== Modal Crear (ACTUALIZADO) ===== */
 function openCreateEmpleadoModal() {
-  document.getElementById('createEmpleadoModal').style.display = 'block';
+  document.getElementById('createEmpleadoModal').style.display = 'block';
 }
+
 function closeCreateEmpleadoModal() {
-  document.getElementById('createEmpleadoModal').style.display = 'none';
+  document.getElementById('createEmpleadoModal').style.display = 'none';
+  document.getElementById('createEmpleadoForm').reset();
+  clearAllErrors(document.getElementById('createEmpleadoForm'));
 }
+
 function submitCreateEmpleado(e) {
-  e.preventDefault();
-  const data = {
-    nombre: document.getElementById('c_nombre').value,
-    email: document.getElementById('c_email').value,
-    telefono: document.getElementById('c_telefono').value,
-    direccion: document.getElementById('c_direccion').value,
-    password: document.getElementById('c_password').value,
-    password2: document.getElementById('c_password2').value
-  };
+  e.preventDefault();
+  clearAllErrors(document.getElementById('createEmpleadoForm'));
+  
+  if (!validateCreateForm()) {
+      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+      return false;
+  }
 
-  fetch('/empleados/crear/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      closeCreateEmpleadoModal();
-      location.reload();
-    } else {
-      const emailErr = (json.errors && (json.errors.email || json.errors.__all__)) || null;
-      if (emailErr) {
-        const errDiv = document.getElementById('c_emailError');
-        errDiv.style.display = 'block';
-        errDiv.textContent = Array.isArray(emailErr) ? emailErr.join(', ') : emailErr;
-      }
-      showCustomAlert('Error', 'Revisa los campos del formulario.');
-    }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  return false;
+  const data = {
+    nombre: document.getElementById('c_nombre').value,
+    email: document.getElementById('c_email').value,
+    telefono: document.getElementById('c_telefono').value,
+    direccion: document.getElementById('c_direccion').value,
+    password: document.getElementById('c_password').value,
+    password2: document.getElementById('c_password2').value
+  };
+
+  fetch('/empleados/crear/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(json => {
+    if (json.ok) {
+      closeCreateEmpleadoModal();
+      location.reload();
+    } else {
+      if (json.errors) {
+          if (json.errors.email) {
+              showError(document.getElementById('c_email'), json.errors.email[0]);
+          }
+          if (json.errors.password) {
+              showError(document.getElementById('c_password'), json.errors.password[0]);
+D        }
+      }
+      showCustomAlert('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  return false;
 }
 
-// === EDITAR EMPLEADO ===
+/* ===== Modal Editar (ACTUALIZADO) ===== */
 function openEditEmpleadoModal(id) {
-  fetch(`/empleados/editar/${id}/`, {
-    headers: {'X-Requested-With': 'XMLHttpRequest'}
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById('edit_empleado_id').value = data.id;
-    document.getElementById('edit_nombre_empleado').value = data.nombre;
-    document.getElementById('edit_email_empleado').value = data.email;
-    document.getElementById('edit_telefono_empleado').value = data.telefono;
-    document.getElementById('edit_direccion_empleado').value = data.direccion;
-    document.getElementById('editEmpleadoModal').style.display = 'block';
-  });
+  fetch(`/empleados/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(res => res.json())
+    .then(data => {
+      // IDs estandarizados
+      document.getElementById('e_id').value = data.id;
+      document.getElementById('e_nombre').value = data.nombre || '';
+      document.getElementById('e_email').value = data.email || '';
+      document.getElementById('e_telefono').value = data.telefono || '';
+      document.getElementById('e_direccion').value = data.direccion || '';
+      document.getElementById('editEmpleadoModal').style.display = 'block';
+    });
 }
 function closeEditEmpleadoModal() {
-  document.getElementById('editEmpleadoModal').style.display = 'none';
+  document.getElementById('editEmpleadoModal').style.display = 'none';
+  clearAllErrors(document.getElementById('editEmpleadoForm'));
 }
+
 function submitEditEmpleado(event) {
-  event.preventDefault();
-  const id = document.getElementById('edit_empleado_id').value;
-  const data = {
-    nombre: document.getElementById('edit_nombre_empleado').value,
-    email: document.getElementById('edit_email_empleado').value,
-    telefono: document.getElementById('edit_telefono_empleado').value,
-    direccion: document.getElementById('edit_direccion_empleado').value,
-  };
+  event.preventDefault();
+  clearAllErrors(document.getElementById('editEmpleadoForm'));
 
-  fetch(`/empleados/editar/${id}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-    body: JSON.stringify(data)
-  })
-  .then(res => res.json())
-  .then(resp => {
-    if (resp.success) {
-      const fila = document.querySelector(`tr[data-id='${id}']`);
-      fila.querySelector('.c-nombre').textContent = data.nombre;
-      fila.querySelector('.c-email').textContent = data.email;
-      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
-      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
-      closeEditEmpleadoModal();
-      showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
-    } else {
-      showCustomAlert('Error', 'No se pudo actualizar.');
-    }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  if (!validateEditForm()) {
+      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+      return false;
+  }
+
+  const id = document.getElementById('e_id').value;
+  const data = {
+    nombre: document.getElementById('e_nombre').value,
+    email: document.getElementById('e_email').value,
+    telefono: document.getElementById('e_telefono').value,
+    direccion: document.getElementById('e_direccion').value,
+  };
+
+  fetch(`/empleados/editar/${id}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrftoken,
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    body: JSON.stringify(data)
+  })
+  .then(res => res.json())
+  .then(json => { // 'resp' cambiado a 'json'
+    if (json.success) { // Tu lógica original usaba 'success'
+      const fila = document.querySelector(`tr[data-id='${id}']`);
+      fila.querySelector('.c-nombre').textContent = data.nombre;
+      fila.querySelector('.c-email').textContent = data.email;
+      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
+      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+      closeEditEmpleadoModal();
+      showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
+    } else {
+      // Manejo de errores mejorado
+      if (json.errors && json.errors.email) {
+          showError(document.getElementById('e_email'), json.errors.email[0]);
+      }
+      showCustomAlert('Error', json.error || json.errors.non_field_errors || 'No se pudo actualizar.');
+    }
+  })
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
 }
 
-// === ELIMINAR EMPLEADO ===
+// === ELIMINAR EMPLEADO (Sin cambios, solo URL) ===
 function confirmDeleteEmpleado(id, nombre) {
-  showCustomAlert(`Eliminar Empleado`, `¿Seguro que deseas eliminar a "${nombre}"?`, function () {
-    fetch(`/empleados/eliminar/${id}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-    .then(res => res.json())
-    .then(resp => {
-      if (resp.success) {
-        document.querySelector(`tr[data-id='${id}']`).remove();
-        showCustomAlert('Éxito', 'Empleado eliminado correctamente.');
-      } else {
-        showCustomAlert('Error', 'No se pudo eliminar.');
-      }
-    })
-    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  });
+  showCustomAlert(`Eliminar Empleado`, `¿Seguro que deseas eliminar a "${nombre}"?`, function () {
+    fetch(`/empleados/eliminar/${id}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(res => res.json())
+    .then(resp => {
+      if (resp.success) {
+        document.querySelector(`tr[data-id='${id}']`).remove();
+        showCustomAlert('Éxito', 'Empleado eliminado correctamente.');
+      } else {
+        showCustomAlert('Error', resp.error || 'No se pudo eliminar.');
+      }
+    })
+    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  });
 }
+
+/* ===== Listeners (AÑADIDOS) ===== */
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- Formulario CREAR ---
+    const c_nombre = document.getElementById('c_nombre');
+    const c_email = document.getElementById('c_email');
+    const c_telefono = document.getElementById('c_telefono');
+    const c_password = document.getElementById('c_password');
+    const c_password2 = document.getElementById('c_password2');
+
+    if(c_nombre) { // Chequeo por si el modal existe
+      c_telefono.addEventListener('input', function() { formatPhone(this); });
+      c_nombre.addEventListener('input', function() { validateNameInput(this); });
+      c_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+      c_email.addEventListener('blur', function() { validateEmail(this); });
+      c_telefono.addEventListener('blur', function() { validatePhone(this); });
+      c_password.addEventListener('blur', function() { validatePassword(this); });
+      c_password2.addEventListener('blur', function() { validatePasswordConfirm(c_password, this); });
+    }
+
+    // --- Formulario EDITAR ---
+    const e_nombre = document.getElementById('e_nombre');
+    const e_email = document.getElementById('e_email');
+    const e_telefono = document.getElementById('e_telefono');
+    
+    if(e_nombre) { // Chequeo por si el modal existe
+      e_telefono.addEventListener('input', function() { formatPhone(this); });
+      e_nombre.addEventListener('input', function() { validateNameInput(this); });
+      e_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+      e_email.addEventListener('blur', function() { validateEmail(this); });
+      e_telefono.addEventListener('blur', function() { validatePhone(this); });
+}
+});
 </script>
 {% endblock %}
