@@ -1,0 +1,411 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestionar Pedidos - Bullburger{% endblock %}
+
+{% block content %}
+<style>
+  .welcome-container {
+    background-color: #ffffffff;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+  }
+
+  .pedidos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .pedido-card {
+    background: #fff;
+    border: 1px solid #e6d8c2;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease;
+  }
+
+  .pedido-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  }
+
+  .pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8efe0;
+  }
+
+  .pedido-id {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #b71c1c;
+  }
+
+  .pedido-estado {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+  }
+
+  .estado-pendiente { background: #f39c12; }
+  .estado-preparando { background: #3498db; }
+  .estado-listo { background: #9b59b6; }
+  .estado-en_camino { background: #ff6f00; }
+  .estado-entregado { background: #2ecc71; }
+  .estado-cancelado { background: #e74c3c; }
+
+  .pedido-info {
+    margin-bottom: 1rem;
+  }
+
+  .pedido-info p {
+    margin: 0.3rem 0;
+    color: #6a5b4b;
+  }
+
+  .pedido-items {
+    margin: 1rem 0;
+  }
+
+  .pedido-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e6d8c2;
+  }
+
+  .pedido-item:last-child {
+    border-bottom: none;
+  }
+
+  .item-nombre {
+    flex: 1;
+    color: #3b2a16;
+  }
+
+  .item-cantidad {
+    color: #b71c1c;
+    font-weight: bold;
+  }
+
+  .pedido-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .btn-accion {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+
+  .btn-preparar {
+    background: #3498db;
+    color: white;
+  }
+
+  .btn-listo {
+    background: #9b59b6;
+    color: white;
+  }
+
+  .btn-entregar {
+    background: #2ecc71;
+    color: white;
+  }
+
+  .btn-cancelar {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .btn-accion:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .btn-accion:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .filtros {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filtro-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e6d8c2;
+    background: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filtro-btn.active {
+    background: #b71c1c;
+    color: white;
+    border-color: #b71c1c;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6a5b4b;
+  }
+
+  .empty-state img {
+    width: 100px;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+</style>
+
+<div class="welcome-container">
+  <h1>Gestionar Pedidos</h1>
+  <p>Administra y actualiza el estado de los pedidos de los clientes</p>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <button class="filtro-btn active" onclick="filtrarPedidos('todos')">Todos ({{ pedidos.count }})</button>
+    <button class="filtro-btn" onclick="filtrarPedidos('pendiente')">Pendientes ({{ pedidos_pendientes.count }})</button>
+    <button class="filtro-btn" onclick="filtrarPedidos('preparando')">En Preparación ({{ pedidos_preparando.count }})</button>
+    <button class="filtro-btn" onclick="filtrarPedidos('listo')">Listos ({{ pedidos_listos.count }})</button>
+  </div>
+</div>
+
+<!-- Lista de Pedidos -->
+<div class="pedidos-grid" id="lista-pedidos">
+  {% for pedido in pedidos %}
+  <div class="pedido-card" data-estado="{{ pedido.estado }}" data-pedido-id="{{ pedido.id }}">
+    <div class="pedido-header">
+      <div class="pedido-id">#{{ pedido.id }}</div>
+      <div class="pedido-estado estado-{{ pedido.estado }}">{{ pedido.get_estado_display }}</div>
+    </div>
+    
+    <div class="pedido-info">
+      <p><strong>Cliente:</strong> {{ pedido.usuario.nombre|default:pedido.usuario.email }}</p>
+      <p><strong>Fecha:</strong> {{ pedido.fecha|date:'d/m/Y H:i' }}</p>
+      <p><strong>Tipo:</strong> {{ pedido.get_tipo_entrega_display }}</p>
+      <p><strong>Pago:</strong> {{ pedido.get_metodo_pago_display }}</p>
+      <p><strong>Total:</strong> ${{ pedido.total }}</p>
+      {% if pedido.direccion_entrega %}
+      <p><strong>Dirección:</strong> {{ pedido.direccion_entrega }}</p>
+      {% endif %}
+    </div>
+
+    <div class="pedido-items">
+      {% for detalle in pedido.detallepedido_set.all %}
+      <div class="pedido-item">
+        <span class="item-nombre">{{ detalle.producto.nombre }}</span>
+        <span class="item-cantidad">x{{ detalle.cantidad }}</span>
+      </div>
+      {% endfor %}
+      
+      {% if pedido.descuento_aplicado and pedido.descuento_aplicado > 0 %}
+      <div class="pedido-item" style="color: #27ae60; font-weight: 600;">
+        <span class="item-nombre">Descuento</span>
+        <span class="item-cantidad">-${{ pedido.descuento_aplicado }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="pedido-actions">
+      {% if pedido.estado == 'pendiente' %}
+        <button class="btn-accion btn-preparar" onclick="cambiarEstado({{ pedido.id }}, 'preparando')">Comenzar Preparación</button>
+        <button class="btn-accion btn-cancelar" onclick="cancelarPedido({{ pedido.id }})">Cancelar</button>
+      
+      {% elif pedido.estado == 'preparando' %}
+        <button class="btn-accion btn-listo" onclick="cambiarEstado({{ pedido.id }}, 'listo')">Marcar como Listo</button>
+        <button class="btn-accion btn-cancelar" onclick="cancelarPedido({{ pedido.id }})">Cancelar</button>
+      
+      {% elif pedido.estado == 'listo' %}
+        <button class="btn-accion btn-entregar" onclick="cambiarEstado({{ pedido.id }}, 'entregado')">Marcar como Entregado</button>
+      
+      {% elif pedido.estado == 'entregado' %}
+        <button class="btn-accion" style="background: #95a5a6;" disabled>Entregado</button>
+      
+      {% elif pedido.estado == 'cancelado' %}
+        <button class="btn-accion" style="background: #95a5a6;" disabled>Cancelado</button>
+      {% endif %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="empty-state">
+    <img src="{% static 'img/cards/empty.png' %}" alt="Sin pedidos">
+    <h3>No hay pedidos para mostrar</h3>
+    <p>Los pedidos de los clientes aparecerán aquí</p>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+  function filtrarPedidos(estado) {
+    // Actualizar botones activos
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Filtrar pedidos
+    const pedidos = document.querySelectorAll('.pedido-card');
+    pedidos.forEach(pedido => {
+      if (estado === 'todos' || pedido.dataset.estado === estado) {
+        pedido.style.display = 'block';
+      } else {
+        pedido.style.display = 'none';
+      }
+    });
+  }
+
+  function cambiarEstado(pedidoId, nuevoEstado) {
+    if (!confirm(`¿Estás seguro de cambiar el estado del pedido #${pedidoId} a "${nuevoEstado}"?`)) {
+      return;
+    }
+
+    // Enviar solicitud AJAX al servidor
+    fetch(`/empleado/pedidos/actualizar-estado/${pedidoId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        'nuevo_estado': nuevoEstado
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Recargar la página para ver los cambios
+        location.reload();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al actualizar el pedido');
+    });
+  }
+
+  function cancelarPedido(pedidoId) {
+    if (confirm(`¿Estás seguro de que quieres cancelar el pedido #${pedidoId}?`)) {
+      cambiarEstado(pedidoId, 'cancelado');
+    }
+  }
+
+  // Filtrar por defecto los pendientes
+  document.addEventListener('DOMContentLoaded', function() {
+    filtrarPedidos('todos');
+  });
+
+  function cambiarEstado(pedidoId, nuevoEstado) {
+    const estados = {
+        'preparando': 'Preparando',
+        'listo': 'Listo', 
+        'entregado': 'Entregado',
+        'cancelado': 'Cancelado'
+    };
+    
+    Swal.fire({
+        title: '¿Confirmar cambio?',
+        html: `¿Estás seguro de cambiar el estado del pedido <strong>#${pedidoId}</strong> a <strong>"${estados[nuevoEstado]}"</strong>?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#b71c1c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, cambiar',
+        cancelButtonText: 'Cancelar',
+        backdrop: true,
+        allowOutsideClick: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Enviar solicitud AJAX al servidor
+            fetch(`/empleado/pedidos/actualizar-estado/${pedidoId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'nuevo_estado': nuevoEstado
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: `Pedido #${pedidoId} actualizado a "${estados[nuevoEstado]}"`,
+                        icon: 'success',
+                        confirmButtonColor: '#b71c1c',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'No se pudo actualizar el pedido: ' + data.error,
+                        icon: 'error',
+                        confirmButtonColor: '#b71c1c'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error al actualizar el pedido',
+                    icon: 'error',
+                    confirmButtonColor: '#b71c1c'
+                });
+            });
+        }
+    });
+}
+
+function cancelarPedido(pedidoId) {
+    Swal.fire({
+        title: '¿Cancelar pedido?',
+        html: `¿Estás seguro de que quieres <strong>cancelar</strong> el pedido <strong>#${pedidoId}</strong>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, cancelar',
+        cancelButtonText: 'Mantener',
+        backdrop: true,
+        allowOutsideClick: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            cambiarEstado(pedidoId, 'cancelado');
+        }
+    });
+}
+</script>
+{% endblock %}

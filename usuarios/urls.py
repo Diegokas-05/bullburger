@@ -39,4 +39,11 @@ urlpatterns = [
     #mis pedidos
     path('cliente/pedidos/', views.pedidos_cliente_view, name='pedidos_cliente'),
     path('cliente/menu/', views.cliente_dashboard, name='menu_cliente'), 
+    
+    #vista de empleado para gestionar pedidos
+    path('empleado/dashboard/', views.dashboard_empleado, name='dashboard_empleado'),
+    path('empleado/api/estadisticas/', views.api_estadisticas, name='api_estadisticas'),
+    path('empleado/pedidos/', views.gestion_pedidos, name='gestion_pedidos'),
+    path('empleado/pedidos/actualizar-estado/<int:pedido_id>/', views.actualizar_estado_pedido, name='actualizar_estado_pedido'),
+    
 ]

@@ -4,6 +4,7 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>{% block title %}Bullburger{% endblock %}</title>
 
     <!-- CSS global -->
@@ -78,7 +79,7 @@
         {% if user.rol.nombre == 'Administrador' %}
             <li><a href="{% url 'menu_administrador' %}">Gestión de menú</a></li>
             <li><a href="{% url 'inventario' %}">Inventario</a></li>
-            <li><a href="#">Pedidos</a></li>
+            <li><a href="{% url 'gestion_pedidos' %}">Pedidos</a></li>
             <a href="{% url 'perfil_usuario' %}">Mi perfil</a>
 
             <li class="dropdown">
@@ -95,8 +96,8 @@
         <!-- Elementos específicos para empleados -->
         {% elif user.rol.nombre == 'Empleado' %}
             <li><a href="{% url 'empleado_dashboard' %}">Dashboard</a></li>
-            <li><a href="#">Gestionar Pedidos</a></li>
-            <li><a href="#">Ver Inventario</a></li>
+            <li><a href="{% url 'gestion_pedidos' %}">Gestionar Pedidos</a></li>
+            <li><a href="{% url 'inventario' %}">Ver Inventario</a></li>
         
         <!-- Elementos específicos para clientes -->
         {% elif user.rol.nombre == 'Cliente' %}
