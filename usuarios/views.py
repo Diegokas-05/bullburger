@@ -16,6 +16,8 @@ from .models import Rol
 from .forms import PerfilForm
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
+from pedidos.models import Pedido
+from django.db.models import Prefetch
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -331,3 +333,29 @@ def perfil_cambiar_password(request):
     return JsonResponse({'ok': False, 'errors': errores, 'msg': '; '.join(
         f"{k}: {', '.join(v)}" for k, v in errores.items()
     )}, status=400)
+    
+
+@login_required
+def pedidos_cliente_view(request):
+    """
+    Muestra al cliente su historial de pedidos en la plantilla 'pedidos_cliente.html'.
+    """
+    pedidos_list = Pedido.objects.filter(
+        usuario=request.user
+    ).prefetch_related(
+        'detallepedido_set__producto'
+    ).order_by('-fecha')
+
+    context = {
+        'pedidos': pedidos_list
+    }
+    return render(request, 'cliente/pedidos_cliente.html', context)
+
+@login_required
+def descargar_factura(request, pedido_id):
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)  # asegura pertenencia
+    f = pedido.factura_pdf
+    if not (f and f.name and default_storage.exists(f.name)):
+        messages.warning(request, "La factura no está disponible.")
+        return redirect("pedidos_cliente")
+    return FileResponse(f.open("rb"), as_attachment=True, filename=os.path.basename(f.name))
