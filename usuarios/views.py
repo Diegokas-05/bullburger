@@ -18,6 +18,13 @@ from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
 from pedidos.models import Pedido
 from django.db.models import Prefetch
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.http import FileResponse
+import os
+from django.utils import timezone
+from datetime import datetime, date
+from productos.models import Categoria, Producto
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -359,3 +366,117 @@ def descargar_factura(request, pedido_id):
         messages.warning(request, "La factura no está disponible.")
         return redirect("pedidos_cliente")
     return FileResponse(f.open("rb"), as_attachment=True, filename=os.path.basename(f.name))
+
+
+
+#metods para empleados
+@login_required
+def gestion_pedidos(request):
+    """Vista para que los empleados gestionen pedidos"""
+    pedidos = Pedido.objects.all().order_by('-fecha')
+    
+    # Filtros para los contadores
+    pedidos_pendientes = pedidos.filter(estado='pendiente')
+    pedidos_preparando = pedidos.filter(estado='preparando')
+    pedidos_listos = pedidos.filter(estado='listo')
+    pedidos_entregados = pedidos.filter(estado='entregado')
+    
+    context = {
+        'pedidos': pedidos,
+        'pedidos_pendientes': pedidos_pendientes,
+        'pedidos_preparando': pedidos_preparando,
+        'pedidos_listos': pedidos_listos,
+        'pedidos_entregados': pedidos_entregados,
+    }
+    return render(request, 'empleado/gestion_pedidos.html', context)
+
+@csrf_exempt
+@login_required
+def actualizar_estado_pedido(request, pedido_id):
+    """Vista para actualizar el estado de un pedido via AJAX"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nuevo_estado = data.get('nuevo_estado')
+            
+            pedido = get_object_or_404(Pedido, id=pedido_id)
+            pedido.estado = nuevo_estado
+            pedido.save()
+            
+            return JsonResponse({'success': True, 'nuevo_estado': nuevo_estado})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
+
+@login_required
+def dashboard_empleado(request):
+    """Vista del dashboard para empleados con estadísticas"""
+    try:
+        hoy = date.today()
+        
+        # Debug en consola
+        print(f"=== DEBUG DASHBOARD ===")
+        print(f"Fecha de hoy: {hoy}")
+        
+        # Pedidos de hoy
+        pedidos_hoy = Pedido.objects.filter(fecha__date=hoy)
+        print(f"Total pedidos hoy: {pedidos_hoy.count()}")
+        
+        # Estadísticas
+        total_pedidos = pedidos_hoy.count()
+        pedidos_pendientes_count = pedidos_hoy.filter(estado='pendiente').count()
+        pedidos_preparando_count = pedidos_hoy.filter(estado='preparando').count()
+        pedidos_listos_count = pedidos_hoy.filter(estado='listo').count()
+        
+        print(f"Pendientes: {pedidos_pendientes_count}")
+        print(f"Preparando: {pedidos_preparando_count}")
+        print(f"Listos: {pedidos_listos_count}")
+        print(f"=======================")
+        
+        context = {
+            'total_pedidos': total_pedidos,
+            'pedidos_pendientes': pedidos_hoy.filter(estado='pendiente'),
+            'pedidos_preparando': pedidos_hoy.filter(estado='preparando'),
+            'pedidos_listos': pedidos_hoy.filter(estado='listo'),
+            'now': timezone.now(),
+        }
+        return render(request, 'empleado/dashboard.html', context)
+        
+    except Exception as e:
+        print(f"ERROR en dashboard: {e}")
+        # Vista de fallback
+        context = {
+            'total_pedidos': 0,
+            'pedidos_pendientes': [],
+            'pedidos_preparando': [],
+            'pedidos_listos': [],
+            'now': timezone.now(),
+        }
+        return render(request, 'empleado/dashboard.html', context)
+
+@login_required
+def api_estadisticas(request):
+    """API para obtener estadísticas en tiempo real"""
+    try:
+        hoy = date.today()
+        pedidos_hoy = Pedido.objects.filter(fecha__date=hoy)
+        
+        data = {
+            'total_pedidos': pedidos_hoy.count(),
+            'pedidos_pendientes': pedidos_hoy.filter(estado='pendiente').count(),
+            'pedidos_preparando': pedidos_hoy.filter(estado='preparando').count(),
+            'pedidos_listos': pedidos_hoy.filter(estado='listo').count(),
+        }
+        
+        return JsonResponse(data)
+        
+    except Exception as e:
+        print(f"ERROR en api_estadisticas: {e}")
+        return JsonResponse({
+            'total_pedidos': 0,
+            'pedidos_pendientes': 0,
+            'pedidos_preparando': 0,
+            'pedidos_listos': 0,
+        })
