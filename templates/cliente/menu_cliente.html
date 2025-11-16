@@ -4,17 +4,22 @@
 {% block title %}Menú - BullBurger{% endblock %}
 
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/cliente_style.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <section class="cliente-bg">
+
   <h1 class="titulo-menu">Menú BullBurger 🍔</h1>
 
-  <!-- Categorías -->
+  <!-- ============================================================
+       =============== BOTONES DE CATEGORÍA ========================
+       ============================================================ -->
   <div class="categorias">
     <button class="categoria activo" data-category="all">
       <span>🍽️ Todos</span>
     </button>
+
     {% for categoria in categorias %}
       <button class="categoria" data-category="{{ categoria.id }}">
         <span>
@@ -30,11 +35,23 @@
     {% endfor %}
   </div>
 
-  <!-- Productos -->
+  <!-- ============================================================
+       ===================== PRODUCTOS =============================
+       ============================================================ -->
   <div class="products-grid">
+
     {% for producto in productos %}
-    <div class="product-card" data-category="{{ producto.categoria.id }}"
-         onclick="openModal('{{ producto.nombre }}', '{{ producto.descripcion|escapejs }}', '{{ producto.precio }}', '{% if producto.imagen %}{{ producto.imagen.url }}{% elif producto.imagen_url %}{{ producto.imagen_url }}{% endif %}', '{{ producto.id }}')">
+    <!-- Cada tarjeta tiene data-id para actualizar stock en vivo -->
+    <div class="product-card"
+         data-category="{{ producto.categoria.id }}"
+         data-id="{{ producto.id }}"
+         onclick="openModal(
+            '{{ producto.nombre }}',
+            '{{ producto.descripcion|escapejs }}',
+            '{{ producto.precio }}',
+            '{% if producto.imagen %}{{ producto.imagen.url }}{% elif producto.imagen_url %}{{ producto.imagen_url }}{% endif %}',
+            '{{ producto.stock_disponible }}',
+            '{{ producto.id }}')">
 
       <div class="product-image">
         {% if producto.imagen %}
@@ -48,33 +65,54 @@
 
       <div class="product-info">
         <h3>{{ producto.nombre }}</h3>
+
         <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
+
         <div class="product-price">${{ producto.precio }}</div>
+
+        <!-- STOCK EN TARJETA -->
+        <div class="stock-label">
+          {% if producto.stock_disponible > 10 %}
+              <small class="stock-ok">Disponible</small>
+          {% elif producto.stock_disponible > 0 %}
+              <small class="stock-low">Quedan {{ producto.stock_disponible }}</small>
+          {% else %}
+              <small class="stock-zero">AGOTADO</small>
+          {% endif %}
+        </div>
+
         <div class="product-category">
           <small>Categoría: {{ producto.categoria.nombre }}</small>
         </div>
       </div>
     </div>
-    {% empty %}
-      <div class="no-products">
-        <h3>No hay productos en el menú</h3>
-        <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
-      </div>
     {% endfor %}
+
   </div>
 </section>
 
-<!-- Modal del producto -->
-<div id="productoModal" class="modal" style="display: none;">
+<!-- ============================================================
+     ======================== MODAL ===============================
+     ============================================================ -->
+<div id="productoModal" class="modal" style="display:none;">
   <div class="modal-content">
+
     <span class="close" onclick="closeModal()">&times;</span>
 
     <div class="modal-body">
-      <img id="modalImagen" src="" alt="Producto" class="modal-img">
+
+      <img id="modalImagen" class="modal-img" alt="Producto">
+
       <div class="modal-info">
         <h2 id="modalNombre"></h2>
         <p id="modalDescripcion"></p>
-        <p class="modal-precio">Precio: <span id="modalPrecio"></span></p>
+
+        <p class="modal-precio">
+            Precio: <span id="modalPrecio"></span>
+        </p>
+
+        <!-- STOCK EN EL MODAL -->
+        <p id="modalStock" class="modal-stock-text"></p>
 
         <label for="modalCantidad">Cantidad:</label>
         <input type="number" id="modalCantidad" value="1" min="1" step="1">
@@ -83,69 +121,99 @@
           <button onclick="agregarAlCarrito()">Agregar a la bolsa</button>
           <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
         </div>
+
       </div>
     </div>
   </div>
 </div>
 
+<!-- ============================================================
+     ====================== SCRIPTS ===============================
+     ============================================================ -->
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const categoryButtons = document.querySelectorAll('.categoria');
-  const productos = document.querySelectorAll('.product-card');
 
-  categoryButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      categoryButtons.forEach(b => b.classList.remove('activo'));
-      btn.classList.add('activo');
-      const categoria = btn.getAttribute('data-category');
+  /* ==========================================
+     FILTRO DE CATEGORÍAS
+     ========================================== */
+  document.addEventListener('DOMContentLoaded', () => {
+    const categoryButtons = document.querySelectorAll('.categoria');
+    const productos = document.querySelectorAll('.product-card');
 
-      productos.forEach(prod => {
-        if (categoria === 'all' || prod.getAttribute('data-category') === categoria) {
-          prod.style.display = 'block';
-        } else {
-          prod.style.display = 'none';
-        }
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryButtons.forEach(b => b.classList.remove('activo'));
+        btn.classList.add('activo');
+
+        const categoria = btn.dataset.category;
+
+        productos.forEach(prod => {
+          prod.style.display = (categoria === 'all' ||
+                                prod.dataset.category === categoria)
+                                ? 'block' : 'none';
+        });
       });
     });
   });
-});
 
-let productoSeleccionado = null;
 
-function openModal(nombre, descripcion, precio, imagen, id) {
-  productoSeleccionado = { id, nombre, precio };
-  document.getElementById('modalNombre').textContent = nombre;
-  document.getElementById('modalDescripcion').textContent = descripcion || 'Sin descripción';
-  document.getElementById('modalPrecio').textContent = `$${precio}`;
-  document.getElementById('modalImagen').src = imagen;
-  document.getElementById('modalCantidad').value = 1;
-  document.getElementById('productoModal').style.display = 'flex';
-}
+  let productoSeleccionado = null;
 
-function closeModal() {
-  document.getElementById('productoModal').style.display = 'none';
-}
+  /* ==========================================
+     ABRIR MODAL CON STOCK
+     ========================================== */
+  function openModal(nombre, descripcion, precio, imagen, stock, id) {
+    productoSeleccionado = { id, nombre, precio };
 
-function agregarAlCarrito() {
-  const cantidad = document.getElementById('modalCantidad').value;
+    document.getElementById('modalNombre').textContent = nombre;
+    document.getElementById('modalDescripcion').textContent = descripcion;
+    document.getElementById('modalPrecio').textContent = "$" + precio;
+    document.getElementById('modalImagen').src = imagen;
+    document.getElementById('modalCantidad').value = 1;
 
-  fetch('/carrito/agregar/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}',
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify({
-      producto_id: productoSeleccionado.id,
-      cantidad: cantidad
+    // 🟢 MOSTRAR STOCK REAL EN EL MODAL
+    const stockText = document.getElementById("modalStock");
+    stockText.textContent = `Stock disponible: ${stock}`;
+    stockText.style.fontWeight = "bold";
+    stockText.style.marginTop = "10px";
+
+    document.getElementById('productoModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('productoModal').style.display = 'none';
+  }
+
+  /* ==========================================
+     AGREGAR AL CARRITO + ACTUALIZAR STOCK
+     ========================================== */
+  function agregarAlCarrito() {
+    const cantidad = document.getElementById('modalCantidad').value;
+
+    fetch('/carrito/agregar/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({
+        producto_id: productoSeleccionado.id,
+        cantidad: cantidad
+      })
     })
-  })
-  .then(res => res.json())
-  .then(data => {
-    closeModal();
-    if (data.ok) {
-      Swal.fire({
+    .then(res => res.json())
+    .then(data => {
+
+      if (!data.ok) {
+        Swal.fire("Error", data.error, "error");
+        return;
+      }
+
+      closeModal();
+
+      // 🔥 ACTUALIZAR STOCK EN TIEMPO REAL
+      if (data.ok) {
+    Swal.fire({
         title: '¡Producto añadido!',
         text: `${productoSeleccionado.nombre} fue agregado a tu carrito.`,
         icon: 'success',
@@ -153,28 +221,53 @@ function agregarAlCarrito() {
         confirmButtonColor: '#27ae60',
         cancelButtonColor: '#f4c542',
         confirmButtonText: 'Ver bolsa',
-        cancelButtonText: 'Seguir comprando',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = '/cliente/carrito/';
+        cancelButtonText: 'Seguir comprando'
+    }).then(res => {
+        if (res.isConfirmed) {
+            // Ir al carrito
+            window.location.href = '/cliente/carrito/';
+        } else {
+            // Recargar página para actualizar stock REAL
+            window.location.reload();
         }
-      });
-    } else {
-      Swal.fire('Error', data.error || 'No se pudo añadir el producto', 'error');
-    }
-  })
-  .catch(() => Swal.fire('Error', 'Error en la solicitud al servidor', 'error'));
+    });
 }
 
-// Evitar valores inválidos en cantidad
-document.addEventListener("input", (e) => {
-  if (e.target.id === "modalCantidad") {
-    let val = parseInt(e.target.value);
-    if (isNaN(val) || val < 1) {
-      e.target.value = 1;
-    }
+    });
   }
-});
+
+  /* ==========================================
+     ACTUALIZAR STOCK VISUAL EN TARJETAS
+     ========================================== */
+  function actualizarStockFront(stockMap) {
+
+    document.querySelectorAll(".product-card").forEach(card => {
+      const id = parseInt(card.dataset.id);
+      const disponible = stockMap[id] ?? 0;
+
+      const label = card.querySelector(".stock-label small");
+
+      // Cambiar texto de stock
+      if (disponible > 10) {
+        label.textContent = "Disponible";
+        label.className = "stock-ok";
+      }
+      else if (disponible > 0) {
+        label.textContent = `Quedan ${disponible}`;
+        label.className = "stock-low";
+      }
+      else {
+        label.textContent = "AGOTADO";
+        label.className = "stock-zero";
+
+        // 🔥 SE DESACTIVA LA TARJETA COMPLETA
+        card.style.opacity = "0.4";
+        card.style.pointerEvents = "none";
+        card.style.filter = "grayscale(100%)";
+      }
+    });
+  }
 
 </script>
+
 {% endblock %}

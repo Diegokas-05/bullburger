@@ -19,4 +19,7 @@ urlpatterns = [
     # ✅ NUEVO: endpoint AJAX para confirmar pago desde el modal
     path('carrito/checkout/', views.carrito_checkout, name='carrito_checkout'),
     
+    path('api/stock/', views.api_stock_productos, name='api_stock'),
+    path("api/stock/<int:producto_id>/", views.api_stock_producto, name="api_stock_producto"),
+
 ]

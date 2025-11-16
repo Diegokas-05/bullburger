@@ -1,0 +1,303 @@
+/* ============ CONTENEDOR GENERAL ============ */
+.pedidos-page {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    animation: fadeInUp 0.35s ease;
+}
+
+/* TITULO */
+.titulo-pedidos {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+}
+
+/* ============ CARD DEL PEDIDO ============ */
+.pedido-card {
+    background: #ffffff;
+    border-radius: 18px;
+    margin-bottom: 28px;
+    overflow: hidden;
+    border: 2px solid #f3e7d6;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transition: transform .2s, box-shadow .2s;
+}
+
+.pedido-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.12);
+}
+
+/* ============ HEADER ============ */
+.pedido-header {
+    background: linear-gradient(135deg, #fff8ef, #faefe0);
+    padding: 18px 22px;
+    border-bottom: 1px solid #f1dcc6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* Info del header */
+.pedido-header-info {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 24px;
+    font-size: 1rem;
+}
+
+.pedido-header-info strong {
+    color: #4c2f1c;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* ============ ESTADOS ============ */
+.estado-pedido {
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem;
+    text-transform: capitalize;
+    display: inline-block;
+}
+
+.estado-pendiente { background: #f39c12; }
+.estado-preparando { background: #3498db; }
+.estado-listo { background: #9b59b6; }
+.estado-en_camino { background: #ff6f00; }
+.estado-entregado { background: #27ae60; }
+.estado-cancelado { background: #c0392b; }
+
+/* ============ BOTONES ============ */
+.pedido-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-factura,
+.btn-seguimiento {
+    padding: 10px 18px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: .9rem;
+    transition: transform .2s, opacity .2s;
+}
+
+.btn-factura { background: #c0392b; color: #fff; }
+.btn-factura.disabled { background: #bbb; cursor: not-allowed; }
+.btn-seguimiento { background: #27ae60; color: #fff; }
+
+.btn-factura:hover:not(.disabled),
+.btn-seguimiento:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+/* ============ BODY DEL PEDIDO ============ */
+.pedido-body {
+    padding: 22px;
+}
+
+.pedido-body h4 {
+    font-family: 'Luckiest Guy', cursive;
+    color: #4c2f1c;
+    margin-bottom: 14px;
+}
+
+/* Item de producto */
+.pedido-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px dashed #e6d4c0;
+}
+
+.pedido-item:last-child {
+    border-bottom: none;
+}
+
+.item-nombre {
+    font-weight: 600;
+    color: #4c2f1c;
+    font-size: .95rem;
+}
+
+.item-nombre span {
+    color: #8b7b6d;
+    font-weight: 400;
+}
+
+.item-subtotal {
+    font-weight: bold;
+    color: #4c2f1c;
+}
+
+/* TOTAL */
+.pedido-total-general {
+    margin-top: 18px;
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #4c2f1c;
+}
+
+/* ============ MODAL DE SEGUIMIENTO ============ */
+.modal-track {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(2px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.modal-track__content {
+    width: 96%;
+    max-width: 730px;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    animation: pop .25s ease-out;
+}
+
+/* Header */
+.modal-track__header {
+    background: #4c2f1c;
+    color: #fff;
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-track__header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+}
+
+.modal-track__close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    cursor: pointer;
+    transition: transform .2s;
+}
+
+.modal-track__close:hover {
+    transform: scale(1.15);
+}
+
+/* Body */
+.modal-track__body {
+    padding: 22px;
+}
+
+.track-subtitle {
+    color: #7b5a47;
+    margin-bottom: 16px;
+}
+
+/* Timeline */
+.track-timeline {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 30px 10px 14px;
+}
+
+.track-line,
+.track-line-progress {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 52px;
+    height: 6px;
+    border-radius: 6px;
+}
+
+.track-line { background: #e2d2c1; }
+.track-line-progress {
+    background: #27ae60;
+    width: 0;
+    transition: width .25s ease;
+}
+
+/* Step */
+.track-step {
+    text-align: center;
+}
+
+.track-label {
+    font-weight: 600;
+    color: #4c2f1c;
+    margin-top: 6px;
+    font-size: .9rem;
+}
+
+.track-dot {
+    width: 20px;
+    height: 20px;
+    background: #d6c5b5;
+    margin: 0 auto;
+    border-radius: 50%;
+    border: 4px solid #f7eee5;
+}
+
+/* estados */
+.track-step.done .track-dot { background: #27ae60; }
+.track-step.current .track-dot { background: #f39c12; }
+.track-step.muted .track-dot { background: #d6c5b5; }
+.track-step.muted .track-label { color: #b6a597; }
+
+/* ETA */
+.track-eta {
+    margin-top: 22px;
+    padding: 14px;
+    font-size: 1.1rem;
+    background: #fff8ef;
+    border: 1px solid #f1dcc6;
+    border-radius: 12px;
+    color: #4c2f1c;
+}
+
+/* ============ ANIMACIONES ============ */
+@keyframes pop {
+    0% { transform: scale(0.92); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+    .pedido-header-info {
+        grid-template-columns: 1fr 1fr;
+    }
+}

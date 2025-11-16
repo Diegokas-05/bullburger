@@ -174,11 +174,58 @@ def eliminar_categoria(request, categoria_id):
 
 def menu_cliente(request):
     categorias = Categoria.objects.all().order_by('nombre')
-    productos = Producto.objects.filter(disponible=True).select_related('categoria')
+    productos_raw = Producto.objects.filter(disponible=True).select_related('categoria')
+
+    # === Obtener carrito de BD ===
+    items_carrito = CarritoItem.objects.filter(usuario=request.user).select_related("producto")
+
+    # === 1. Calcular consumo global de ingredientes en el carrito ===
+    consumo_global = {}  # ingrediente_id → total_usado
+
+    for item in items_carrito:
+        recetas = Receta.objects.filter(producto=item.producto).select_related("ingrediente")
+        for r in recetas:
+            total_req = r.cantidad * item.cantidad
+            consumo_global[r.ingrediente_id] = consumo_global.get(r.ingrediente_id, 0) + total_req
+
+    # === 2. Calcular stock REAL después de restar el carrito ===
+    productos_final = []
+
+    for producto in productos_raw:
+        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
+
+        if not recetas.exists():
+            # Producto sin receta = stock infinito
+            producto.stock_disponible = 9999
+            productos_final.append(producto)
+            continue
+
+        stock_posibles = []
+
+        for r in recetas:
+            ing = r.ingrediente
+
+            # Stock real disponible después de restar lo que ya consume el carrito
+            stock_disp = ing.stock_actual - consumo_global.get(ing.id, 0)
+            if stock_disp < 0:
+                stock_disp = 0
+
+            if r.cantidad > 0:
+                stock_posibles.append(stock_disp // r.cantidad)
+
+        # Stock final del producto
+        stock_real = min(stock_posibles) if stock_posibles else 0
+
+        producto.stock_disponible = stock_real
+
+        if stock_real > 0:
+            productos_final.append(producto)
+
     return render(request, 'cliente/menu_cliente.html', {
         'categorias': categorias,
-        'productos': productos
+        'productos': productos_final
     })
+
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -190,23 +237,79 @@ def agregar_al_carrito(request):
     if not request.user.is_authenticated:
         return JsonResponse({'ok': False, 'error': 'Debe iniciar sesión para agregar productos.'}, status=403)
 
+    # --- leer datos ---
     try:
         data = json.loads(request.body)
-        producto_id = data.get('producto_id')
-        cantidad = int(data.get('cantidad', 1))
-    except (ValueError, json.JSONDecodeError):
+        producto_id = data.get("producto_id")
+        cantidad_solicitada = int(data.get("cantidad", 1))
+    except:
         return JsonResponse({'ok': False, 'error': 'Datos inválidos'}, status=400)
 
+    # --- obtener producto ---
     try:
         producto = Producto.objects.get(id=producto_id)
     except Producto.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Producto no encontrado'}, status=404)
 
+    # --- calcular stock disponible según recetas ---
+    recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
+
+    if not recetas.exists():
+        stock_disponible = 9999
+    else:
+        stock_list = []
+        for r in recetas:
+            ing = r.ingrediente
+            if r.cantidad <= 0:
+                continue
+            stock_list.append(ing.stock_actual // r.cantidad)
+
+        stock_disponible = min(stock_list) if stock_list else 0
+
+    # --- obtener item actual ---
     item, creado = CarritoItem.objects.get_or_create(usuario=request.user, producto=producto)
-    item.cantidad = item.cantidad + cantidad if not creado else cantidad
+    nueva_cantidad = item.cantidad + cantidad_solicitada if not creado else cantidad_solicitada
+
+    # --- validar stock ---
+    if stock_disponible <= 0:
+        return JsonResponse({'ok': False, 'error': 'Producto agotado'})
+    
+    if nueva_cantidad > stock_disponible:
+        return JsonResponse({
+            'ok': False,
+            'error': f"Solo hay {stock_disponible} unidades disponibles"
+        }, status=400)
+
+    # --- guardar ---
+    item.cantidad = nueva_cantidad
     item.save()
 
-    return JsonResponse({'ok': True, 'mensaje': 'Producto añadido al carrito correctamente'})
+    # ==========================================================
+    #   🔥 CALCULAR STOCK ACTUALIZADO DE TODOS LOS PRODUCTOS
+    # ==========================================================
+    stock_map = {}
+    for p in Producto.objects.filter(disponible=True):
+        recetas_p = Receta.objects.filter(producto=p).select_related("ingrediente")
+
+        if not recetas_p.exists():
+            stock_map[p.id] = 9999
+            continue
+
+        stock_list_p = []
+        for r in recetas_p:
+            if r.cantidad > 0:
+                stock_list_p.append(r.ingrediente.stock_actual // r.cantidad)
+
+        stock_map[p.id] = min(stock_list_p) if stock_list_p else 0
+
+    # ==========================================================
+    #   🔥 RETURN FINAL (INCLUYE STOCK ACTUALIZADO)
+    # ==========================================================
+    return JsonResponse({
+        'ok': True,
+        'mensaje': 'Producto agregado correctamente',
+        'stock_actualizado': stock_map
+    })
 
 
 @login_required
@@ -225,16 +328,52 @@ def editar_cantidad(request, item_id):
     try:
         data = json.loads(request.body)
         nueva_cantidad = int(data.get("cantidad", 1))
+
         if nueva_cantidad < 1:
             return JsonResponse({"ok": False, "error": "Cantidad no válida"}, status=400)
-        item = CarritoItem.objects.get(id=item_id, usuario=request.user)
+
+        item = CarritoItem.objects.select_related('producto').get(id=item_id, usuario=request.user)
+        producto = item.producto
+
+        # --- stock receta ---
+        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
+
+        if not recetas.exists():
+            stock_receta = 9999
+        else:
+            stock_list = []
+            for r in recetas:
+                if r.cantidad > 0:
+                    stock_list.append(r.ingrediente.stock_actual // r.cantidad)
+            stock_receta = min(stock_list) if stock_list else 0
+
+        # --- lo que tienen otros ítems iguales (no este) ---
+        otros = CarritoItem.objects.filter(usuario=request.user, producto=producto).exclude(id=item.id).first()
+        reservados_otros = otros.cantidad if otros else 0
+
+        # stock disponible para este item
+        stock_disponible = stock_receta - reservados_otros
+        if stock_disponible < 0:
+            stock_disponible = 0
+
+        if nueva_cantidad > stock_disponible:
+            return JsonResponse({
+                "ok": False,
+                "error": f"Solo hay {stock_disponible} unidades disponibles"
+            }, status=400)
+
+        # guardar
         item.cantidad = nueva_cantidad
         item.save()
+
         return JsonResponse({"ok": True, "mensaje": "Cantidad actualizada correctamente"})
+
     except CarritoItem.DoesNotExist:
         return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=404)
+
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
+
 
 
 @login_required
@@ -374,3 +513,66 @@ def carrito_checkout(request):
         return JsonResponse({'ok': False, 'error': str(ve)}, status=400)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'Error interno: {e}'}, status=500)
+
+from django.http import JsonResponse
+
+def api_stock_productos(request):
+    productos = Producto.objects.filter(disponible=True)
+
+    data = {}
+
+    for p in productos:
+        recetas = Receta.objects.filter(producto=p).select_related("ingrediente")
+
+        # Sin receta = sin límite
+        if not recetas.exists():
+            stock_receta = 9999
+        else:
+            stock_list = []
+            for r in recetas:
+                if r.cantidad > 0:
+                    stock_list.append(r.ingrediente.stock_actual // r.cantidad)
+            stock_receta = min(stock_list) if stock_list else 0
+
+        # Lo reservado por este usuario
+        reservados_qs = CarritoItem.objects.filter(usuario=request.user, producto=p)
+        reservados = reservados_qs.first().cantidad if reservados_qs else 0
+
+        stock_final = stock_receta - reservados
+        if stock_final < 0:
+            stock_final = 0
+
+        data[p.id] = stock_final
+
+    return JsonResponse({"stock": data})
+
+from django.http import JsonResponse
+
+@login_required
+def api_stock_producto(request, producto_id):
+    try:
+        producto = Producto.objects.get(id=producto_id)
+        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
+
+        if not recetas.exists():
+            stock_disponible = 9999
+        else:
+            stock_list = []
+            for r in recetas:
+                if r.cantidad > 0:
+                    stock_list.append(r.ingrediente.stock_actual // r.cantidad)
+
+            stock_disponible = min(stock_list) if stock_list else 0
+
+        # Restar lo que ya tiene en el carrito
+        actual = CarritoItem.objects.filter(usuario=request.user, producto=producto).first()
+        if actual:
+            stock_disponible -= actual.cantidad
+
+        if stock_disponible < 0:
+            stock_disponible = 0
+
+        return JsonResponse({"stock": stock_disponible})
+
+    except Producto.DoesNotExist:
+        return JsonResponse({"stock": 0})

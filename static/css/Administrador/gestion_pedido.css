@@ -1,0 +1,220 @@
+/* ============================
+   ESTILO GENERAL
+============================ */
+.gestion-pedidos-container {
+    background: #ffffff;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    border: 1px solid #f2e6d9;
+}
+
+
+/* === HEADER DEL DASHBOARD === */
+.welcome-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    margin-bottom: .4rem;
+    font-weight: 800;
+}
+
+.welcome-subtitle {
+    font-size: 1.15rem;
+    opacity: .9;
+    margin: 0;
+}
+
+
+/* ============================
+   FILTROS (estilo categorías)
+============================ */
+.filtros {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.8rem 0 2.2rem;
+    flex-wrap: wrap;
+}
+
+.filtro-btn {
+    padding: 0.9rem 1.6rem;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #7f8c8d;
+    font-size: 1rem;
+}
+
+.filtro-btn:hover {
+    border-color: #FF6B35;
+    color: #FF6B35;
+    transform: translateY(-2px);
+}
+
+.filtro-btn.active {
+    background: linear-gradient(135deg, #FF6B35, #F7931E);
+    border-color: #FF6B35;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    transform: translateY(-2px);
+}
+
+
+/* ============================
+   TARJETAS DE PEDIDOS
+============================ */
+.pedidos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.8rem;
+}
+
+.pedido-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.8rem;
+    border: 1px solid #f0e4d4;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    transition: 0.25s ease;
+}
+
+.pedido-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.12);
+}
+
+
+/* ============================
+   HEADER DEL PEDIDO
+============================ */
+.pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: .8rem;
+    border-bottom: 2px solid #f5ede2;
+}
+
+.pedido-id {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #FF6B35;
+}
+
+/* Badges */
+.pedido-estado {
+    padding: .45rem .9rem;
+    border-radius: 20px;
+    font-size: .86rem;
+    font-weight: 700;
+    color: white;
+}
+
+.estado-pendiente { background: #f39c12; }
+.estado-preparando { background: #3498db; }
+.estado-listo { background: #9b59b6; }
+.estado-en_camino { background: #ff6f00; }
+.estado-entregado { background: #2ecc71; }
+.estado-cancelado { background: #e74c3c; }
+
+
+/* ============================
+   INFORMACIÓN DE PEDIDO
+============================ */
+.pedido-info p {
+    margin: .35rem 0;
+    color: #5a4636;
+}
+
+.pedido-items {
+    margin-top: 1rem;
+}
+
+.pedido-item {
+    display: flex;
+    justify-content: space-between;
+    padding: .6rem 0;
+    border-bottom: 1px dashed #e5d7c6;
+}
+
+.item-nombre {
+    font-weight: 600;
+    color: #3b2a16;
+}
+
+.item-cantidad {
+    font-weight: 700;
+    color: #FF6B35;
+}
+
+
+/* ============================
+   BOTONES DE ACCIÓN
+============================ */
+.pedido-actions {
+    margin-top: 1.2rem;
+    display: flex;
+    gap: .7rem;
+}
+
+.btn-accion {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: .9rem;
+    transition: .25s ease;
+}
+
+/* Colores */
+.btn-preparar { background: #3498db; color: white; }
+.btn-listo { background: #9b59b6; color: white; }
+.btn-entregar { background: #2ecc71; color: white; }
+.btn-cancelar { background: #e74c3c; color: white; }
+
+.btn-accion:hover {
+    transform: translateY(-2px);
+    opacity: .9;
+}
+
+.btn-accion:disabled {
+    background: #b6b6b6;
+    color: white;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* ============================
+   EMPTY STATE
+============================ */
+.empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state img {
+    width: 110px;
+    opacity: 0.6;
+}
+
+.empty-state h3 {
+    margin-top: 1rem;
+    color: #3b2a16;
+}
