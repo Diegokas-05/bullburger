@@ -98,7 +98,7 @@
             <li><a href="{% url 'empleado_dashboard' %}">Dashboard</a></li>
             <li><a href="{% url 'gestion_pedidos' %}">Gestionar Pedidos</a></li>
             <li><a href="{% url 'inventario' %}">Ver Inventario</a></li>
-        
+            <a href="{% url 'perfil_usuario' %}">Mi perfil</a>
         <!-- Elementos específicos para clientes -->
         {% elif user.rol.nombre == 'Cliente' %}
             <li><a href="{% url 'cliente_dashboard' %}">Inicio</a></li>
