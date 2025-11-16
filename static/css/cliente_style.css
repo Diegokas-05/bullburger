@@ -485,3 +485,20 @@
   }
 }
 
+.stock-label small {
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.stock-ok {
+    color: #27ae60;
+}
+
+.stock-low {
+    color: #e67e22;
+}
+
+.stock-zero {
+    color: #c0392b;
+}

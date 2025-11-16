@@ -1,10 +1,21 @@
 /* ---------- SECCIÓN CARRITO ---------- */
+.cliente-bg {
+    background-color: #fdf8ef;
+    min-height: 100vh;
+    padding: 3rem;
+    border-radius: 10px;
+}
 .titulo {
-  text-align: center;
-  color: #3e2c1c;
-  font-family: 'Luckiest Guy', cursive;
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #5a3b2e, #8b5e3c);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
 }
 
 .separador {
@@ -135,7 +146,7 @@
 }
 
 .btn-pagar {
-  background: #27ae60;
+  background: #dbb344;
   border: none;
   border-radius: 20px;
   padding: 1rem 2.5rem;
@@ -143,13 +154,13 @@
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 4px 12px rgba(165, 174, 39, 0.4);
 }
 
 .btn-pagar:hover {
   transform: scale(1.08);
-  background: #2ecc71;
-  box-shadow: 0 6px 18px rgba(39, 174, 96, 0.5);
+  background: #f4c542;
+  box-shadow: 0 6px 18px rgba(175, 166, 32, 0.4);
 }
 
 /* Botón volver */
@@ -168,8 +179,6 @@
   background: #5b3b24;
   transform: scale(1.05);
 }
-
-
 
 
 /* checkout_modal.css */
@@ -359,4 +368,23 @@
 .swal2-cancel:active {
   transform: scale(0.96);
   box-shadow: none;
+}
+
+/* ANIMACIÓN SHAKE */
+.shake {
+  animation: shake 0.25s ease-in-out 0s 2;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0);}
+  25% { transform: translateX(-4px);}
+  50% { transform: translateX(4px);}
+  75% { transform: translateX(-4px);}
+  100% { transform: translateX(0);}
+}
+
+.stock-info {
+  font-size: 0.85rem;
+  color: #c0392b;
+  margin-top: 5px;
 }
