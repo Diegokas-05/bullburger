@@ -1,5 +1,4 @@
 import json
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
@@ -7,7 +6,8 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponseNotAllowed
 from django.views.decorators.http import require_http_methods, require_POST
 from django.db import transaction
-from django.db.models import Q  # Útil si usas buscadores con filtros dinámicos
+from django.db.models import Q, Sum, F, Value, DecimalField, Case, When # 👈 IMPORTACIONES DE BD
+from django.db.models.functions import Coalesce # 👈 IMPORTACIÓN IMPORTANTE
 from .forms import CambiarPasswordForm, UsuarioAdminForm 
 
 from .forms import RegistroClienteForm, CustomAuthenticationForm
@@ -16,15 +16,19 @@ from .models import Rol
 from .forms import PerfilForm
 from django.contrib.auth import update_session_auth_hash
 from django.views.decorators.http import require_POST
-from pedidos.models import Pedido
-from django.db.models import Prefetch
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.http import FileResponse
 import os
 from django.utils import timezone
 from datetime import datetime, date
+
+# --- 🚀 IMPORTAR MODELOS DE OTRAS APPS ---
 from productos.models import Categoria, Producto
+from pedidos.models import Pedido
+from inventario.models import Ingrediente
+# ------------------------------------------
+
 
 def redireccionar_por_rol(user):
     if user.es_administrador():
@@ -68,7 +72,6 @@ def registro_cliente_view(request):
             messages.success(request, f'¡Cuenta creada exitosamente! Bienvenido {user.nombre}')
             return redirect('cliente_dashboard')
         else:
-            # Mostrar errores específicos del formulario
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'Error en {field}: {error}')
@@ -82,22 +85,84 @@ def logout_view(request):
     messages.success(request, '¡Sesión cerrada exitosamente!')
     return redirect('login')
 
+# ==============================================
+# ⬇️ FUNCIÓN 'admin_dashboard' ACTUALIZADA ⬇️
+# ==============================================
 @login_required
 def admin_dashboard(request):
-    """Dashboard personalizado para administradores"""
-    return render(request, 'administrador/dashboard.html')  # ← CAMBIADO: 'administrador/'
+    """Dashboard personalizado para administradores CON ESTADÍSTICAS"""
+    
+    # --- Consultas de Inventario ---
+    ingredientes_activos = Ingrediente.objects.filter(activo=True)
+    total_ingredientes = ingredientes_activos.count()
+    
+    # Stock bajo (actual <= minimo Y actual > 0)
+    stock_bajo = ingredientes_activos.filter(
+        stock_actual__lte=F('stock_minimo'),
+        stock_actual__gt=0
+    ).count()
+
+    # Stock agotado (actual <= 0)
+    stock_agotado = ingredientes_activos.filter(
+        stock_actual__lte=0
+    ).count()
+
+    # Valor total del inventario (replicando la lógica de tu @property)
+    valor_inventario_query = ingredientes_activos.annotate(
+        costo_unit=Case(
+            When(tamaño_paquete__gt=0, then=F('precio_paquete') / F('tamaño_paquete')),
+            default=Value(0),
+            output_field=DecimalField()
+        )
+    ).annotate(
+        valor_item=F('stock_actual') * F('costo_unit')
+    ).aggregate(
+        # Coalesce es para que si no hay ingredientes, devuelva 0 en lugar de None
+        valor_total=Coalesce(Sum('valor_item'), Value(0, output_field=DecimalField()))
+    )
+    valor_total_inventario = valor_inventario_query['valor_total']
+
+    # --- Consultas de Productos ---
+    total_productos = Producto.objects.count()
+    total_categorias = Categoria.objects.count()
+
+    # --- Consultas de Pedidos ---
+    pedidos_pendientes = Pedido.objects.filter(estado='pendiente').count()
+    pedidos_preparando = Pedido.objects.filter(estado='preparando').count()
+    
+    # Suma de todos los pedidos 'entregados'
+    ventas_totales_query = Pedido.objects.filter(estado='entregado').aggregate(
+        total_ventas=Coalesce(Sum('total'), Value(0, output_field=DecimalField()))
+    )
+    ventas_totales = ventas_totales_query['total_ventas']
+
+    context = {
+        'total_ingredientes': total_ingredientes,
+        'total_stock_bajo': stock_bajo,
+        'total_stock_agotado': stock_agotado,
+        'valor_total_inventario': valor_total_inventario,
+        'total_productos': total_productos,
+        'total_categorias': total_categorias,
+        'pedidos_pendientes': pedidos_pendientes,
+        'pedidos_preparando': pedidos_preparando,
+        'ventas_totales': ventas_totales,
+    }
+    
+    return render(request, 'administrador/dashboard.html', context)
+# ==============================================
+# ⬆️ FIN DE LA FUNCIÓN ACTUALIZADA ⬆️
+# ==============================================
+
 
 @login_required
 def empleado_dashboard(request):
+    # Esta es la vista para 'empleado_dashboard', la dejamos como está
     return render(request, 'empleado/dashboard.html')
 
 @login_required
 def cliente_dashboard(request):
     return render(request, 'cliente/dashboard.html')
 
-"""@login_required
-def administrador_menu(request):
-    return render (request,'administrador/menu.html')"""
 
 @login_required
 def crear_categoria(request):
@@ -113,7 +178,8 @@ def crear_categoria(request):
         else:
             messages.error(request, 'El nombre de la categoría es requerido.')
     
-    return redirect('lista_productos')
+    # Redirigir a la página desde donde se llamó (probablemente 'menu_administrador')
+    return redirect(request.POST.get('next', 'admin_dashboard'))
 
 
 @login_required
@@ -208,7 +274,6 @@ def editar_administrador(request, id):
 
     data = json.loads(request.body or '{}')
 
-    # ✅ Mantener campos críticos si no llegan del modal
     if 'rol' not in data:
         data['rol'] = u.rol_id
     if 'is_active' not in data:
@@ -303,7 +368,6 @@ def crear_empleado(request):
 
 @login_required
 def perfil_usuario(request):
-    # Server-render de la vista (los datos los tomamos de request.user)
     return render(request, 'usuarios/perfil.html', {})
 
 @login_required
@@ -315,14 +379,12 @@ def perfil_actualizar(request):
     if form.is_valid():
         form.save()
         return JsonResponse({'ok': True})
-    # devolver primer error amigable
     err = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
     return JsonResponse({'ok': False, 'msg': err}, status=400)
 
 @login_required
 @require_POST
 def perfil_cambiar_password(request):
-    # Soporta JSON (fetch) o form-data tradicional
     if request.headers.get('Content-Type', '').startswith('application/json'):
         data = json.loads(request.body or '{}')
     else:
@@ -330,12 +392,10 @@ def perfil_cambiar_password(request):
 
     form = CambiarPasswordForm(user=request.user, data=data)
     if form.is_valid():
-        user = form.save()                         # set_password + save()
-        update_session_auth_hash(request, user)    # evita cerrar sesión
+        user = form.save()
+        update_session_auth_hash(request, user)
         return JsonResponse({'ok': True})
 
-    # Errores legibles para tu toast del front
-    # (mantenemos el 400 para que el front no diga “error de red” sin detalle)
     errores = {k: v for k, v in form.errors.items()}
     return JsonResponse({'ok': False, 'errors': errores, 'msg': '; '.join(
         f"{k}: {', '.join(v)}" for k, v in errores.items()
@@ -344,9 +404,6 @@ def perfil_cambiar_password(request):
 
 @login_required
 def pedidos_cliente_view(request):
-    """
-    Muestra al cliente su historial de pedidos en la plantilla 'pedidos_cliente.html'.
-    """
     pedidos_list = Pedido.objects.filter(
         usuario=request.user
     ).prefetch_related(
@@ -360,7 +417,7 @@ def pedidos_cliente_view(request):
 
 @login_required
 def descargar_factura(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)  # asegura pertenencia
+    pedido = get_object_or_404(Pedido, id=pedido_id, usuario=request.user)
     f = pedido.factura_pdf
     if not (f and f.name and default_storage.exists(f.name)):
         messages.warning(request, "La factura no está disponible.")
@@ -372,10 +429,8 @@ def descargar_factura(request, pedido_id):
 #metods para empleados
 @login_required
 def gestion_pedidos(request):
-    """Vista para que los empleados gestionen pedidos"""
     pedidos = Pedido.objects.all().order_by('-fecha')
     
-    # Filtros para los contadores
     pedidos_pendientes = pedidos.filter(estado='pendiente')
     pedidos_preparando = pedidos.filter(estado='preparando')
     pedidos_listos = pedidos.filter(estado='listo')
@@ -393,7 +448,6 @@ def gestion_pedidos(request):
 @csrf_exempt
 @login_required
 def actualizar_estado_pedido(request, pedido_id):
-    """Vista para actualizar el estado de un pedido via AJAX"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -416,24 +470,13 @@ def dashboard_empleado(request):
     try:
         hoy = date.today()
         
-        # Debug en consola
-        print(f"=== DEBUG DASHBOARD ===")
-        print(f"Fecha de hoy: {hoy}")
-        
-        # Pedidos de hoy
         pedidos_hoy = Pedido.objects.filter(fecha__date=hoy)
-        print(f"Total pedidos hoy: {pedidos_hoy.count()}")
         
         # Estadísticas
         total_pedidos = pedidos_hoy.count()
         pedidos_pendientes_count = pedidos_hoy.filter(estado='pendiente').count()
         pedidos_preparando_count = pedidos_hoy.filter(estado='preparando').count()
         pedidos_listos_count = pedidos_hoy.filter(estado='listo').count()
-        
-        print(f"Pendientes: {pedidos_pendientes_count}")
-        print(f"Preparando: {pedidos_preparando_count}")
-        print(f"Listos: {pedidos_listos_count}")
-        print(f"=======================")
         
         context = {
             'total_pedidos': total_pedidos,

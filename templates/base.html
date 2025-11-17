@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>{% block title %}Bullburger{% endblock %}</title>
 
-    <!-- CSS global -->
     <link rel="stylesheet" href="{% static 'css/base_style.css' %}">
 
     <style>
@@ -59,7 +58,6 @@
 {% if user.is_authenticated %}
 <nav class="navbar">
     <div class="navbar-left">
-        <!-- Enlace del logo redirige según el rol -->
         {% if user.rol.nombre == 'Administrador' %}
             <a href="{% url 'admin_dashboard' %}">
         {% elif user.rol.nombre == 'Empleado' %}
@@ -75,7 +73,6 @@
     </div>
 
     <ul class="navbar-menu">
-        <!-- Mostrar estos elementos solo si el usuario es administrador -->
         {% if user.rol.nombre == 'Administrador' %}
             <li><a href="{% url 'menu_administrador' %}">Gestión de menú</a></li>
             <li><a href="{% url 'inventario' %}">Inventario</a></li>
@@ -93,13 +90,11 @@
 
             <li><a href="/admin/">Admin Django</a></li>
         
-        <!-- Elementos específicos para empleados -->
         {% elif user.rol.nombre == 'Empleado' %}
             <li><a href="{% url 'empleado_dashboard' %}">Dashboard</a></li>
             <li><a href="{% url 'gestion_pedidos' %}">Gestionar Pedidos</a></li>
             <li><a href="{% url 'inventario' %}">Ver Inventario</a></li>
             <a href="{% url 'perfil_usuario' %}">Mi perfil</a>
-        <!-- Elementos específicos para clientes -->
         {% elif user.rol.nombre == 'Cliente' %}
             <li><a href="{% url 'cliente_dashboard' %}">Inicio</a></li>
             <li><a href="{% url 'menu_cliente' %}">Menú</a></li>
@@ -116,7 +111,6 @@
     </div>
 </nav>
 
-<!-- separadores opcionales para estética -->
 <div class="separator"></div>
 <div class="separator dos"></div>
 {% endif %}
@@ -125,16 +119,6 @@
 <div class="container">
 {% endif %}
 
-    {% if user.is_authenticated and messages %}
-    <div class="messages">
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
-
     {% block content %}
     {% endblock %}
 
@@ -142,174 +126,249 @@
 </div>
 {% endif %}
 
+
+{% if messages %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuramos el "toast" de SweetAlert2
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end', // Las notificaciones saldrán en la esquina superior derecha
+            showConfirmButton: false,
+            timer: 3500, // Durarán 3.5 segundos
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
+        // Iteramos sobre los mensajes de Django
+        {% for message in messages %}
+            let iconType = '{{ message.tags }}';
+            
+            // Convertimos 'danger' (común en Bootstrap) a 'error' para SweetAlert
+            if (iconType === 'danger') {
+                iconType = 'error';
+            }
+            // Asegurarnos que solo sean los iconos válidos
+            const validIcons = ['success', 'error', 'warning', 'info', 'question'];
+            if (!validIcons.includes(iconType)) {
+                iconType = 'info'; // Default si es una etiqueta rara
+            }
+
+            // ¡Mostramos la alerta!
+            Toast.fire({
+                icon: iconType,
+                // Usamos 'escapejs' para que los mensajes con comillas ' no rompan el script
+                title: '{{ message|escapejs }}' 
+            });
+        {% endfor %}
+    });
+</script>
+{% endif %}
 {% block scripts %}
 {% endblock %}
 
-<!-- Validador en vivo BullBurger -->
 <script>
-/* ====== BB Live Validator (colócalo tal cual) ====== */
+/* ====== BB Live Validator (completo) ====== */
 (function(){
-  function getErrorEl(input){
-    const id = input.id || input.name || '';
-    let el = id ? document.getElementById(id + 'Error') : null;
-    if (!el){
-      el = document.createElement('div');
-      el.className = 'error-message';
-      input.insertAdjacentElement('afterend', el);
-    }
-    return el;
-  }
-  function showError(input, msg){
-    const error = getErrorEl(input);
-    input.classList.add('error-field');
-    error.textContent = msg;
-    error.style.display = 'block';
-  }
-  function hideError(input){
-    const error = getErrorEl(input);
-    input.classList.remove('error-field');
-    error.style.display = 'none';
-    error.textContent = '';
-  }
-
-  function validateLettersOnly(input){
-    const value = (input.value || '').trim();
-    const lettersOnly = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s\-.,!¡¿?()&]+$/;
-    if (!value){ showError(input,'Este campo es obligatorio'); return false; }
-    if (!lettersOnly.test(value)){ showError(input,'Solo se permiten letras y espacios'); return false; }
-    if (value.length < 2){ showError(input,'El nombre debe tener al menos 2 caracteres'); return false; }
-    hideError(input); return true;
-  }
-  function validateEmail(input){
-    const value = (input.value || '').trim();
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value){ showError(input,'El email es obligatorio'); return false; }
-    if (!re.test(value)){ showError(input,'Por favor ingresa un email válido'); return false; }
-    hideError(input); return true;
-  }
-  function validatePhone(input, isRequired=false){
-    const value = (input.value || '').trim();
-    if (!value){
-      if (isRequired){ showError(input,'El teléfono es obligatorio'); return false; }
-      hideError(input); return true;
-    }
-    const re = /^\d{4}-\d{4}$/;
-    if (!re.test(value)){ showError(input,'Formato inválido. Use: 1234-5678'); return false; }
-    hideError(input); return true;
-  }
-  function validatePassword(input){
-    const v = input.value || '';
-    if (!v){ showError(input,'La contraseña es obligatoria'); return false; }
-    if (v.length < 8){ showError(input,'La contraseña debe tener al menos 8 caracteres'); return false; }
-    hideError(input); return true;
-  }
-  function validatePasswordConfirm(confirmInput, passInput){
-    const v = confirmInput.value || '';
-    const p1 = passInput ? (passInput.value || '') : '';
-    if (!v){ showError(confirmInput,'Por favor confirma tu contraseña'); return false; }
-    if (v !== p1){ showError(confirmInput,'Las contraseñas no coinciden'); return false; }
-    hideError(confirmInput); return true;
-  }
-
-  function sanitizeNameWhileTyping(input){
-    input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ\s\-.,!¡¿?()&]/g,'');
-  }
-  function sanitizeEmailWhileTyping(input){
-    const pos = input.selectionStart;
-    const before = input.value;
-    const after = before.replace(/\s+/g,'').toLowerCase();
-    if (before !== after){
-      input.value = after;
-      const delta = before.length - after.length;
-      const newPos = Math.max(0, pos - delta);
-      input.setSelectionRange(newPos,newPos);
-    }
-  }
-  function formatPhoneWhileTyping(input){
-    let digits = input.value.replace(/\D/g,'').slice(0,8);
-    let formatted = digits.length > 4 ? digits.slice(0,4)+'-'+digits.slice(4) : digits;
-    const old = input.value;
-    const start = input.selectionStart;
-    input.value = formatted;
-    if (old.length < formatted.length && start === 4){ input.setSelectionRange(start+1, start+1); }
-  }
-
-  function bindForm(form){
-    if (!form || form._bbBound) return;
-    form._bbBound = true;
-
-    const nombre   = form.querySelector('input[name="nombre"], #nombre');
-    const email    = form.querySelector('input[name="email"], #email');
-    const telefono = form.querySelector('input[name="telefono"], #telefono, input[type="tel"]');
-    // pass: soporta name=password1 o id=password1; y name=password2 o id=password2
-    const pass1    = form.querySelector('input[name="password1"], #password1');
-    const pass2    = form.querySelector('input[name="password2"], #password2');
-
-    if (nombre){
-      nombre.addEventListener('input', ()=> sanitizeNameWhileTyping(nombre));
-      nombre.addEventListener('blur',  ()=> validateLettersOnly(nombre));
-    }
-    if (email){
-      email.addEventListener('input', ()=> sanitizeEmailWhileTyping(email));
-      email.addEventListener('blur',  ()=> validateEmail(email));
-    }
-    if (telefono){
-      telefono.setAttribute('inputmode','numeric');
-      telefono.setAttribute('maxlength','9');
-      telefono.addEventListener('input', ()=> { formatPhoneWhileTyping(telefono); });
-      telefono.addEventListener('blur',  ()=> validatePhone(telefono, telefono.required));
-      formatPhoneWhileTyping(telefono);
-    }
-    if (pass1){ pass1.addEventListener('blur', ()=> validatePassword(pass1)); }
-    if (pass2){ pass2.addEventListener('blur', ()=> validatePasswordConfirm(pass2, pass1)); }
-
-    form.addEventListener('submit', function(e){
-      let ok = true;
-      if (nombre)   ok = validateLettersOnly(nombre) && ok;
-      if (email)    ok = validateEmail(email) && ok;
-      if (telefono) ok = validatePhone(telefono, telefono.required) && ok;
-      if (pass1)    ok = validatePassword(pass1) && ok;
-      if (pass2)    ok = validatePasswordConfirm(pass2, pass1) && ok;
-      if (!ok){
-        e.preventDefault();
-        if (window.showCustomAlert){
-          showCustomAlert('Error de Validación','Por favor corrige los errores en el formulario antes de continuar.');
+    function getErrorEl(input){
+        const id = input.id || input.name || '';
+        let el = id ? document.getElementById(id + 'Error') : null;
+        if (!el && input.parentElement){ // Fallback si no hay ID
+            el = input.parentElement.querySelector('.error-message');
         }
-      }
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'error-message';
+            // Insertar después del input, no importa si está en un div
+            input.insertAdjacentElement('afterend', el);
+        }
+        return el;
+    }
+    function showError(input, msg){
+        const error = getErrorEl(input);
+        input.classList.add('error-field');
+        error.textContent = msg;
+        error.style.display = 'block';
+    }
+    function hideError(input){
+        const error = getErrorEl(input);
+        input.classList.remove('error-field');
+        if (error) {
+            error.style.display = 'none';
+            error.textContent = '';
+        }
+    }
+
+    function validateLettersOnly(input){
+        const value = (input.value || '').trim();
+        // Expresión regular mejorada para permitir más caracteres en nombres
+        const lettersOnly = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s\-.,!¡¿?()&'"]+$/; 
+        if (!value && input.required){ showError(input,'Este campo es obligatorio'); return false; }
+        if (!value && !input.required){ hideError(input); return true; } // Válido si no es requerido
+        if (!lettersOnly.test(value)){ showError(input,'El nombre contiene caracteres no válidos'); return false; }
+        if (value.length < 2){ showError(input,'Debe tener al menos 2 caracteres'); return false; }
+        hideError(input); return true;
+    }
+    function validateEmail(input){
+        const value = (input.value || '').trim();
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!value){ showError(input,'El email es obligatorio'); return false; }
+        if (!re.test(value)){ showError(input,'Por favor ingresa un email válido'); return false; }
+        hideError(input); return true;
+    }
+    function validatePhone(input, isRequired=false){
+        const value = (input.value || '').trim();
+        if (!value){
+            if (isRequired){ showError(input,'El teléfono es obligatorio'); return false; }
+            hideError(input); return true;
+        }
+        const re = /^\d{4}-\d{4}$/;
+        if (!re.test(value)){ showError(input,'Formato inválido. Use: 1234-5678'); return false; }
+        hideError(input); return true;
+    }
+    function validatePassword(input){
+        const v = input.value || '';
+        if (!v){ showError(input,'La contraseña es obligatoria'); return false; }
+        if (v.length < 8){ showError(input,'La contraseña debe tener al menos 8 caracteres'); return false; }
+        hideError(input); return true;
+    }
+    function validatePasswordConfirm(confirmInput, passInput){
+        const v = confirmInput.value || '';
+        const p1 = passInput ? (passInput.value || '') : '';
+        if (!v){ showError(confirmInput,'Por favor confirma tu contraseña'); return false; }
+        if (v !== p1){ showError(confirmInput,'Las contraseñas no coinciden'); return false; }
+        hideError(confirmInput); return true;
+    }
+
+    function sanitizeNameWhileTyping(input){
+        // Expresión regular mejorada
+        input.value = input.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s\-.,!¡¿?()&'"]/g,'');
+    }
+    function sanitizeEmailWhileTyping(input){
+        const pos = input.selectionStart;
+        const before = input.value;
+        const after = before.replace(/\s+/g,'').toLowerCase();
+        if (before !== after){
+            input.value = after;
+            const delta = before.length - after.length;
+            const newPos = Math.max(0, pos - delta);
+            input.setSelectionRange(newPos,newPos);
+        }
+    }
+    function formatPhoneWhileTyping(input){
+        let digits = input.value.replace(/\D/g,'').slice(0,8);
+        let formatted = digits.length > 4 ? digits.slice(0,4)+'-'+digits.slice(4) : digits;
+        const old = input.value;
+        const start = input.selectionStart;
+        input.value = formatted;
+        
+        // Corregir posición del cursor al auto-insertar el guión
+        if (old.length < formatted.length && start === 4){ 
+            input.setSelectionRange(start+1, start+1); 
+        } else if (old.length > formatted.length && start === 5){
+            // Corregir al borrar el guión
+            input.setSelectionRange(start-1, start-1);
+        } else {
+            input.setSelectionRange(start, start);
+        }
+    }
+
+    function bindForm(form){
+        if (!form || form._bbBound) return;
+        form._bbBound = true;
+
+        // Selectores más robustos para todos tus formularios
+        const nombre   = form.querySelector('input[name="nombre"], #nombre, #edit_nombre');
+        const email    = form.querySelector('input[name="email"], #email');
+        const telefono = form.querySelector('input[name="telefono"], #telefono, input[type="tel"]');
+        const pass1    = form.querySelector('input[name="password"], input[name="password1"], #password, #password1');
+        const pass2    = form.querySelector('input[name="password_confirm"], input[name="password2"], #password_confirm, #password2');
+
+        if (nombre){
+            nombre.addEventListener('input', ()=> sanitizeNameWhileTyping(nombre));
+            nombre.addEventListener('blur',  ()=> validateLettersOnly(nombre));
+        }
+        if (email){
+            email.addEventListener('input', ()=> sanitizeEmailWhileTyping(email));
+            email.addEventListener('blur',  ()=> validateEmail(email));
+        }
+        if (telefono){
+            telefono.setAttribute('inputmode','numeric');
+            telefono.setAttribute('maxlength','9');
+            telefono.addEventListener('input', ()=> { formatPhoneWhileTyping(telefono); });
+            telefono.addEventListener('blur',  ()=> validatePhone(telefono, telefono.required));
+            formatPhoneWhileTyping(telefono); // Formatear al cargar
+        }
+        if (pass1){ pass1.addEventListener('blur', ()=> validatePassword(pass1)); }
+        if (pass2){ pass2.addEventListener('blur', ()=> validatePasswordConfirm(pass2, pass1)); }
+
+        form.addEventListener('submit', function(e){
+            let ok = true;
+            // Validar solo los campos que existen en este formulario en particular
+            if (nombre && form.contains(nombre))   ok = validateLettersOnly(nombre) && ok;
+            if (email && form.contains(email))    ok = validateEmail(email) && ok;
+            if (telefono && form.contains(telefono)) ok = validatePhone(telefono, telefono.required) && ok;
+            if (pass1 && form.contains(pass1))    ok = validatePassword(pass1) && ok;
+            if (pass2 && form.contains(pass2))    ok = validatePasswordConfirm(pass2, pass1) && ok;
+
+            if (!ok){
+                e.preventDefault();
+                // Intentar usar la alerta bonita del dashboard, si no, SweetAlert genérico
+                if (typeof showCustomAlert === 'function'){ // Si 'showCustomAlert' está definida en la página
+                    showCustomAlert('Error de Validación','Por favor corrige los errores en el formulario.');
+                } else if (window.Swal) { // Usar SweetAlert estándar
+                    Swal.fire({
+                        title: 'Error de Validación',
+                        text: 'Por favor corrige los errores en el formulario.',
+                        icon: 'error',
+                        confirmButtonColor: '#d33' // Color rojo para el botón
+                    });
+                }
+            }
+        });
+    }
+
+    function initAll(root){
+        // Lista de selectores de todos los formularios que usan validación
+        (root || document).querySelectorAll('form.bb-validate, #addIngredienteForm, #editIngredienteForm, #ajustarForm, #productForm, #categoryForm, form[action*="login"], form[action*="registro"], #perfilForm, #passwordChangeForm').forEach(bindForm);
+    }
+
+    // Ejecutar al cargar la página
+    if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', ()=> initAll(document));
+    } else {
+        initAll(document); // Ejecutar inmediatamente si ya cargó
+    }
+    
+    // Observador para detectar nuevos formularios cargados dinámicamente (como en modales)
+    const mo = new MutationObserver(muts=>{
+        muts.forEach(m=>{
+            m.addedNodes.forEach(n=>{
+                if (!(n instanceof HTMLElement)) return;
+                // Si el nodo añadido es un formulario que necesita validación
+                if (n.matches && (n.matches('form.bb-validate') || n.id === 'productForm')) {
+                    bindForm(n);
+                }
+                // Buscar formularios hijos
+                initAll(n); 
+            });
+        });
     });
-  }
+    mo.observe(document.body, {childList:true, subtree:true});
 
-  function initAll(root){
-    (root || document).querySelectorAll('form.bb-validate').forEach(bindForm);
-  }
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', ()=> initAll(document));
-  }else{
-    initAll(document);
-  }
-  const mo = new MutationObserver(muts=>{
-    muts.forEach(m=>{
-      m.addedNodes.forEach(n=>{
-        if (!(n instanceof HTMLElement)) return;
-        if (n.matches && n.matches('form.bb-validate')) bindForm(n);
-        initAll(n);
-      });
-    });
-  });
-  mo.observe(document.body, {childList:true, subtree:true});
-
-  window.bbValidateForm = function(formOrSelector){
-    const form = typeof formOrSelector === 'string' ? document.querySelector(formOrSelector) : formOrSelector;
-    if (!form) return true;
-    // fuerza evaluación de handlers "submit"
-    const evt = new Event('submit', {cancelable:true});
-    const canceled = !form.dispatchEvent(evt);
-    return !canceled;
-  };
+    // Función global para validar un formulario manualmente
+    window.bbValidateForm = function(formOrSelector){
+        const form = typeof formOrSelector === 'string' ? document.querySelector(formOrSelector) : formOrSelector;
+        if (!form) return true;
+        // Simular un evento 'submit' para disparar todos los 'listeners'
+        const evt = new Event('submit', {cancelable:true});
+        const canceled = !form.dispatchEvent(evt);
+        return !canceled; // Devuelve 'true' si la validación pasó, 'false' si fue cancelada
+    };
 })();
 </script>
-<!-- /Validador en vivo -->
-
 </body>
 </html>
