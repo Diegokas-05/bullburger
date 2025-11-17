@@ -52,7 +52,9 @@ def lista_productos(request):
         'ingredientes': ingredientes,
     })
 
-
+# -----------------------------------------------------------------
+# ❗️ ESTA ES LA VISTA 'crear_producto' (Tu versión original)
+# -----------------------------------------------------------------
 @login_required
 def crear_producto(request):
     if request.method == 'POST':
@@ -89,42 +91,81 @@ def crear_producto(request):
                 )
 
             messages.success(request, 'Producto creado exitosamente con su receta')
-            return redirect('menu_administrador')  # ✅ CAMBIADO
+            return redirect('menu_administrador') 
             
         except Exception as e:
             messages.error(request, f'Error al crear producto: {e}')
     return redirect('menu_administrador')
 
 
+# -----------------------------------------------------------------
+# ❗️ ESTA ES LA VISTA 'editar_producto' (Versión corregida)
+# -----------------------------------------------------------------
 @login_required
+@transaction.atomic  # Asegura que la edición sea todo o nada
 def editar_producto(request, producto_id):
-    """Vista para editar un producto existente"""
+    """
+    Vista para PROCESAR el envío (POST) del formulario modal de edición.
+    """
     producto = get_object_or_404(Producto, id=producto_id)
     
     if request.method == 'POST':
-        form = ProductoForm(request.POST, request.FILES, instance=producto)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Producto actualizado exitosamente')
-            return redirect('menu_administrador')
-    else:
-        form = ProductoForm(instance=producto)
+        try:
+            # 1. Actualizar los campos del Producto
+            producto.nombre = request.POST.get('nombre')
+            producto.descripcion = request.POST.get('descripcion')
+            producto.precio = float(request.POST.get('precio'))
+            producto.categoria_id = request.POST.get('categoria')
+            producto.disponible = request.POST.get('disponible') == 'on'
+            
+            # 2. Actualizar imagen SOLO si se sube una nueva
+            if 'imagen' in request.FILES:
+                producto.imagen = request.FILES['imagen']
+            
+            producto.save()
 
-    productos = Producto.objects.all()
-    categorias = Categoria.objects.all()
-    ingredientes = Ingrediente.objects.filter(activo=True)
+            # 3. Actualizar la Receta (Borrar la antigua y crear la nueva)
+            Receta.objects.filter(producto=producto).delete()
+
+            # 4. Re-crear la receta (misma lógica de tu crear_producto)
+            ingredientes_data = []
+            for key in request.POST.keys():
+                if key.startswith('ingredientes[') and key.endswith('][id]'):
+                    index = key.split('[')[1].split(']')[0]
+                    ingrediente_id = request.POST[f'ingredientes[{index}][id]']
+                    cantidad = request.POST.get(f'ingredientes[{index}][cantidad]')
+                    
+                    if ingrediente_id and cantidad:
+                        ingredientes_data.append({
+                            'ingrediente_id': ingrediente_id,
+                            'cantidad': cantidad
+                        })
+
+            # Validar que la receta no esté vacía
+            if not ingredientes_data:
+                 raise Exception("Un producto (incluso editado) debe tener al menos un ingrediente.")
+
+            for ing in ingredientes_data:
+                Receta.objects.create(
+                    producto=producto,
+                    ingrediente_id=ing['ingrediente_id'],
+                    cantidad=ing['cantidad']
+                )
+
+            messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
+        
+        except Exception as e:
+            messages.error(request, f'Error al actualizar producto: {e}')
+        
+        return redirect('menu_administrador')
     
-    # Obtener la receta actual del producto
-    recetas_actuales = Receta.objects.filter(producto=producto)
+    # Si es GET, simplemente redirigir. El modal se carga vía API.
+    return redirect('menu_administrador')
 
-    return render(request, 'administrador/menu.html', {
-        'form': form,
-        'producto_editar': producto,
-        'productos': productos,
-        'categorias': categorias,
-        'ingredientes': ingredientes,
-        'recetas_actuales': recetas_actuales,
-    })
+
+# -----------------------------------------------------------------
+# ❗️ AQUÍ ESTABA LA VISTA 'editar_producto' DUPLICADA (AHORA BORRADA)
+# -----------------------------------------------------------------
 
 
 @login_required
@@ -137,9 +178,9 @@ def eliminar_producto(request, producto_id):
         Receta.objects.filter(producto=producto).delete()
         producto.delete()
         messages.success(request, 'Producto eliminado exitosamente')
-        return redirect('menu_administrador')  # ✅ CAMBIADO
+        return redirect('menu_administrador') 
     
-    return redirect('menu_administrador')  # ✅ CAMBIADO
+    return redirect('menu_administrador') 
 
 @login_required
 def crear_categoria(request):
@@ -225,7 +266,6 @@ def menu_cliente(request):
         'categorias': categorias,
         'productos': productos_final
     })
-
 
 
 from django.views.decorators.csrf import csrf_exempt
@@ -369,7 +409,7 @@ def editar_cantidad(request, item_id):
         return JsonResponse({"ok": True, "mensaje": "Cantidad actualizada correctamente"})
 
     except CarritoItem.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=404)
+        return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=4404)
 
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
@@ -501,20 +541,19 @@ def carrito_checkout(request):
                 if factura_path_relativo:
                     pedido.factura_pdf = factura_path_relativo
                     pedido.save(update_fields=['factura_pdf'])
-                     
-        return JsonResponse({
-            'ok': True,
-            'pedido_id': pedido.id,
-            'total': f'{total:.2f}',
-            'factura_url': factura_url
-        })
+                        
+            return JsonResponse({
+                'ok': True,
+                'pedido_id': pedido.id,
+                'total': f'{total:.2f}',
+                'factura_url': factura_url
+            })
 
     except ValueError as ve:
         return JsonResponse({'ok': False, 'error': str(ve)}, status=400)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'Error interno: {e}'}, status=500)
 
-from django.http import JsonResponse
 
 def api_stock_productos(request):
     productos = Producto.objects.filter(disponible=True)
@@ -546,7 +585,6 @@ def api_stock_productos(request):
 
     return JsonResponse({"stock": data})
 
-from django.http import JsonResponse
 
 @login_required
 def api_stock_producto(request, producto_id):
@@ -576,3 +614,44 @@ def api_stock_producto(request, producto_id):
 
     except Producto.DoesNotExist:
         return JsonResponse({"stock": 0})
+    
+
+# -----------------------------------------------------------------
+# ❗️ ESTA ES LA VISTA API QUE FALTABA (Sin duplicados)
+# -----------------------------------------------------------------
+def api_detalle_producto_edicion(request, producto_id):
+    """
+    API para OBTENER los datos de un producto y su receta para
+    rellenar el modal de edición.
+    """
+    try:
+        producto = get_object_or_404(Producto, id=producto_id)
+        
+        # Preparar los datos de la receta
+        receta_data = []
+        # Usamos 'receta_set' (la relación inversa desde Producto a Receta)
+        for receta in producto.receta_set.all(): 
+            receta_data.append({
+                'ingrediente_id': receta.ingrediente.id,
+                'ingrediente_nombre': receta.ingrediente.nombre,
+                # Convertir Decimal a float para que JS/JSON lo entienda
+                'cantidad': float(receta.cantidad), 
+                'unidad': receta.ingrediente.unidad_medida, 
+                'costo_unitario': float(receta.ingrediente.costo_unitario),
+            })
+            
+        # Preparar los datos del producto
+        data = {
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'descripcion': producto.descripcion,
+            'precio': float(producto.precio),
+            'categoria_id': producto.categoria.id if producto.categoria else None,
+            'disponible': producto.disponible,
+            'imagen_url': producto.imagen.url if producto.imagen else '',
+            'receta': receta_data, # Aquí incluimos la receta
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

@@ -10,13 +10,11 @@
 
 <div class="admin-bg">
   <section class="contenedor_dashboard">
-    <!-- Header del Menú -->
     <div class="dashboard-header">
         <h1 class="welcome-title">Gestión del Menú - BullBurger</h1>
         <p class="welcome-subtitle">Administra y visualiza todos los productos del menú</p>
     </div>
 
-    <!-- Botones de Acción -->
     <div class="action-buttons">
         <button class="add-product-btn" onclick="openAddProductModal()">
             <span>+</span>
@@ -32,7 +30,6 @@
         </button>
     </div>
 
-    <!-- Pestañas de Categorías -->
     <div class="category-tabs">
         <div class="category-tab active" data-category="all">
             <span>🍽️ Todos</span>
@@ -52,7 +49,6 @@
         {% endfor %}
     </div>
 
-    <!-- Grid de Productos -->
     <div class="products-grid">
         {% for producto in productos %}
         <div class="product-card" data-category="{{ producto.categoria.id }}">
@@ -97,7 +93,6 @@
 </div>
 </section>
 
-<!-- Modal para agregar producto -->
 <div id="productModal" class="modal">
     <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
@@ -108,14 +103,12 @@
             <form id="productForm" method="post" action="{% url 'crear_producto' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 
-                <!-- Información Básica del Producto -->
                 <div class="form-section">
                     <h3>📋 Información del Producto</h3>
                     
                     <div class="form-group">
                         <label for="nombre">Nombre del Producto *</label>
                         <input type="text" id="nombre" name="nombre" required maxlength="100" 
-                               pattern="[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+"
                                title="Solo se permiten letras y espacios"
                                oninput="validateLettersOnly(this)"
                                placeholder="Ej: Hamburguesa Clásica" class="form-control">
@@ -143,7 +136,6 @@
                     </div>
                 </div>
 
-                <!-- Receta del Producto -->
                 <div class="form-section">
                     <h3>🍳 Receta del Producto</h3>
                     <div class="receta-info">
@@ -151,7 +143,6 @@
                     </div>
                     
                     <div id="receta-container">
-                        <!-- Los ingredientes se agregarán dinámicamente aquí -->
                     </div>
                     
                     <div class="form-row">
@@ -185,14 +176,12 @@
                         <span>+</span> Agregar a la Receta
                     </button>
                     
-                    <!-- Lista de ingredientes agregados -->
                     <div id="ingredientes-agregados" class="ingredientes-list">
                         <h4>Ingredientes en la receta:</h4>
                         <div id="lista-ingredientes" class="lista-ingredientes">
                             <div class="no-ingredientes">No hay ingredientes agregados</div>
                         </div>
                         
-                        <!-- Resumen de costos -->
                         <div class="costos-resumen">
                             <div class="costo-item">
                                 <span>Costo de Ingredientes:</span>
@@ -218,7 +207,6 @@
                     </div>
                 </div>
 
-                <!-- Precio Final -->
                 <div class="form-section">
                     <h3>💰 Precio de Venta</h3>
                     <div class="form-group">
@@ -230,7 +218,6 @@
                     </div>
                 </div>
                 
-                <!-- Imagen del Producto -->
                 <div class="form-section">
                     <h3>🖼️ Imagen del Producto</h3>
                     <div class="form-group">
@@ -243,7 +230,6 @@
                     </div>
                 </div>
                 
-                <!-- Disponibilidad -->
                 <div class="form-section">
                     <div class="form-group">
                         <label class="checkbox-label">
@@ -263,8 +249,6 @@
     </div>
 </div>
 
-<!-- Los otros modales (categoría, gestionar categorías, etc.) se mantienen igual -->
-<!-- Modal para agregar categoría -->
 <div id="categoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -289,8 +273,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal para gestionar categorías -->
 <div id="manageCategoriesModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -336,18 +318,12 @@
         </div>
     </div>
 </div>
-
-<!-- Formulario oculto para eliminar -->
 <form id="deleteForm" method="post" style="display: none;">
     {% csrf_token %}
 </form>
-
-<!-- Formulario oculto para eliminar categorías -->
 <form id="deleteCategoryForm" method="post" style="display: none;">
     {% csrf_token %}
 </form>
-
-<!-- Custom Alert Modal -->
 <div id="customAlert" class="modal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -364,12 +340,43 @@
     </div>
 </div>
 
+
 <script>
-// Funciones para los modales
+// --- Variables Globales para el Modal ---
+const productModal = document.getElementById('productModal');
+const productForm = document.getElementById('productForm');
+const modalTitle = document.getElementById('modalTitle');
+const imagenInput = document.getElementById('imagen');
+const imagePreview = document.getElementById('imagePreview');
+
+
+// ⬇️ FUNCIÓN CORREGIDA ⬇️
+// Limpia el modal y lo prepara para CREAR
 function openAddProductModal() {
-    document.getElementById('productModal').style.display = 'block';
-    // Resetear estado al abrir el modal
+    console.log("Abriendo modal para CREAR nuevo producto");
+    
+    // 1. Configurar para CREACIÓN
+    modalTitle.textContent = 'Agregar Nuevo Producto';
+    productForm.action = "{% url 'crear_producto' %}";
+    
+    // 2. Limpiar todos los campos del formulario
+    productForm.reset(); 
+    imagePreview.innerHTML = '';
+    
+    // 3. IMPORTANTE: La imagen SÍ es obligatoria al crear
+    imagenInput.setAttribute('required', 'required'); 
+
+    // 4. Limpiar Receta
+    ingredientesReceta = [];
+    actualizarListaIngredientes();
+    calcularPrecioFinal(); // Resetea los costos a $0.00
+    
+    // 5. Resetear flags y errores
     precioModificadoManual = false;
+    clearAllErrors(); 
+    
+    // 6. Abrir el modal
+    productModal.style.display = 'block';
 }
 
 function openAddCategoryModal() {
@@ -380,13 +387,24 @@ function openManageCategoriesModal() {
     document.getElementById('manageCategoriesModal').style.display = 'block';
 }
 
+// ⬇️ FUNCIÓN CORREGIDA ⬇️
+// Limpia el modal CADA VEZ que se cierra
 function closeModal() {
-    document.getElementById('productModal').style.display = 'none';
-    // Limpiar la receta cuando se cierra el modal
+    productModal.style.display = 'none';
+    
+    // Limpiamos el formulario para evitar que los datos de "Editar"
+    // se queden si el usuario solo cierra el modal.
+    productForm.reset();
+    imagePreview.innerHTML = '';
+    
+    // Limpiar Receta
     ingredientesReceta = [];
-    precioModificadoManual = false;
     actualizarListaIngredientes();
     calcularPrecioFinal();
+    
+    // Resetear flags y errores
+    precioModificadoManual = false;
+    clearAllErrors();
 }
 
 function closeCategoryModal() {
@@ -418,26 +436,27 @@ function showCustomAlert(title, message, confirmCallback = null) {
     }
 }
 
-// Funciones de validación
+// --- Funciones de validación ---
+
 function validateLettersOnly(input) {
-    const value = input.value.trim();
+    const value = input.value; // No trim() aquí para permitir espacios intermedios
     const errorElement = document.getElementById(input.id + 'Error');
     
-    // Permitir letras, espacios y algunos caracteres especiales
-    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    // Permitir letras, espacios y caracteres especiales comunes en nombres
+    const pattern = /^[A-Za-zÁáÉéÍíÓóÚúÑñ0-9\s\-.,!¡¿?()&'"]+$/;
     
     if (!value) {
         showError(input, errorElement, 'Este campo es obligatorio');
         return false;
     }
     
-    if (!lettersOnly.test(value)) {
-        showError(input, errorElement, 'Solo se permiten letras y espacios');
+    if (value.trim().length < 2) {
+        showError(input, errorElement, 'El nombre debe tener al menos 2 caracteres');
         return false;
     }
-    
-    if (value.length < 2) {
-        showError(input, errorElement, 'El nombre debe tener al menos 2 caracteres');
+
+    if (!pattern.test(value)) {
+        showError(input, errorElement, 'El nombre contiene caracteres no válidos');
         return false;
     }
     
@@ -488,31 +507,43 @@ function validatePrice(input) {
     return true;
 }
 
+// ⬇️ FUNCIÓN CORREGIDA ⬇️
+// Ahora comprueba si el campo 'required' está presente
 function validateImage(input) {
     const file = input.files[0];
     const errorElement = document.getElementById('imagenError');
+
+    // Si el input NO es 'required' (como en editar), no validamos si está vacío
+    if (!input.hasAttribute('required') && !file) {
+         hideError(input, errorElement);
+         return true; // Es válido no subir nada
+    }
     
-    if (!file) {
+    // Si es 'required' y no hay archivo, es un error
+    if (input.hasAttribute('required') && !file) {
         showError(input, errorElement, 'Debes seleccionar una imagen');
         return false;
     }
-    
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-        showError(input, errorElement, 'Formato no válido. Solo JPG, PNG o GIF');
-        return false;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-        showError(input, errorElement, 'La imagen es demasiado grande. Máximo 5MB');
-        return false;
+
+    // Si hay un archivo (para crear o editar), lo validamos
+    if (file) {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            showError(input, errorElement, 'Formato no válido. Solo JPG, PNG o GIF');
+            return false;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) { // 5MB
+            showError(input, errorElement, 'La imagen es demasiado grande. Máximo 5MB');
+            return false;
+        }
     }
     
     hideError(input, errorElement);
     return true;
 }
 
-// Helper functions para errores
+
 function showError(input, errorElement, message) {
     input.classList.add('error');
     errorElement.textContent = message;
@@ -532,7 +563,8 @@ function clearAllErrors() {
     errorInputs.forEach(input => input.classList.remove('error'));
 }
 
-// Validación de formularios completos
+// ⬇️ FUNCIÓN CORREGIDA ⬇️
+// Llama a la validación de imagen actualizada
 function validateProductForm(event) {
     const nombre = document.getElementById('nombre');
     const descripcion = document.getElementById('descripcion');
@@ -554,17 +586,17 @@ function validateProductForm(event) {
         showError(categoria, document.getElementById('categoriaError'), 'Debes seleccionar una categoría');
         isValid = false;
     }
+    // Esta validación ahora funciona para crear (required) y editar (no required)
     if (!validateImage(imagen)) isValid = false;
     
-    // Validar que haya al menos un ingrediente en la receta
     if (ingredientesReceta.length === 0) {
-        showCustomAlert('Error de Validación', 'Debes agregar al menos un ingrediente a la receta del producto.');
+        showCustomAlert('Error de Validación', 'Debes agregar al menos un ingrediente a la receta.');
         isValid = false;
     }
     
     if (!isValid) {
-        event.preventDefault();
-        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario antes de continuar.');
+        event.preventDefault(); // Detiene el envío del formulario
+        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
     }
     
     return isValid;
@@ -572,19 +604,17 @@ function validateProductForm(event) {
 
 function validateCategoryForm(event) {
     const nombreCategoria = document.getElementById('nombre_categoria');
-    
     clearAllErrors();
-    
     if (!validateCategoryName(nombreCategoria)) {
         event.preventDefault();
         showCustomAlert('Error de Validación', 'Por favor corrige el error en el campo de categoría.');
         return false;
     }
-    
     return true;
 }
 
-// Funciones de eliminación
+// --- Funciones de eliminación ---
+
 function confirmDeleteProduct(productId, productName) {
     showCustomAlert(
         'Confirmar Eliminación',
@@ -609,29 +639,89 @@ function confirmDeleteCategory(categoriaId, categoriaNombre) {
     );
 }
 
+
+// ⬇️ FUNCIÓN CORREGIDA ⬇️
+// Rellena el modal para EDITAR
 function editProduct(productId) {
-    window.location.href = `/editar/${productId}/`;
+    console.log(`Abriendo modal para EDITAR producto ID: ${productId}`);
+    
+    // 1. Obtener los datos del producto desde el API
+    // (Usamos la URL 'api_detalle_producto_edicion' que creamos en urls.py)
+    const apiUrl = "{% url 'api_detalle_producto_edicion' 0 %}".replace('0', productId);
+    
+    fetch(apiUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('No se pudo cargar el producto para edición.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                 throw new Error(data.error);
+            }
+            
+            // 2. Configurar el Modal para "Editar"
+            modalTitle.textContent = `Editar Producto: ${data.nombre}`;
+            productForm.action = "{% url 'editar_producto' 0 %}".replace('0', productId);
+            
+            // 3. Poblar campos de información básica
+            document.getElementById('nombre').value = data.nombre;
+            document.getElementById('descripcion').value = data.descripcion;
+            document.getElementById('precio').value = data.precio.toFixed(2);
+            document.getElementById('categoria').value = data.categoria_id;
+            document.getElementById('disponible').checked = data.disponible;
+            
+            // 4. Cargar Previsualización de Imagen
+            imagePreview.innerHTML = ''; // Limpiar preview anterior
+            if (data.imagen_url) {
+                imagePreview.innerHTML = `<img src="${data.imagen_url}" alt="${data.nombre}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">`;
+            }
+            
+            // 5. IMPORTANTE: La imagen NO es obligatoria al editar
+            imagenInput.removeAttribute('required'); 
+            
+            // 6. Cargar Receta
+            ingredientesReceta = data.receta.map(item => ({
+                ingrediente_id: item.ingrediente_id,
+                ingrediente_nombre: item.ingrediente_nombre,
+                cantidad: item.cantidad,
+                unidad: item.unidad,
+                costo_unitario: item.costo_unitario,
+                costo_total: item.costo_unitario * item.cantidad
+            }));
+            
+            actualizarListaIngredientes(); // Actualiza la lista visual
+            calcularPrecioFinal();       // Recalcula los costos
+            
+            // 7. Marcar que el precio fue cargado (para que no se sobreescriba solo)
+            precioModificadoManual = true; 
+            
+            // 8. Abrir el Modal
+            productModal.style.display = 'block';
+
+        })
+        .catch(error => {
+            console.error('Error al cargar datos para editar:', error);
+            showCustomAlert('Error', `Ocurrió un error al cargar los datos del producto: ${error.message}`);
+        });
 }
+
 
 // =============================================
 // SISTEMA DE CÁLCULO AUTOMÁTICO DE PRECIOS
+// (Este bloque está bien, no se necesita cambiar)
 // =============================================
-
-// Variables globales para la receta
 let ingredientesReceta = [];
 let precioModificadoManual = false;
 
-// Actualizar unidad y costo cuando se selecciona un ingrediente
 document.getElementById('ingrediente_select')?.addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
     const unidad = selectedOption.getAttribute('data-unidad') || '-';
-    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
-    
     document.getElementById('unidad_ingrediente').textContent = unidad;
     calcularCostoIngrediente();
 });
 
-// Calcular costo del ingrediente seleccionado
 function calcularCostoIngrediente() {
     const ingredienteSelect = document.getElementById('ingrediente_select');
     const cantidadInput = document.getElementById('cantidad_ingrediente');
@@ -644,7 +734,6 @@ function calcularCostoIngrediente() {
     document.getElementById('costo_ingrediente_text').textContent = `Costo: $${costo.toFixed(4)}`;
 }
 
-// Agregar ingrediente a la receta
 function agregarIngrediente() {
     const ingredienteSelect = document.getElementById('ingrediente_select');
     const cantidadInput = document.getElementById('cantidad_ingrediente');
@@ -652,36 +741,30 @@ function agregarIngrediente() {
     
     const ingredienteId = ingredienteSelect.value;
     const cantidad = parseFloat(cantidadInput.value);
-    const ingredienteNombre = selectedOption.text.split(' (')[0];
-    const unidad = selectedOption.getAttribute('data-unidad');
-    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
-    const costo = costoUnitario * cantidad;
     
-    // Validaciones
     if (!ingredienteId) {
         showCustomAlert('Error', 'Por favor selecciona un ingrediente');
         return;
     }
-    
     if (!cantidad || cantidad <= 0) {
         showCustomAlert('Error', 'Por favor ingresa una cantidad válida');
         return;
     }
     
-    // Verificar stock disponible
-    const stock = parseFloat(selectedOption.getAttribute('data-stock')) || 0;
-    if (cantidad > stock) {
-        showCustomAlert('Error', `Stock insuficiente. Disponible: ${stock} ${unidad}`);
-        return;
-    }
+    const ingredienteNombre = selectedOption.text.split(' (')[0];
+    const unidad = selectedOption.getAttribute('data-unidad');
+    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+    const costo = costoUnitario * cantidad;
     
-    // Verificar si el ingrediente ya está en la receta
+    // 🔴 NOTA: He quitado la validación de stock aquí.
+    // No deberías limitar la creación de la *receta* por el stock actual.
+    // El stock se debe validar al *vender* o *producir* el producto.
+    
     if (ingredientesReceta.some(item => item.ingrediente_id == ingredienteId)) {
         showCustomAlert('Error', 'Este ingrediente ya está en la receta');
         return;
     }
     
-    // Agregar a la lista
     ingredientesReceta.push({
         ingrediente_id: ingredienteId,
         ingrediente_nombre: ingredienteNombre,
@@ -691,94 +774,77 @@ function agregarIngrediente() {
         costo_total: costo
     });
     
-    // Actualizar la interfaz
     actualizarListaIngredientes();
     calcularPrecioFinal();
     
-    // Limpiar campos
     ingredienteSelect.value = '';
     cantidadInput.value = '';
     document.getElementById('unidad_ingrediente').textContent = '-';
     document.getElementById('costo_ingrediente_text').textContent = 'Costo: $0.00';
 }
 
-// Actualizar lista de ingredientes en la interfaz
 function actualizarListaIngredientes() {
     const lista = document.getElementById('lista-ingredientes');
     
     if (ingredientesReceta.length === 0) {
         lista.innerHTML = '<div class="no-ingredientes">No hay ingredientes agregados</div>';
-        // Resetear costos
         document.getElementById('costo-total-ingredientes').textContent = '$0.00';
         document.getElementById('costo-mano-obra').textContent = '$0.00';
         document.getElementById('costo-ganancia').textContent = '$0.00';
         document.getElementById('precio-sugerido').textContent = '$0.00';
-        return;
+    } else {
+        lista.innerHTML = ingredientesReceta.map((ingrediente, index) => `
+            <div class="ingrediente-item">
+                <div class="ingrediente-info">
+                    <span class="ingrediente-nombre">${ingrediente.ingrediente_nombre}</span>
+                    <span class="ingrediente-cantidad">${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costo_total.toFixed(4)}</span>
+                </div>
+                <button type="button" class="btn-remove-ingrediente" onclick="removerIngrediente(${index})">
+                    ×
+                </button>
+            </div>
+        `).join('');
     }
     
-    lista.innerHTML = ingredientesReceta.map((ingrediente, index) => `
-        <div class="ingrediente-item">
-            <div class="ingrediente-info">
-                <span class="ingrediente-nombre">${ingrediente.ingrediente_nombre}</span>
-                <span class="ingrediente-cantidad">${ingrediente.cantidad} ${ingrediente.unidad} - $${ingrediente.costo_total.toFixed(4)}</span>
-            </div>
-            <button type="button" class="btn-remove-ingrediente" onclick="removerIngrediente(${index})">
-                ×
-            </button>
-        </div>
-    `).join('');
-    
-    // Actualizar campos ocultos del formulario
     actualizarCamposReceta();
 }
 
-// Remover ingrediente de la receta
 function removerIngrediente(index) {
     ingredientesReceta.splice(index, 1);
     actualizarListaIngredientes();
     calcularPrecioFinal();
 }
 
-// Calcular precio final automáticamente
 function calcularPrecioFinal() {
     if (precioModificadoManual) return;
     
-    // Calcular costo total de ingredientes
     const costoTotalIngredientes = ingredientesReceta.reduce((total, ingrediente) => {
         return total + ingrediente.costo_total;
     }, 0);
     
     document.getElementById('costo-total-ingredientes').textContent = `$${costoTotalIngredientes.toFixed(2)}`;
     
-    // Calcular mano de obra (porcentaje del costo de ingredientes)
     const manoObraPorcentaje = parseFloat(document.getElementById('mano_obra').value) || 0;
     const costoManoObra = costoTotalIngredientes * (manoObraPorcentaje / 100);
     document.getElementById('costo-mano-obra').textContent = `$${costoManoObra.toFixed(2)}`;
     
-    // Calcular ganancia (porcentaje del costo total + mano de obra)
     const gananciaPorcentaje = parseFloat(document.getElementById('ganancia').value) || 0;
     const costoBase = costoTotalIngredientes + costoManoObra;
     const costoGanancia = costoBase * (gananciaPorcentaje / 100);
     document.getElementById('costo-ganancia').textContent = `$${costoGanancia.toFixed(2)}`;
     
-    // Calcular precio sugerido
     const precioSugerido = costoBase + costoGanancia;
     document.getElementById('precio-sugerido').textContent = `$${precioSugerido.toFixed(2)}`;
     
-    // Actualizar campo de precio (solo si no fue modificado manualmente)
     if (!precioModificadoManual) {
         document.getElementById('precio').value = precioSugerido.toFixed(2);
     }
 }
 
-// Actualizar campos ocultos del formulario con la receta
 function actualizarCamposReceta() {
     const recetaContainer = document.getElementById('receta-container');
+    recetaContainer.innerHTML = ''; 
     
-    // Limpiar campos anteriores
-    recetaContainer.innerHTML = '';
-    
-    // Agregar campos ocultos para cada ingrediente
     ingredientesReceta.forEach((ingrediente, index) => {
         recetaContainer.innerHTML += `
             <input type="hidden" name="ingredientes[${index}][id]" value="${ingrediente.ingrediente_id}">
@@ -787,12 +853,10 @@ function actualizarCamposReceta() {
     });
 }
 
-// Cuando el usuario modifica manualmente el precio
 function actualizarPrecioManual() {
     precioModificadoManual = true;
 }
 
-// Preview de imagen
 function previewImage(input) {
     const preview = document.getElementById('imagePreview');
     const file = input.files[0];
@@ -808,7 +872,8 @@ function previewImage(input) {
     }
 }
 
-// Filtrado de productos por categoría
+// --- Listeners ---
+
 document.addEventListener('DOMContentLoaded', function() {
     const categoryTabs = document.querySelectorAll('.category-tab');
     const productCards = document.querySelectorAll('.product-card');
@@ -830,38 +895,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Inicializar event listeners para cálculos de precio
+    // Asignar validación al formulario
+    if (productForm) {
+        productForm.addEventListener('submit', validateProductForm);
+    }
+    
+    // (Tus otros listeners de DOMContentLoaded)
     const manoObraInput = document.getElementById('mano_obra');
     const gananciaInput = document.getElementById('ganancia');
-    
     if (manoObraInput) {
         manoObraInput.addEventListener('input', calcularPrecioFinal);
     }
     if (gananciaInput) {
         gananciaInput.addEventListener('input', calcularPrecioFinal);
     }
-    
-    // Inicializar event listener para el input de cantidad
     const cantidadInput = document.getElementById('cantidad_ingrediente');
     if (cantidadInput) {
         cantidadInput.addEventListener('input', calcularCostoIngrediente);
     }
 });
 
-// Cerrar modales al hacer clic fuera
 window.addEventListener('click', function(event) {
-    const productModal = document.getElementById('productModal');
     const categoryModal = document.getElementById('categoryModal');
     const manageModal = document.getElementById('manageCategoriesModal');
     const customAlert = document.getElementById('customAlert');
-    
-    if (event.target === productModal) closeModal();
+
+    if (event.target === productModal) closeModal(); 
     if (event.target === categoryModal) closeCategoryModal();
     if (event.target === manageModal) closeManageCategoriesModal();
     if (event.target === customAlert) closeCustomAlert();
 });
 
-// Cerrar modales con ESC
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeModal();
@@ -871,9 +935,5 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Sistema de gestión de menú BullBurger cargado correctamente 🍔');
-});
 </script>
 {% endblock %}

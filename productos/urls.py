@@ -1,5 +1,6 @@
+# productos/urls.py
 from django.urls import path
-from . import views
+from . import views  # Asegúrate de que 'views' esté importado
 
 urlpatterns = [
     path('administrador/menu/', views.lista_productos, name='menu_administrador'),
@@ -15,11 +16,14 @@ urlpatterns = [
     path('cliente/carrito/', views.ver_carrito, name='ver_carrito'),
     path('carrito/editar/<int:item_id>/', views.editar_cantidad, name='editar_cantidad'),
     path('carrito/eliminar/<int:item_id>/', views.eliminar_item_carrito, name='eliminar_item_carrito'),
-
-    # ✅ NUEVO: endpoint AJAX para confirmar pago desde el modal
     path('carrito/checkout/', views.carrito_checkout, name='carrito_checkout'),
+    
+    # ==========================================================
+    # ✅ ¡AQUÍ ESTÁ LA LÍNEA QUE FALTA! ✅
+    # Añade esta ruta para la API que carga los datos de edición:
+    path('api/producto/<int:producto_id>/', views.api_detalle_producto_edicion, name='api_detalle_producto_edicion'),
+    # ==========================================================
     
     path('api/stock/', views.api_stock_productos, name='api_stock'),
     path("api/stock/<int:producto_id>/", views.api_stock_producto, name="api_stock_producto"),
-
 ]

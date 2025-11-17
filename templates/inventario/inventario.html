@@ -10,54 +10,18 @@
 <div class="admin-bg">
   <section class="contenedor_dashboard">
 <div class="inventario-dashboard">
-    <!-- Header del Inventario -->
     <div class="dashboard-header">
         <h1 class="welcome-title">Gestión de Inventario - BullBurger</h1>
         <p class="welcome-subtitle">Controla tus ingredientes y materias primas</p>
     </div>
 
-    <!-- QUITAMOS LOS MENSAJES DE DJANGO -->
-    
-    <!-- Estadísticas Rápidas -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">📦</div>
-            <div class="stat-info">
-                <h3>{{ total_ingredientes }}</h3>
-                <p>Total Ingredientes</p>
-            </div>
-        </div>
-        
-        <div class="stat-card warning">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-info">
-                <h3>{{ total_ingredientes_bajos }}</h3>
-                <p>Stock Bajo</p>
-            </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-info">
-                <h3>${{ valor_total_inventario|floatformat:2 }}</h3>
-                <p>Valor Inventario</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Botones de Acción -->
     <div class="action-buttons">
         <button class="add-ingrediente-btn" onclick="openAddIngredienteModal()">
             <span>+</span>
             Agregar Ingrediente
         </button>
-        <button class="historial-btn" onclick="openHistorialModal()">
-            <span>📊</span>
-            Ver Historial
-        </button>
     </div>
 
-    <!-- Alertas de Stock Bajo -->
     {% if ingredientes_bajos %}
     <div class="alert-section">
         <div class="alert-header">
@@ -81,7 +45,6 @@
     </div>
     {% endif %}
 
-    <!-- Tabla de Ingredientes -->
     <div class="table-section">
         <div class="section-header">
             <h3>📦 Todos los Ingredientes</h3>
@@ -166,7 +129,6 @@
 </div>
 </section>
 </div>
-
 <!-- Modal para Agregar Ingrediente -->
 <div id="addIngredienteModal" class="modal">
     <div class="modal-content">
