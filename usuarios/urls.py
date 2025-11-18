@@ -16,6 +16,7 @@ urlpatterns = [
     path('administrador/clientes/', views.lista_clientes, name='lista_clientes'),
     path('clientes/editar/<int:id>/', views.editar_cliente, name='editar_cliente'),
     path('clientes/eliminar/<int:id>/', views.eliminar_cliente, name='eliminar_cliente'),
+    path('clientes/crear/', views.crear_cliente, name='crear_cliente'),
 
     # Empleados
      path('administrador/empleados/', views.lista_empleados, name='lista_empleados'),

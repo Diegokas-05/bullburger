@@ -59,12 +59,27 @@
         {% elif producto.imagen_url %}
           <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}">
         {% else %}
-          <div class="image-placeholder">🍔</div>
+          <div class="image-placeholder">
+            {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
+            {% elif producto.categoria.nombre == 'Bebidas' %}🥤
+            {% elif producto.categoria.nombre == 'Snacks' %}🍟
+            {% elif producto.categoria.nombre == 'Combos' %}📦
+            {% elif producto.categoria.nombre == 'Postres' %}🍦
+            {% else %}🍽️{% endif %}
+          </div>
         {% endif %}
       </div>
 
       <div class="product-info">
-        <h3>{{ producto.nombre }}</h3>
+        <h3>
+          {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
+          {% elif producto.categoria.nombre == 'Bebidas' %}🥤
+          {% elif producto.categoria.nombre == 'Snacks' %}🍟
+          {% elif producto.categoria.nombre == 'Combos' %}📦
+          {% elif producto.categoria.nombre == 'Postres' %}🍦
+          {% else %}🍽️{% endif %}
+          {{ producto.nombre }}
+        </h3>
 
         <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
 
@@ -126,6 +141,7 @@
     </div>
   </div>
 </div>
+
 
 <!-- ============================================================
      ====================== SCRIPTS ===============================

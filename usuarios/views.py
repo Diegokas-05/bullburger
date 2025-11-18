@@ -198,6 +198,31 @@ def lista_clientes(request):
     return render(request, 'administrador/lista_clientes.html', context)
 
 @login_required
+@require_POST
+def crear_cliente(request):
+    """
+    Crea un usuario con rol 'Cliente' desde el modal de lista_clientes.
+    Recibe JSON: nombre, email, telefono, direccion, password, password2.
+    Devuelve: {ok: True, id} o {ok: False, errors}.
+    """
+    
+    data = json.loads(request.body or '{}')
+
+    # Rol "Cliente"
+    rol_cliente, _ = Rol.objects.get_or_create(nombre='Cliente')
+    data.setdefault('rol', rol_cliente.id)
+    data.setdefault('is_active', True)
+
+    
+    form = UsuarioAdminForm(data=data)
+    if form.is_valid():
+        user = form.save()
+        return JsonResponse({'ok': True, 'id': user.id})
+
+    
+    return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
+
+@login_required
 def lista_administradores(request):
     
     admins = Usuario.objects.filter(rol__nombre='Administrador').order_by('-date_joined')
