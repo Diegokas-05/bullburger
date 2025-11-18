@@ -1,0 +1,91 @@
+.welcome-container {
+    background-color: #ffffffff;
+    border-radius: 15px;
+    padding: 2rem 2rem 3rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+
+  .welcome-container h1 {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Aumentamos separación entre el título y las tarjetas */
+  .welcome-header {
+    margin-bottom: 6.0rem; /* 🔥 separa el bloque superior */
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+
+  .feature-card {
+    position: relative;
+    background-color: #fff;
+    border: 1px solid #e6d8c2;
+    border-radius: 18px;
+    text-align: center;
+    padding: 70px 20px 20px 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .feature-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  .circle-icon {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background-color: #fff8f2;
+    border: 6px solid #f8efe0;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .circle-icon img {
+    width: 65%;
+    height: 65%;
+    object-fit: contain;
+  }
+
+  .feature-card h3 {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #3b2a16;
+  }
+
+  .feature-card p {
+    color: #6a5b4b;
+  }
+
+  .feature-card .btn-primary {
+    margin-top: 10px;
+    background-color: #b71c1c;
+    border-color: #b71c1c;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+  }
+
+  .feature-card .btn-primary:hover {
+    background-color: #921212;
+    border-color: #921212;
+  }
+
+  @media (max-width: 600px) {
+    .circle-icon {
+      width: 70px;
+      height: 70px;
+      top: -30px;
+    }
+  }
