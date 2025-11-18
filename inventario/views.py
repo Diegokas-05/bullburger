@@ -110,20 +110,29 @@ def editar_ingrediente(request, ingrediente_id):
     })
     
 
+# inventario/views.py
+
 @login_required
 def eliminar_ingrediente(request, ingrediente_id):
     ingrediente = get_object_or_404(Ingrediente, id=ingrediente_id)
     
     if request.method == 'POST':
-        try:
-            # Eliminar TODOS los registros relacionados
-            Receta.objects.filter(ingrediente=ingrediente).delete()
-            MovimientoInventario.objects.filter(ingrediente=ingrediente).delete()
-            #AjusteInventario.objects.filter(ingrediente=ingrediente).delete()
+        
+        # 1. VERIFICACIÓN DE INTEGRIDAD: Bloquear si se usa en Receta
+        if Receta.objects.filter(ingrediente=ingrediente).exists():
+            messages.error(request, f'No se puede eliminar "{ingrediente.nombre}". Está siendo usado en una o más recetas de productos. Elimina las recetas primero.')
+            return redirect('inventario')
             
+        try:
+            # Si pasa la verificación, procedemos con la eliminación
+            MovimientoInventario.objects.filter(ingrediente=ingrediente).delete()
+            # Si tienes AjusteInventario, descomenta la siguiente línea si es necesario:
+            # AjusteInventario.objects.filter(ingrediente=ingrediente).delete() 
+            
+            # 2. Finalmente eliminar el ingrediente
             ingrediente.delete()
             
-            messages.success(request, 'Ingrediente eliminado completamente del sistema')
+            messages.success(request, f'Ingrediente "{ingrediente.nombre}" eliminado completamente.')
         except Exception as e:
             messages.error(request, f'Error al eliminar ingrediente: {str(e)}')
     

@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse, NoReverseMatch
+from django.db.models import Prefetch # ✅ AÑADIDA PARA OPTIMIZACIÓN
 
 # Modelos propios
 from .models import Producto, Categoria, CarritoItem
@@ -16,7 +17,6 @@ from .forms import ProductoForm
 
 # Inventario / Recetas / Movimientos
 from inventario.models import Ingrediente, Receta, MovimientoInventario
-
 # Pedido y detalle
 from pedidos.models import Pedido, DetallePedido
 
@@ -215,28 +215,40 @@ def eliminar_categoria(request, categoria_id):
 
 def menu_cliente(request):
     categorias = Categoria.objects.all().order_by('nombre')
-    productos_raw = Producto.objects.filter(disponible=True).select_related('categoria')
+    
+    # 1. Consulta Inicial y Verificación de Integridad (is_currently_available)
+    # Utilizamos prefetch_related para optimizar la carga de Recetas e Ingredientes.
+    productos_qs = Producto.objects.filter(disponible=True).select_related('categoria').prefetch_related(
+        Prefetch('receta_set', queryset=Receta.objects.select_related('ingrediente'))
+    ).order_by('nombre')
+    
+    # Filtramos la lista en Python usando la propiedad is_currently_available,
+    # lo cual excluye productos que no tienen stock para hacer NI UNA unidad.
+    productos_raw = [
+        producto for producto in productos_qs if producto.is_currently_available
+    ]
+    
+    # --- START: LÓGICA DE DEDUCCIÓN DEL CARRITO ---
 
-    # === Obtener carrito de BD ===
+    # Obtener carrito de BD (Items que el usuario ya reservó)
     items_carrito = CarritoItem.objects.filter(usuario=request.user).select_related("producto")
 
-    # === 1. Calcular consumo global de ingredientes en el carrito ===
-    consumo_global = {}  # ingrediente_id → total_usado
-
+    # 1. Calcular consumo global de ingredientes reservados por el carrito
+    consumo_global = {} 
     for item in items_carrito:
         recetas = Receta.objects.filter(producto=item.producto).select_related("ingrediente")
         for r in recetas:
             total_req = r.cantidad * item.cantidad
             consumo_global[r.ingrediente_id] = consumo_global.get(r.ingrediente_id, 0) + total_req
 
-    # === 2. Calcular stock REAL después de restar el carrito ===
+    # 2. Calcular stock REAL para la venta (descontando el carrito)
     productos_final = []
 
-    for producto in productos_raw:
-        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
+    for producto in productos_raw: # Iteramos sobre la lista ya filtrada por disponibilidad
+        # Volvemos a obtener las recetas para la deducción (es el enfoque más seguro para este tipo de cálculo)
+        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente") 
 
         if not recetas.exists():
-            # Producto sin receta = stock infinito
             producto.stock_disponible = 9999
             productos_final.append(producto)
             continue
@@ -246,15 +258,16 @@ def menu_cliente(request):
         for r in recetas:
             ing = r.ingrediente
 
-            # Stock real disponible después de restar lo que ya consume el carrito
+            # Stock disponible después de restar lo que el carrito está consumiendo
             stock_disp = ing.stock_actual - consumo_global.get(ing.id, 0)
             if stock_disp < 0:
                 stock_disp = 0
 
             if r.cantidad > 0:
+                # Calcular cuántas unidades de este producto pueden hacerse con el stock restante
                 stock_posibles.append(stock_disp // r.cantidad)
 
-        # Stock final del producto
+        # El stock final es el mínimo posible
         stock_real = min(stock_posibles) if stock_posibles else 0
 
         producto.stock_disponible = stock_real
@@ -262,12 +275,12 @@ def menu_cliente(request):
         if stock_real > 0:
             productos_final.append(producto)
 
+    # --- END: LÓGICA DE DEDUCCIÓN DEL CARRITO ---
+
     return render(request, 'cliente/menu_cliente.html', {
         'categorias': categorias,
         'productos': productos_final
     })
-
-
 from django.views.decorators.csrf import csrf_exempt
 
 

@@ -29,6 +29,39 @@ class Producto(models.Model):
             total += receta.cantidad * receta.ingrediente.costo_unitario
         return total
     
+    @property
+    def is_currently_available(self):
+        """
+        VERIFICACIÓN DE DISPONIBILIDAD EN TIEMPO REAL:
+        Comprueba si el admin lo marcó como disponible Y
+        si TODOS los ingredientes tienen stock 'normal'.
+        """
+        # 1. Chequeo del estado manual del administrador
+        if not self.disponible:
+            return False
+            
+        # 2. Chequeo de stock basado en la receta
+        # (Usamos prefetch_related en la VISTA para optimizar esto)
+        recetas = self.receta_set.all().select_related('ingrediente')
+
+        # Si no tiene receta (ej. una Coca-Cola), está disponible.
+        if not recetas.exists():
+            return True
+
+        for receta in recetas:
+            # Obtenemos el estado ('normal', 'bajo', 'agotado') del ingrediente
+            # Asumimos que tu modelo Ingrediente tiene la propiedad @property estado_stock
+            ingrediente_status = receta.ingrediente.estado_stock
+
+            # Si CUALQUIER ingrediente está 'bajo' o 'agotado',
+            # el producto completo NO está disponible.
+            if ingrediente_status == 'bajo' or ingrediente_status == 'agotado':
+                return False
+                
+        # Si pasó el bucle y todos los ingredientes están 'normal',
+        # el producto SÍ está disponible.
+        return True
+    
 class Promocion(models.Model):
     codigo = models.CharField(max_length=50, unique=True)
     descripcion = models.TextField()

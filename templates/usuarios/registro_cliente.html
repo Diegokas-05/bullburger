@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Registro - BullBurger{% endblock %}
 
 {% block content %}
 <div class="auth-container">
-    <!-- Lado izquierdo con imagen -->
     <div class="auth-image">
         <img src="/static/img/fondo_del_registre.jpg" alt="BullBurger" />
         <div class="overlay-text">
@@ -13,26 +13,21 @@
         </div>
     </div>
 
-    <!-- Lado derecho con el formulario -->
     <div class="auth-form">
-        <!-- Encabezado fijo -->
         <div class="auth-header">
             <h1 class="logo">Bull<span>Burger</span></h1>
             <p class="subtitle">Crea tu cuenta y comienza tu experiencia gourmet</p>
 
-            <!-- Tabs -->
             <div class="tabs">
                 <div class="tab active">Regístrate</div>
                 <a href="{% url 'login' %}" class="tab">Iniciar sesión</a>
             </div>
         </div>
 
-        <!-- Formulario con scroll -->
         <div class="form-scroll-container">
             <form method="post" class="form-content" id="registerForm" novalidate>
                 {% csrf_token %}
                 
-                <!-- Campo Nombre -->
                 <div class="form-group">
                     <input type="text" name="nombre" id="nombre" placeholder="Tu nombre completo" 
                            value="{{ form.nombre.value|default:'' }}"
@@ -41,7 +36,6 @@
                     <div class="error-message" id="nombreError"></div>
                 </div>
 
-                <!-- Campo Email -->
                 <div class="form-group">
                     <input type="email" name="email" id="email" placeholder="Tu correo electrónico" 
                            value="{{ form.email.value|default:'' }}"
@@ -49,7 +43,6 @@
                     <div class="error-message" id="emailError"></div>
                 </div>
 
-                <!-- Campo Teléfono -->
                 <div class="form-group">
                     <input type="tel" name="telefono" id="telefono" placeholder="Tu teléfono (opcional)" 
                            value="{{ form.telefono.value|default:'' }}"
@@ -57,7 +50,6 @@
                     <div class="error-message" id="telefonoError"></div>
                 </div>
 
-                <!-- Campo Dirección -->
                 <div class="form-group">
                     <textarea name="direccion" id="direccion" placeholder="Tu dirección (opcional)" 
                               rows="2"
@@ -65,29 +57,18 @@
                     <div class="error-message" id="direccionError"></div>
                 </div>
 
-                <!-- Campo Contraseña -->
                 <div class="form-group">
-                    <input type="password" name="password1" id="password1" placeholder="Crea una contraseña" 
+                    <input type="password" name="password" id="password1" placeholder="Crea una contraseña" 
                            class="{% if form.password1.errors %}error-field{% endif %}" required
                            minlength="8">
                     <div class="error-message" id="password1Error"></div>
                 </div>
 
-                <!-- Campo Confirmar Contraseña -->
                 <div class="form-group">
                     <input type="password" name="password2" id="password2" placeholder="Confirma tu contraseña" 
                            class="{% if form.password2.errors %}error-field{% endif %}" required>
                     <div class="error-message" id="password2Error"></div>
                 </div>
-
-                <!-- Errores generales del formulario -->
-                {% if form.non_field_errors %}
-                <div class="error-alert general-error">
-                    {% for error in form.non_field_errors %}
-                    <p>{{ error }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
 
                 <button type="submit" class="btn-submit">Crear cuenta</button>
             </form>
@@ -95,22 +76,8 @@
     </div>
 </div>
 
-<!-- Custom Alert Modal -->
 <div id="customAlert" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h2 id="alertTitle">Alerta</h2>
-            <span class="close" onclick="closeCustomAlert()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p id="alertMessage"></p>
-            <div class="form-actions" style="justify-content: center;">
-                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
-            </div>
-        </div>
     </div>
-</div>
 
 <style>
 /* --- Layout general --- */
@@ -207,10 +174,11 @@
     border-bottom: 3px solid transparent;
     color: #d7ccc8;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease; /* <-- TRANSICIÓN SUAVE AÑADIDA */
 }
 .tab:hover {
     color: #fff;
+    background-color: rgba(255, 255, 255, 0.05); /* <-- EFECTO HOVER SUAVE */
 }
 .tab.active {
     border-bottom: 3px solid #ffcc00;
@@ -224,6 +192,10 @@
     padding: 1rem 2.5rem 2rem;
     display: flex;
     flex-direction: column;
+
+    /* ✅ ANIMACIÓN DE TRANSICIÓN AÑADIDA */
+    opacity: 0;
+    animation: formFadeIn 0.5s ease-out 0.1s forwards;
 }
 
 /* --- Formulario --- */
@@ -289,29 +261,9 @@
     border: 1px solid #d32f2f;
 }
 
-/* Alertas de error - diseño compacto y estable */
-.error-alert {
-    color: #ffcdd2;
-    font-size: 0.75rem;
-    margin-top: 0.3rem;
-    padding: 0.4rem 0.6rem;
-    background: rgba(211, 47, 47, 0.1);
-    border-radius: 4px;
-    border-left: 2px solid #d32f2f;
-    line-height: 1.2;
-    word-wrap: break-word;
-    max-height: 2.4rem;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
-
-.error-alert.general-error {
-    margin-bottom: 0.5rem;
-    max-height: none;
-    -webkit-line-clamp: unset;
-}
+/* ❌ Alerta de error en línea eliminada ❌
+  .error-alert { ... } 
+*/
 
 /* --- Botón --- */
 .btn-submit {
@@ -334,7 +286,7 @@
     transform: translateY(-2px);
 }
 
-/* --- Modal Styles --- */
+/* --- Modal Styles (para tu customAlert) --- */
 .modal {
     display: none;
     position: fixed;
@@ -346,7 +298,6 @@
     background-color: rgba(0,0,0,0.5);
     animation: fadeIn 0.3s;
 }
-
 .modal-content {
     background-color: #fff;
     margin: 5% auto;
@@ -355,7 +306,6 @@
     animation: slideIn 0.3s;
     position: relative;
 }
-
 .modal-header {
     background: linear-gradient(135deg, #b71c1c, #d32f2f);
     color: white;
@@ -365,13 +315,11 @@
     justify-content: space-between;
     align-items: center;
 }
-
 .modal-header h2 {
     margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
 }
-
 .close {
     color: white;
     font-size: 28px;
@@ -379,23 +327,19 @@
     cursor: pointer;
     transition: opacity 0.3s;
 }
-
 .close:hover {
     opacity: 0.7;
 }
-
 .modal-body {
     padding: 25px;
     color: #333;
 }
-
 .form-actions {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
     margin-top: 20px;
 }
-
 .btn-cancel {
     background: #f5f5f5;
     color: #333;
@@ -405,11 +349,9 @@
     cursor: pointer;
     transition: all 0.3s;
 }
-
 .btn-cancel:hover {
     background: #e0e0e0;
 }
-
 .btn-save {
     background: linear-gradient(135deg, #b71c1c, #d32f2f);
     color: white;
@@ -419,7 +361,6 @@
     cursor: pointer;
     transition: all 0.3s;
 }
-
 .btn-save:hover {
     background: linear-gradient(135deg, #7f0000, #c62828);
     transform: translateY(-1px);
@@ -431,21 +372,11 @@
     to { opacity: 1; }
 }
 
-@keyframes slideIn {
+/* ✅ KEYFRAME PARA LA TRANSICIÓN SUAVE */
+@keyframes formFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
@@ -563,18 +494,20 @@
     border-radius: 3px;
 }
 
-/* Estilos para campos válidos */
-.form-group input:valid:not(:placeholder-shown) {
-    border-left: 3px solid #4caf50;
-}
-
-/* Estilos para campos inválidos */
-.form-group input:invalid:not(:placeholder-shown) {
+/* Estilos para campos válidos/inválidos (del validador JS) */
+.form-group input.error-field,
+.form-group textarea.error-field {
     border-left: 3px solid #f44336;
+}
+.form-group input:valid:not(.error-field):not(:placeholder-shown),
+.form-group textarea:valid:not(.error-field):not(:placeholder-shown) {
+    border-left: 3px solid #4caf50;
 }
 </style>
 
 <script>
+// (Tu script de validación de formulario existente va aquí)
+// ...
 // Función de alerta personalizada
 function showCustomAlert(title, message, confirmCallback = null) {
     document.getElementById('alertTitle').textContent = title;
@@ -602,7 +535,7 @@ function validateLettersOnly(input) {
     const errorElement = document.getElementById(input.id + 'Error');
     
     // Permitir letras, espacios y algunos caracteres especiales
-    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
+    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ0-9\s\-.,!¡¿?()&'"]+$/;
     
     if (!value) {
         showError(input, errorElement, 'Este campo es obligatorio');
@@ -610,7 +543,7 @@ function validateLettersOnly(input) {
     }
     
     if (!lettersOnly.test(value)) {
-        showError(input, errorElement, 'Solo se permiten letras y espacios');
+        showError(input, errorElement, 'Contiene caracteres no válidos');
         return false;
     }
     
@@ -741,7 +674,7 @@ function validateRegisterForm(event) {
     if (!validatePasswordConfirm(password2)) isValid = false;
     
     if (!isValid) {
-        event.preventDefault();
+        event.preventDefault(); // Detiene el envío
         showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario antes de continuar.');
     }
     
@@ -770,41 +703,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const telefonoInput = document.getElementById('telefono');
     const nombreInput = document.getElementById('nombre');
     
-    // Formatear automáticamente el teléfono
-    telefonoInput.addEventListener('input', function() {
-        formatPhone(this);
-    });
-    
-    // Validar que el nombre solo contenga letras y espacios
-    nombreInput.addEventListener('input', function() {
-        validateNameInput(this);
-    });
-    
-    // Validación en tiempo real
-    nombreInput.addEventListener('blur', function() {
-        validateLettersOnly(this);
-    });
-    
-    document.getElementById('email').addEventListener('blur', function() {
-        validateEmail(this);
-    });
-    
-    telefonoInput.addEventListener('blur', function() {
-        validatePhone(this);
-    });
-    
-    document.getElementById('password1').addEventListener('blur', function() {
-        validatePassword(this);
-    });
-    
-    document.getElementById('password2').addEventListener('blur', function() {
-        validatePasswordConfirm(this);
-    });
-    
-    // Validación al enviar el formulario
-    form.addEventListener('submit', validateRegisterForm);
-    
-    console.log('Sistema de registro BullBurger cargado correctamente 🍔');
+    if (form) {
+         // Formatear automáticamente el teléfono
+        if(telefonoInput) {
+            telefonoInput.addEventListener('input', function() {
+                formatPhone(this);
+            });
+            telefonoInput.addEventListener('blur', function() {
+                validatePhone(this);
+            });
+        }
+        
+        // Validar que el nombre solo contenga letras y espacios
+        if(nombreInput) {
+            nombreInput.addEventListener('input', function() {
+                validateNameInput(this);
+            });
+             nombreInput.addEventListener('blur', function() {
+                validateLettersOnly(this);
+            });
+        }
+       
+        document.getElementById('email')?.addEventListener('blur', function() {
+            validateEmail(this);
+        });
+        
+        document.getElementById('password1')?.addEventListener('blur', function() {
+            validatePassword(this);
+        });
+        
+        document.getElementById('password2')?.addEventListener('blur', function() {
+            validatePasswordConfirm(this);
+        });
+        
+        // Validación al enviar el formulario
+        form.addEventListener('submit', validateRegisterForm);
+        
+        console.log('Sistema de registro BullBurger cargado correctamente 🍔');
+    }
 });
 
 // Cerrar modal al hacer clic fuera

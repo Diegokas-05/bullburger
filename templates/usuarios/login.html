@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="auth-container">
-    <!-- Lado izquierdo con imagen -->
     <div class="auth-image">
         <img src="/static/img/fondo_del_registre.jpg" alt="BullBurger" />
         <div class="overlay-text">
@@ -13,40 +12,28 @@
         </div>
     </div>
 
-    <!-- Lado derecho con el formulario -->
     <div class="auth-form">
-        <!-- Encabezado fijo - MISMA ESTRUCTURA QUE REGISTRO -->
         <div class="auth-header">
             <h1 class="logo">Bull<span>Burger</span></h1>
             <p class="subtitle">Inicia sesión en tu cuenta</p>
 
-            <!-- Tabs -->
             <div class="tabs">
                 <div class="tab active">Iniciar Sesión</div>
                 <a href="{% url 'registro_cliente' %}" class="tab">Crear Cuenta</a>
             </div>
         </div>
 
-        <!-- Formulario con scroll - MISMA ESTRUCTURA QUE REGISTRO -->
         <div class="form-scroll-container">
-            <!-- MOSTRAR ERRORES DE LOGIN -->
-            {% if form.errors %}
-            <div class="error-alert general-error">
-                <p>❌ El correo electrónico o la contraseña son incorrectos</p>
-            </div>
-            {% endif %}
-
+            
             <form method="post" class="form-content">
                 {% csrf_token %}
                 
-                <!-- Campo Email -->
                 <div class="form-group">
                     <input type="email" name="username" placeholder="Correo electrónico" required
                            value="{{ form.username.value|default:'' }}"
                            class="{% if form.username.errors %}error-field{% endif %}">
                 </div>
                 
-                <!-- Campo Contraseña -->
                 <div class="form-group">
                     <input type="password" name="password" placeholder="Contraseña" required
                            class="{% if form.password.errors %}error-field{% endif %}">
@@ -153,10 +140,11 @@
     border-bottom: 3px solid transparent;
     color: #d7ccc8;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease; /* <-- TRANSICIÓN SUAVE AÑADIDA */
 }
 .tab:hover {
     color: #fff;
+    background-color: rgba(255, 255, 255, 0.05); /* <-- EFECTO HOVER SUAVE */
 }
 .tab.active {
     border-bottom: 3px solid #ffcc00;
@@ -170,6 +158,10 @@
     padding: 1rem 2.5rem 2rem;
     display: flex;
     flex-direction: column;
+    
+    /* ✅ ANIMACIÓN DE TRANSICIÓN AÑADIDA */
+    opacity: 0;
+    animation: formFadeIn 0.5s ease-out 0.1s forwards;
 }
 
 /* --- Formulario --- */
@@ -181,7 +173,7 @@
     flex-direction: column;
     gap: 0.8rem;
     flex: 1;
-    justify-content: flex-start; /* Cambiado: empieza desde arriba */
+    justify-content: flex-start;
 }
 .form-group {
     display: flex;
@@ -213,21 +205,9 @@
     border: 1px solid #d32f2f;
 }
 
-/* Alertas de error - diseño compacto y estable */
-.error-alert {
-    color: #ffcdd2;
-    font-size: 0.85rem;
-    margin-top: 0.3rem;
-    padding: 0.8rem;
-    background: rgba(211, 47, 47, 0.1);
-    border-radius: 6px;
-    border-left: 3px solid #d32f2f;
-    text-align: center;
-}
-
-.error-alert.general-error {
-    margin-bottom: 0.5rem;
-}
+/* ❌ Alerta de error en línea eliminada ❌
+  .error-alert { ... } 
+*/
 
 /* --- Botón --- */
 .btn-submit {
@@ -237,7 +217,7 @@
     padding: 0.9rem;
     border-radius: 30px;
     font-weight: 600;
-    margin-top: 1rem; /* Cambiado: margin normal en lugar de auto */
+    margin-top: 1rem;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -251,10 +231,11 @@
 }
 
 /* --- Animaciones --- */
-@keyframes slideIn {
+/* ✅ KEYFRAME PARA LA TRANSICIÓN SUAVE */
+@keyframes formFadeIn {
     from {
         opacity: 0;
-        transform: translateY(-5px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
