@@ -1,3 +1,10 @@
+.cliente-bg {
+    background-color: #fdf8ef;
+    min-height: 100vh;
+    padding: 3rem;
+    border-radius: 10px;
+}
+
 /* ============ CONTENEDOR GENERAL ============ */
 .pedidos-page {
     max-width: 1200px;

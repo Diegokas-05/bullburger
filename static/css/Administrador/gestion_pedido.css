@@ -1,6 +1,14 @@
 /* ============================
    ESTILO GENERAL
 ============================ */
+
+.admin-bg {
+    background-color: #fdf8ef;
+    min-height: 100vh;
+    padding: 3rem;
+    border-radius: 10px;
+}
+
 .gestion-pedidos-container {
     background: #ffffff;
     padding: 2rem;
