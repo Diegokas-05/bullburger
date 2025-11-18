@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entorno virtual (si usas 'venv', 'env', etc.)
+venv/
+env/
+.env
+
+# Archivos de VS Code (opcional)
+.vscode/
