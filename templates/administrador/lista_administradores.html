@@ -4,7 +4,7 @@
 {% block content %}
 {% load static %}
 
-<link rel="stylesheet" href="{% static 'css/listas-Usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'css/listas-usuarios.css' %}">
 
 <div class="clientes-container">
   <div class="clientes-header">
@@ -19,42 +19,44 @@
     </div>
   </div>
 
-  <table class="tabla-clientes" id="tabla-admins">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Nombre</th>
-        <th>Correo</th>
-        <th>Teléfono</th>
-        <th>Dirección</th>
-        <th>Creado en</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for a in admins %}
-      <tr class="data-row" data-id="{{ a.id }}">
-        <td>{{ a.id }}</td>
-        <td class="a-nombre">{{ a.nombre }}</td>
-        <td class="a-email">{{ a.email }}</td>
-        <td class="a-telefono">{{ a.telefono|default:"-" }}</td>
-        <td class="a-direccion">{{ a.direccion|default:"-" }}</td>
-        <td>{{ a.creado_en|date:"d/m/Y H:i" }}</td>
-        <td>
-          <div class="action-buttons-small">
-            <button class="btn-action btn-edit" onclick="openEditAdminModal({{ a.id }})">✏️</button>
-            <button class="btn-action btn-delete" onclick="confirmDeleteAdmin({{ a.id }}, '{{ a.nombre|escapejs }}')">🗑️</button>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="7" class="sin-resultados">No se encontraron administradores.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+  <div class="table-responsive">
+      <table class="tabla-clientes" id="tabla-admins">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Dirección</th>
+            <th>Creado en</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in admins %}
+          <tr class="data-row" data-id="{{ a.id }}">
+            <td>{{ a.id }}</td>
+            <td class="a-nombre">{{ a.nombre }}</td>
+            <td class="a-email">{{ a.email }}</td>
+            <td class="a-telefono">{{ a.telefono|default:"-" }}</td>
+            <td class="a-direccion">{{ a.direccion|default:"-" }}</td>
+            
+            <td>{{ a.creado_en|date:"d/m/Y" }}</td>
+            
+            <td>
+              <div class="action-buttons-small">
+                <button class="btn-action btn-edit" onclick="openEditAdminModal({{ a.id }})">✏️</button>
+                <button class="btn-action btn-delete" onclick="confirmDeleteAdmin({{ a.id }}, '{{ a.nombre|escapejs }}')">🗑️</button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="sin-resultados">No se encontraron administradores.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+  </div> </div>
 
-<!-- === Modal CREAR Administrador === -->
 <div id="createAdminModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -111,7 +113,6 @@
 </div>
 
 
-<!-- === Modal EDITAR Administrador === -->
 <div id="editAdminModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
@@ -161,7 +162,6 @@
       </form>
     </div>
 
-    <!-- BOTONERA fuera del body -->
     <div class="modal-footer">
       <button type="button" class="btn-cancel" onclick="closeEditAdminModal()">Cancelar</button>
       <button type="submit" form="editAdminForm" class="btn-save">Actualizar</button>
@@ -170,7 +170,6 @@
 </div>
 
 
-<!-- Modal de alerta (reutilizado) -->
 <div id="customAlert" class="modal">
   <div class="modal-content" style="max-width: 400px;">
     <div class="modal-header">
@@ -414,18 +413,18 @@ function closeCustomAlert() {
 
 /* ===== Modal Crear ===== */
 function openCreateAdminModal() {
-  document.getElementById('createAdminModal').style.display = 'block';
+  document.getElementById('createAdminModal').style.display = 'block';
 }
 
 function closeCreateAdminModal() {
-  // 1. Oculta el modal (esto ya lo tenías)
-  document.getElementById('createAdminModal').style.display = 'none';
-  
-  // 2. Resetea el formulario para borrar los campos
-  document.getElementById('createAdminForm').reset();
-  
-  // 3. Limpia todos los mensajes de error que quedaron
-  clearAllErrors(document.getElementById('createAdminForm'));
+  // 1. Oculta el modal (esto ya lo tenías)
+  document.getElementById('createAdminModal').style.display = 'none';
+  
+  // 2. Resetea el formulario para borrar los campos
+  document.getElementById('createAdminForm').reset();
+  
+  // 3. Limpia todos los mensajes de error que quedaron
+  clearAllErrors(document.getElementById('createAdminForm'));
 }
 
 function submitCreateAdmin(e) {

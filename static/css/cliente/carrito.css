@@ -1,4 +1,19 @@
-/* ---------- SECCIÓN CARRITO ---------- */
+/* VARIBLES DE TEMA BULLBURGER */
+:root {
+    --primary: #d35400;       /* Naranja quemado */
+    --primary-hover: #e67e22;
+    --dark: #2c3e50;          /* Azul oscuro/Gris */
+    --bg-page: #f4f6f8;       /* Fondo suave */
+    --white: #ffffff;
+    --green: #27ae60;
+    --red: #c0392b;
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* RESET BÁSICO */
+* { box-sizing: border-box; }
+
 .cliente-bg {
     background-color: #fdf8ef;
     min-height: 100vh;
@@ -12,379 +27,489 @@
     text-align: center;
     margin-bottom: 2rem;
     padding: 2rem;
-    background: linear-gradient(135deg, #5a3b2e, #8b5e3c);
+    background: linear-gradient(135deg, #8B4513, #D2691E);
     border-radius: 15px;
     color: white;
     box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
 }
 
-.separador {
-  border: 2px solid #3e2c1c;
-  width: 80%;
-  margin: 0 auto 2rem auto;
+
+.carrito-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* HEADER */
+.carrito-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.subtitulo {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* GRID LAYOUT (Desktop: Izquierda productos, Derecha total) */
+.carrito-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+/* LISTA DE ITEMS */
+.lista-productos {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .carrito-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 16px;
-  margin: 1rem auto;
-  padding: 1.2rem 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  max-width: 900px; /* ← más estrecho */
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.03);
 }
 
-/* Imagen más pequeña y redondeada */
-.item-img {
-  width: 250px;
-  height: 200px;
-  border-radius: 12px;
-  object-fit: cover;
-  margin-right: 1.2rem;
+.carrito-item:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary);
 }
 
-/* Contenedor de información alineado a la derecha */
-.item-info {
-  flex: 1;
-  text-align: center; /* ← alinea todo a la derecha */
-  padding: 0.5rem;
+/* IMAGEN */
+.img-wrapper {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #eee;
 }
 
-.item-info h3 {
-  font-family: 'Luckiest Guy', cursive;
-  color: #3e2c1c;
-  margin-bottom: 0.3rem;
-  font-size: 1.3rem;
+.img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.item-descripcion {
-  font-size: 0.9rem;
-  color: #6b5f4c;
-  margin-bottom: 0.4rem;
-  line-height: 1.3;
+/* DETALLES */
+.item-detalles {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.item-precio {
-  color: #27ae60;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
+.item-detalles h3 {
+    margin: 0 0 5px 0;
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 1.2rem;
 }
 
-/* Cantidad + acciones alineadas en una línea limpia */
-.cantidad-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-top: 0.6rem;
+.desc {
+    font-size: 0.9rem;
+    color: #95a5a6;
+    margin: 0 0 10px 0;
 }
 
-.input-cantidad {
-  width: 60px;
-  text-align: center;
-  border: 2px solid #f4c542;
-  border-radius: 10px;
-  padding: 0.3rem;
-  font-weight: bold;
-  transition: border-color 0.2s;
-}
-
-.input-cantidad:focus {
-  border-color: #f8cd57;
-  outline: none;
-}
-
-.acciones-container {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* Botones estilo BullBurger — más grandes y con animación */
-.btn-editar,
-.btn-eliminar {
-  border: none;
-  border-radius: 12px;
-  padding: 0.7rem 1.4rem;  /* ← más grandes */
-  font-weight: bold;
-  font-size: 1rem;         /* ← texto más legible */
-  cursor: pointer;
-  transition: all 0.25s ease;
-  color: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-}
-
-/* Botón verde — Actualizar */
-.btn-editar {
-  background: #27ae60;
-}
-.btn-editar:hover {
-  background: #2ecc71;
-  transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
-}
-
-/* Botón rojo — Eliminar */
-.btn-eliminar {
-  background: #c0392b;
-}
-.btn-eliminar:hover {
-  background: #e74c3c;
-  transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
-}
-
-/* Total y botón de pago */
-.carrito-total {
-  text-align: center;
-  margin-top: 2.5rem;
-}
-
-.btn-pagar {
-  background: #dbb344;
-  border: none;
-  border-radius: 20px;
-  padding: 1rem 2.5rem;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(165, 174, 39, 0.4);
-}
-
-.btn-pagar:hover {
-  transform: scale(1.08);
-  background: #f4c542;
-  box-shadow: 0 6px 18px rgba(175, 166, 32, 0.4);
-}
-
-/* Botón volver */
-.btn-volver {
-  display: inline-block;
-  margin-top: 1rem;
-  background: #3e2c1c;
-  color: white;
-  padding: 0.8rem 1.5rem;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: transform 0.25s ease, background 0.25s ease;
-}
-
-.btn-volver:hover {
-  background: #5b3b24;
-  transform: scale(1.05);
-}
-
-
-/* checkout_modal.css */
-
-.bb-checkout {
-  width: 900px !important;
-  max-width: 96vw;
-  background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-
-/* --- Animación suave de entrada --- */
-@keyframes bb-fadeIn {
-  from { opacity: 0; transform: scale(0.96) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-/* --- Grid principal --- */
-.bb-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 20px;
-  padding: 28px;
-  background: linear-gradient(145deg, #fafafa, #f8f4ef);
-}
-
-/* --- Tarjeta base (sin animaciones hover) --- */
-.bb-card {
-  background: #ffffff;
-  border: 1px solid #ececec;
-  border-radius: 16px;
-  padding: 18px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-}
-
-/* --- Títulos --- */
-.bb-h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: #e74c3c; /* rojo BullBurger */
-  margin: 8px 0 14px;
-  letter-spacing: 0.3px;
-}
-
-/* --- Etiquetas e inputs --- */
-.bb-label {
-  font-weight: 600;
-  color: #333;
-  margin: 8px 0 5px;
-  display: block;
-  font-size: 14px;
-}
-
-.bb-input, .bb-select, .bb-textarea {
-  width: 100%;
-  border: 1px solid #cfd8dc;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 14px;
-  outline: none;
-  background: #fff;
-  transition: all 0.2s ease;
-}
-
-.bb-input:focus, .bb-select:focus, .bb-textarea:focus {
-  border-color: #e74c3c;
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15);
-}
-
-/* --- Radio Buttons (entrega/pago) --- */
-.bb-radio {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.bb-radio label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid #dbe7f0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  background: #fff;
-  transition: all 0.25s ease;
-}
-
-.bb-radio input {
-  accent-color: #e74c3c;
-}
-
-.bb-radio label:hover {
-  border-color: #e74c3c;
-  background: #fff7f6;
-}
-
-/* --- Mapa --- */
-.bb-mapa {
-  height: 280px;
-  border: 1px solid #ececec;
-  border-radius: 14px;
-  background: #f8f4ef url('https://tile.openstreetmap.org/5/5/12.png') center/cover no-repeat;
-  position: relative;
-  overflow: hidden;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.bb-search {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  display: flex;
-  gap: 8px;
-  background: #fff;
-  border-radius: 999px;
-  padding: 8px 12px;
-  border: 1px solid #dbe7f0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-}
-.bb-search input {
-  border: 0;
-  outline: 0;
-  width: 100%;
-  font-size: 14px;
-  color: #333;
-}
-
-/* --- Fila flexible --- */
-.bb-row {
-  display: flex;
-  gap: 12px;
-}
-.bb-row > * {
-  flex: 1;
-}
-
-.bb-muted {
-  font-size: 12px;
-  color: #777;
-  margin-top: 6px;
-}
-
-/* === SweetAlert2 (botones BullBurger) === */
-.swal2-confirm, .swal2-cancel {
-  font-family: 'Poppins', 'Segoe UI', sans-serif;
-  font-weight: 600;
-  font-size: 15px !important;
-  padding: 12px 24px !important;
-  border-radius: 10px !important;
-  border: none !important;
-  transition: all 0.25s ease !important;
-}
-
-/* Confirmar (verde BullBurger) */
-.swal2-confirm {
-  background-color: #27ae60 !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
-}
-.swal2-confirm:hover {
-  background-color: #219150 !important;
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(39, 174, 96, 0.5);
-}
-.swal2-confirm:active {
-  transform: scale(0.96);
-  box-shadow: none;
-}
-
-/* Cancelar (rojo BullBurger) */
-.swal2-cancel {
-  background-color: #e74c3c !important;
-  color: #fff !important;
-  margin-left: 10px !important;
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-}
-.swal2-cancel:hover {
-  background-color: #c0392b !important;
-  transform: scale(1.05);
-  box-shadow: 0 6px 18px rgba(231, 76, 60, 0.5);
-}
-.swal2-cancel:active {
-  transform: scale(0.96);
-  box-shadow: none;
-}
-
-/* ANIMACIÓN SHAKE */
-.shake {
-  animation: shake 0.25s ease-in-out 0s 2;
-}
-
-@keyframes shake {
-  0% { transform: translateX(0);}
-  25% { transform: translateX(-4px);}
-  50% { transform: translateX(4px);}
-  75% { transform: translateX(-4px);}
-  100% { transform: translateX(0);}
+.precio {
+    font-size: 1.3rem;
+    color: var(--primary);
+    font-weight: 700;
+    font-family: 'Luckiest Guy', cursive;
 }
 
 .stock-info {
-  font-size: 0.85rem;
-  color: #c0392b;
-  margin-top: 5px;
+    font-size: 0.8rem;
+    color: var(--green);
+    margin: 0;
+}
+
+/* CONTROLES (Input y Botones) */
+.item-controles {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 140px;
+}
+
+.item-controles label {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    font-weight: 600;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f0f2f5;
+    padding: 5px;
+    border-radius: 50px;
+}
+
+.input-cantidad {
+    width: 50px;
+    border: none;
+    background: transparent;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+    outline: none;
+    color: var(--dark);
+}
+
+/* Botón de actualizar (flechita) */
+.btn-update {
+    background: var(--green);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-update:hover {
+    background: #219150;
+    transform: rotate(180deg);
+}
+
+.btn-eliminar-texto {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: 0.2s;
+}
+
+.btn-eliminar-texto:hover {
+    color: #c0392b;
+}
+
+/* RESUMEN / TOTAL (Tarjeta Lateral) */
+.resumen-pago {
+    position: sticky;
+    top: 20px;
+}
+
+.resumen-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 2px solid var(--primary); /* Borde distintivo */
+}
+
+.resumen-card h3 {
+    margin-top: 0;
+    color: var(--dark);
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1.5rem;
+    border-bottom: 2px dashed #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.resumen-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    color: #7f8c8d;
+}
+
+.total-row {
+    font-size: 1.5rem;
+    color: var(--dark);
+    font-weight: 800;
+    border-top: 2px solid #eee;
+    padding-top: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-pagar {
+    width: 100%;
+    background: linear-gradient(135deg, var(--primary), #d35400);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(211, 84, 0, 0.4);
+    margin-top: 1rem;
+}
+
+.btn-pagar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(211, 84, 0, 0.5);
+}
+
+.btn-seguir-comprando {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-seguir-comprando:hover {
+    color: var(--primary);
+}
+
+/* ESTADO VACÍO */
+.carrito-vacio {
+    text-align: center;
+    padding: 4rem;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+.icono-vacio { font-size: 4rem; margin-bottom: 1rem; }
+.btn-volver {
+    display: inline-block;
+    margin-top: 1.5rem;
+    background: var(--dark);
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-volver:hover { background: black; }
+
+/* --------------------------------- */
+/* RESPONSIVE (MÓVIL)                */
+/* --------------------------------- */
+@media (max-width: 768px) {
+    .carrito-grid {
+        grid-template-columns: 1fr; /* Una sola columna */
+    }
+    
+    .carrito-item {
+        flex-direction: column; /* Stack vertical */
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .img-wrapper {
+        width: 100%;
+        height: 180px; /* Imagen más grande en móvil */
+    }
+
+    .item-detalles {
+        width: 100%;
+    }
+    
+    .item-controles {
+        width: 100%;
+        align-items: center;
+        flex-direction: row;
+        justify-content: center;
+        border-top: 1px solid #eee;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .btn-eliminar-texto { margin-left: auto; }
+
+    .resumen-pago {
+        position: relative; /* Ya no es sticky en móvil */
+        order: -1; /* Si quieres que el total salga ARRIBA pon -1, si no quítalo */
+    }
+    
+    .titulo { font-size: 2rem; }
+}
+
+/* ESTILOS DEL MODAL SWEETALERT (COPIADOS Y MEJORADOS) */
+.bb-checkout { border-radius: 20px !important; font-family: 'Poppins', sans-serif !important; }
+.bb-h2 { color: var(--primary) !important; }
+.bb-input:focus, .bb-select:focus, .bb-textarea:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(211, 84, 0, 0.15) !important;
+}
+.bb-radio input:checked + label {
+    border-color: var(--primary) !important;
+    background: rgba(211, 84, 0, 0.05) !important;
+    color: var(--primary) !important;
+}
+
+/* =========================================
+   ESTILOS DEL MODAL DE PAGO (PREMIUM)
+   ========================================= */
+
+/* Contenedor principal del Modal */
+.bb-checkout {
+    width: 900px !important;
+    max-width: 95vw !important;
+    padding: 0 !important; /* Esto quitó el espacio original */
+    border-radius: 20px !important;
+    background: #f9f9f9 !important;
+    font-family: 'Poppins', sans-serif !important;
+    overflow: hidden;
+}
+
+/* Título del SweetAlert */
+.bb-checkout .swal2-title {
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    color: #fff;
+    padding: 1rem;
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 1.8rem;
+    margin: 0 !important;
+    letter-spacing: 1px;
+}
+
+/* Contenedor del contenido (GRID) */
+.bb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    padding: 25px;
+    text-align: left;
+}
+
+/* Tarjetas internas */
+.bb-card {
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 1px solid #eaeaea;
+    transition: transform 0.2s;
+}
+
+.bb-card:hover {
+    border-color: #d35400;
+}
+
+/* Títulos de sección (h2) */
+.bb-h2 {
+    font-size: 1.2rem;
+    color: #d35400;
+    border-bottom: 2px dashed #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Labels */
+.bb-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+/* Inputs y Selects */
+.bb-input, .bb-select, .bb-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #fdfdfd;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.bb-input:focus, .bb-select:focus, .bb-textarea:focus {
+    border-color: #27ae60;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(211, 84, 0, 0.1);
+}
+
+.bb-input:disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Radio Buttons */
+.bb-radio {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bb-radio label {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    color: #444;
+}
+
+.bb-radio label:hover {
+    background: #fff8f0;
+    border-color: #edcdb6;
+}
+
+.bb-radio input {
+    margin-right: 10px;
+    accent-color: #d35400;
+    transform: scale(1.2);
+}
+
+/* Textarea Dirección */
+.bb-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Texto pequeño de ayuda */
+.bb-muted {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* --- NUEVO: Espaciado para los botones --- */
+.bb-checkout .swal2-actions {
+    margin-top: 1rem !important;
+    padding-bottom: 2rem !important;
+    width: 100%;
+}
+
+/* RESPONSIVE PARA MÓVIL */
+@media (max-width: 768px) {
+    .bb-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 15px;
+    }
+    .bb-checkout {
+        width: 100% !important;
+    }
 }

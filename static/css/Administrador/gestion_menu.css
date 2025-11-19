@@ -13,24 +13,6 @@
     margin: auto;
 }
 
-/* === Títulos y textos === */
-.admin-title {
-    font-size: 2.5rem;
-    color: #3e2723;
-}
-
-.admin-subtitle {
-    color: #8d6e63;
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-}
-
-.admin-description {
-    margin-top: 2rem;
-    color: #6d4c41;
-    line-height: 1.6;
-}
-
 /* === Tarjetas de productos === */
 .product-grid {
     display: grid;

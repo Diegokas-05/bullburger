@@ -285,17 +285,78 @@ input:-webkit-autofill:focus {
   box-shadow: 0 0 0px 1000px #fff inset !important;
 }
 
-/* === Responsivo === */
+/* === RESPONSIVO CON SCROLL HORIZONTAL === */
 @media (max-width: 768px) {
-  .clientes-container {
-    padding: 20px;
-  }
 
-  .buscador input[type="text"] {
-    width: 100%;
-  }
+    /* 1. Ajustes del contenedor general */
+    .clientes-container {
+        padding: 15px;
+        margin: 20px auto;
+        width: 95%; 
+        box-sizing: border-box;
+    }
 
-  .modal-content {
-    width: 95%;
-  }
+    /* 2. Ajustes del Header y Buscador */
+    .clientes-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .buscador {
+        width: 100%;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .buscador form {
+        display: flex;
+        gap: 5px;
+    }
+
+    .buscador input[type="text"] {
+        width: 100%;
+        flex-grow: 1;
+    }
+
+    .btn-crear {
+        width: 100%;
+    }
+
+    /* 3. EL CONTENEDOR QUE HACE LA MAGIA (SCROLL) */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto; /* Activa el scroll horizontal */
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 15px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+    }
+
+    /* 4. La tabla debe ser ancha para forzar el scroll */
+    .tabla-clientes {
+        width: 100%;
+        min-width: 800px; /* Ancho mínimo garantizado */
+    }
+
+    /* 5. Evitar saltos de línea feos */
+    .tabla-clientes th, 
+    .tabla-clientes td {
+        white-space: nowrap; 
+    }
+
+    /* 6. Modal Responsive */
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+        gap: 10px;
+    }
+    
+    .btn-cancel, .btn-save {
+        width: 100%;
+    }
 }
