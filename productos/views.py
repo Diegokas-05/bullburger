@@ -1,7 +1,7 @@
 # productos/views.py
 from decimal import Decimal
 import json
-
+import re 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -443,9 +443,8 @@ def eliminar_item_carrito(request, item_id):
 
 
 # ==============================================
-# 🔹 CHECKOUT — PAGO Y GENERACIÓN DE FACTURA
+#  CHECKOUT — PAGO Y GENERACIÓN DE FACTURA
 # ==============================================
-
 @login_required
 @require_POST
 def carrito_checkout(request):
@@ -470,17 +469,16 @@ def carrito_checkout(request):
 
     if metodo == 'tarjeta' and (not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19)):
         return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
-    
+
+    # 🔹 NUEVO: si el usuario escribió teléfono y es distinto al que ya tiene, se actualiza el perfil
+    if telefono and telefono != (request.user.telefono or ''):
+        request.user.telefono = telefono
+        request.user.save(update_fields=['telefono'])
 
     items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
     if not items.exists():
         return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
-    
-      # 🔹 NUEVO: si el usuario escribió teléfono y es distinto al que ya tiene, se actualiza el perfil
-    if telefono and telefono != (request.user.telefono or ''):
-        request.user.telefono = telefono
-        request.user.save(update_fields=['telefono'])
-        
+
     subtotal = sum((it.producto.precio * it.cantidad for it in items), Decimal('0.00'))
     total = subtotal
 
@@ -551,7 +549,7 @@ def carrito_checkout(request):
             # Vaciar carrito
             items.delete()
 
-            
+            # ✅ Generar factura PDF
             factura_url = generar_factura_pdf(pedido)
             
             factura_path_relativo = None
@@ -572,7 +570,6 @@ def carrito_checkout(request):
         return JsonResponse({'ok': False, 'error': str(ve)}, status=400)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'Error interno: {e}'}, status=500)
-
 
 def api_stock_productos(request):
     productos = Producto.objects.filter(disponible=True)

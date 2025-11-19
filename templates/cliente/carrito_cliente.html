@@ -219,11 +219,7 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
 
           <label class="bb-label">Teléfono</label>
           <input
-            id="swal-telefono"
-            class="bb-input"
-            value="{{ request.user.telefono|default:'' }}"
-            {% if request.user.telefono %}disabled{% endif %}
-            placeholder="Ingresa tu teléfono"
+            input id="swal-telefono" class="bb-input" value="{{ request.user.telefono|default:'' }}"
           />
 
 
@@ -264,6 +260,32 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
       metodoSel.addEventListener('change', () => {
         tarjetaWrap.style.display = metodoSel.value === 'tarjeta' ? 'block' : 'none';
       });
+
+      // 🔹 FORMATEO DE TELÉFONO: 1234-5678, solo números
+      const telInput = document.getElementById('swal-telefono');
+      if (telInput) {
+        telInput.setAttribute('inputmode', 'numeric');
+        telInput.setAttribute('maxlength', '9'); // 8 dígitos + guion
+
+        const formatPhoneSwal = (el) => {
+          // Dejar solo dígitos y limitar a 8
+          let digits = el.value.replace(/\D/g, '').slice(0, 8);
+
+          // Formato ####-####
+          if (digits.length > 4) {
+            el.value = digits.slice(0, 4) + '-' + digits.slice(4);
+          } else {
+            el.value = digits;
+          }
+        };
+
+        // Formatear si ya viene con valor
+        formatPhoneSwal(telInput);
+
+        // Aplicar formato mientras escribe
+        telInput.addEventListener('input', () => formatPhoneSwal(telInput));
+      }
+
     },
     preConfirm: () => {
       const nombre = document.getElementById('swal-nombre').value.trim();
