@@ -91,23 +91,25 @@ def logout_view(request):
 @login_required
 def admin_dashboard(request):
     """Dashboard personalizado para administradores CON ESTADÍSTICAS"""
-    
+
+    # ⛔ Si NO es administrador, lo sacamos
+    if not request.user.es_administrador():
+        messages.error(request, "No tienes permiso para acceder al panel de administrador.")
+        return redireccionar_por_rol(request.user)
+
     # --- Consultas de Inventario ---
     ingredientes_activos = Ingrediente.objects.filter(activo=True)
     total_ingredientes = ingredientes_activos.count()
     
-    # Stock bajo (actual <= minimo Y actual > 0)
     stock_bajo = ingredientes_activos.filter(
         stock_actual__lte=F('stock_minimo'),
         stock_actual__gt=0
     ).count()
 
-    # Stock agotado (actual <= 0)
     stock_agotado = ingredientes_activos.filter(
         stock_actual__lte=0
     ).count()
 
-    # Valor total del inventario (replicando la lógica de tu @property)
     valor_inventario_query = ingredientes_activos.annotate(
         costo_unit=Case(
             When(tamaño_paquete__gt=0, then=F('precio_paquete') / F('tamaño_paquete')),
@@ -117,20 +119,18 @@ def admin_dashboard(request):
     ).annotate(
         valor_item=F('stock_actual') * F('costo_unit')
     ).aggregate(
-        # Coalesce es para que si no hay ingredientes, devuelva 0 en lugar de None
         valor_total=Coalesce(Sum('valor_item'), Value(0, output_field=DecimalField()))
     )
     valor_total_inventario = valor_inventario_query['valor_total']
 
-    # --- Consultas de Productos ---
+    # --- Productos ---
     total_productos = Producto.objects.count()
     total_categorias = Categoria.objects.count()
 
-    # --- Consultas de Pedidos ---
+    # --- Pedidos ---
     pedidos_pendientes = Pedido.objects.filter(estado='pendiente').count()
     pedidos_preparando = Pedido.objects.filter(estado='preparando').count()
     
-    # Suma de todos los pedidos 'entregados'
     ventas_totales_query = Pedido.objects.filter(estado='entregado').aggregate(
         total_ventas=Coalesce(Sum('total'), Value(0, output_field=DecimalField()))
     )
@@ -149,6 +149,7 @@ def admin_dashboard(request):
     }
     
     return render(request, 'administrador/dashboard.html', context)
+
 # ==============================================
 # ⬆️ FIN DE LA FUNCIÓN ACTUALIZADA ⬆️
 # ==============================================
@@ -156,13 +157,19 @@ def admin_dashboard(request):
 
 @login_required
 def empleado_dashboard(request):
-    # Esta es la vista para 'empleado_dashboard', la dejamos como está
+    if not request.user.es_empleado():
+        messages.error(request, "No tienes permiso para acceder al panel de empleado.")
+        return redireccionar_por_rol(request.user)
+
     return render(request, 'empleado/dashboard.html')
 
 @login_required
 def cliente_dashboard(request):
-    return render(request, 'cliente/dashboard.html')
+    if not request.user.es_cliente():
+        messages.error(request, "No tienes permiso para acceder al panel de cliente.")
+        return redireccionar_por_rol(request.user)
 
+    return render(request, 'cliente/dashboard.html')
 
 @login_required
 def crear_categoria(request):
