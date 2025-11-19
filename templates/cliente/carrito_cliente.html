@@ -218,7 +218,14 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
           <input id="swal-nombre" class="bb-input" value="{{ request.user.nombre|default:'' }}" disabled>
 
           <label class="bb-label">Teléfono</label>
-          <input id="swal-telefono" class="bb-input" value="{{ request.user.telefono|default:'' }}" disabled>
+          <input
+            id="swal-telefono"
+            class="bb-input"
+            value="{{ request.user.telefono|default:'' }}"
+            {% if request.user.telefono %}disabled{% endif %}
+            placeholder="Ingresa tu teléfono"
+          />
+
 
           <label class="bb-label">Método de pago</label>
           <select id="swal-metodo" class="bb-select">

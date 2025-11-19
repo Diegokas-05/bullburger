@@ -338,7 +338,7 @@ def agregar_al_carrito(request):
     item.save()
 
     # ==========================================================
-    #   🔥 CALCULAR STOCK ACTUALIZADO DE TODOS LOS PRODUCTOS
+    #   CALCULAR STOCK ACTUALIZADO DE TODOS LOS PRODUCTOS
     # ==========================================================
     stock_map = {}
     for p in Producto.objects.filter(disponible=True):
@@ -356,7 +356,7 @@ def agregar_al_carrito(request):
         stock_map[p.id] = min(stock_list_p) if stock_list_p else 0
 
     # ==========================================================
-    #   🔥 RETURN FINAL (INCLUYE STOCK ACTUALIZADO)
+    #   RETURN FINAL (INCLUYE STOCK ACTUALIZADO)
     # ==========================================================
     return JsonResponse({
         'ok': True,
@@ -470,11 +470,17 @@ def carrito_checkout(request):
 
     if metodo == 'tarjeta' and (not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19)):
         return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
+    
 
     items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
     if not items.exists():
         return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
-
+    
+      # 🔹 NUEVO: si el usuario escribió teléfono y es distinto al que ya tiene, se actualiza el perfil
+    if telefono and telefono != (request.user.telefono or ''):
+        request.user.telefono = telefono
+        request.user.save(update_fields=['telefono'])
+        
     subtotal = sum((it.producto.precio * it.cantidad for it in items), Decimal('0.00'))
     total = subtotal
 
@@ -545,7 +551,7 @@ def carrito_checkout(request):
             # Vaciar carrito
             items.delete()
 
-            # ✅ Generar factura PDF
+            
             factura_url = generar_factura_pdf(pedido)
             
             factura_path_relativo = None
@@ -630,7 +636,7 @@ def api_stock_producto(request, producto_id):
     
 
 # -----------------------------------------------------------------
-# ❗️ ESTA ES LA VISTA API QUE FALTABA (Sin duplicados)
+#  ESTA ES LA VISTA API QUE FALTABA (Sin duplicados)
 # -----------------------------------------------------------------
 def api_detalle_producto_edicion(request, producto_id):
     """
