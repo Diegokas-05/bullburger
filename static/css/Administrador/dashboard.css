@@ -31,7 +31,7 @@
     line-height: 1.6;
 }
 
-/* === Tarjetas de productos === */
+/* === Tarjetas de productos (sección no usada en dashboard, pero se mantiene) === */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -42,13 +42,13 @@
     background-color: #fff;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .product-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .product-img {
@@ -79,126 +79,235 @@
    ========================================================= */
 
 /* Contenedor principal de la cuadrícula */
+.dashboard-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 30px;
+}
+
+/* La tarjeta de sección principal */
+.dashboard-section-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-section-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezado de la tarjeta (Icono + Título) */
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 25px;
+    border-bottom: 1px solid #f0f0f0;
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+}
+
+.card-header .icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+/* Estadística Héroe (el número grande) */
+.stat-hero {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.stat-hero p {
+    margin: 0 0 5px 0;
+    font-size: 15px;
+    color: #555;
+    font-weight: 500;
+}
+
+.stat-hero h3 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.1;
+}
+
+/* Color para ventas */
+.stat-hero.success h3 {
+    color: #28a745;
+}
+
+/* Lista de estadísticas secundarias */
+.stat-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: auto;
+}
+
+/* Para la tarjeta de Menú que solo tiene 2 stats */
+.stat-list.full {
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.stat-item {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #eee;
+}
+
+/* Tarjeta de Menú con items más grandes */
+.stat-item.large {
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-item h4 {
+    margin: 0 0 4px 0;
+    font-size: 28px;
+    font-weight: 600;
+    color: #333;
+}
+
+.stat-item p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+/* Clases de color para los NÚMEROS */
+.warning-text {
+    color: #f59e0b;
+}
+
+.danger-text {
+    color: #e53935;
+}
+
+.info-text {
+    color: #1e88e5;
+}
+
+.success-text {
+    color: #28a745;
+}
+
+/* =========================================================
+   AJUSTES RESPONSIVE (MÓVIL) OPTIMIZADO
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    /* Ajustes generales del fondo */
+    .admin-bg {
+        /* Reducimos el relleno de 3rem (48px) a 1.5rem (24px) */
+        padding: 1.5rem 0.5rem;
+    }
+
+    /* Contenedor principal - Asegura que ocupe todo el ancho */
+    .admin-container {
+        max-width: 100%;
+        /* CLAVE: Quitamos padding lateral aquí, ya lo pone el .container de base.html */
+        padding: 0;
+    }
+
+    /* Títulos centrados y más pequeños en móvil */
+    .admin-title {
+        font-size: 1.8rem;
+        text-align: center;
+        margin-top: 0;
+        line-height: 1.1;
+    }
+
+    .admin-subtitle {
+        font-size: 0.95rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    /* El Grid pasa a 1 columna */
     .dashboard-grid-container {
-        display: grid;
-        /* Crea 3 columnas, pero se ajustarán a 1 en móviles */
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 25px;
-        margin-top: 30px;
+        grid-template-columns: 1fr;
+        gap: 15px;
     }
 
-    /* La tarjeta de sección principal */
-    .dashboard-section-card {
-        background-color: #ffffff;
-        border-radius: 16px; /* Bordes más suaves */
-        box-shadow: 0 8px 25px rgba(0,0,0,0.07);
-        border: 1px solid #f0f0f0;
-        overflow: hidden; /* Para que el header se alinee bien */
-        display: flex;
-        flex-direction: column;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .dashboard-section-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-    }
-
-    /* Encabezado de la tarjeta (Icono + Título) */
+    /* Cabecera de la tarjeta */
     .card-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 20px 25px;
-        border-bottom: 1px solid #f0f0f0;
-        background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+        padding: 12px 15px;
     }
-    .card-header .icon {
-        font-size: 24px;
-        line-height: 1;
-    }
+
     .card-header h2 {
-        margin: 0;
-        font-size: 18px; /* Un poco más grande y claro */
-        font-weight: 600;
-        color: #333;
+        font-size: 15px;
+    }
+
+    .card-header .icon {
+        font-size: 20px;
     }
 
     /* Cuerpo de la tarjeta */
     .card-body {
-        padding: 25px;
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1; /* Para que todas las tarjetas tengan la misma altura */
+        padding: 15px;
     }
 
     /* Estadística Héroe (el número grande) */
     .stat-hero {
-        text-align: center;
-        margin-bottom: 25px;
-        padding-bottom: 20px;
-        border-bottom: 1px dashed #e0e0e0;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
     }
-    .stat-hero p {
-        margin: 0 0 5px 0;
-        font-size: 15px;
-        color: #555;
-        font-weight: 500;
-    }
+
     .stat-hero h3 {
-        margin: 0;
-        font-size: 42px; /* ¡Grande! */
-        font-weight: 700;
-        color: #222;
-        line-height: 1.1;
+        font-size: 30px;
     }
-    /* Color para ventas */
-    .stat-hero.success h3 {
-        color: #28a745;
+
+    .stat-hero p {
+        font-size: 13px;
     }
 
     /* Lista de estadísticas secundarias */
     .stat-list {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 2 columnas por defecto */
-        gap: 20px;
-        margin-top: auto; /* Empuja al fondo si la tarjeta es alta */
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
 
-    /* Para la tarjeta de Menú que solo tiene 2 stats */
-    .stat-list.full {
-        grid-template-columns: 1fr; /* 1 columna */
-        gap: 15px;
-    }
-
+    /* Item de estadística */
     .stat-item {
-        background-color: #f9f9f9;
-        border-radius: 10px;
-        padding: 15px;
-        border: 1px solid #eee;
-    }
-
-    /* Tarjeta de Menú con items más grandes */
-    .stat-item.large {
-        padding: 20px;
+        padding: 10px;
         text-align: center;
     }
 
     .stat-item h4 {
-        margin: 0 0 4px 0;
-        font-size: 28px;
-        font-weight: 600;
-        color: #333;
-    }
-    .stat-item p {
-        margin: 0;
-        font-size: 13px;
-        color: #666;
-        font-weight: 500;
+        font-size: 20px;
     }
 
-    /* Clases de color para los NÚMEROS */
-    .warning-text { color: #f59e0b; }
-    .danger-text { color: #e53935; }
-    .info-text { color: #1e88e5; }
-    .success-text { color: #28a745; }
-
+    /* La tarjeta de Menú que tenía una columna (full) la mantenemos en una */
+    .stat-list.full {
+        grid-template-columns: 1fr;
+    }
+}
