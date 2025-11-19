@@ -8,159 +8,158 @@
 <link rel="stylesheet" href="{% static 'css/cliente/pedidos_cliente.css' %}">
 
 <main class="cliente-bg">
+    
+    <div class="pedidos-wrapper">
+        <h1 class="titulo-pedidos">Mis Pedidos</h1>
+        
+        {% if not pedidos %}
+            <div class="pedido-card no-pedidos" style="text-align:center;padding:40px;">
+                <p style="color:#4c2f1c; font-size:1.1rem;">Aún no has realizado ningún pedido.</p>
+                <a href="{% url 'menu_cliente' %}" class="btn-seguimiento" style="margin-top:15px; display:inline-flex;">
+                    Ver Menú 🍔
+                </a>
+            </div>
 
-    <h1 class="titulo-pedidos">Mis Pedidos</h1>
+        {% else %}
+            <div class="pedidos-container">
 
-    {% if not pedidos %}
-        <div class="pedido-card" style="text-align:center;padding:40px;">
-            <p>Aún no has realizado ningún pedido.</p>
-            <a href="{% url 'menu_cliente' %}" class="btn-factura">Ver Menú</a>
-        </div>
+                {% for pedido in pedidos %}
+                <div class="pedido-card">
 
-    {% else %}
-        <div class="pedidos-container">
+                    <div class="pedido-header">
 
-            {% for pedido in pedidos %}
-            <div class="pedido-card">
-
-                <!-- ========== HEADER DEL PEDIDO ========== -->
-                <div class="pedido-header">
-
-                    <div class="pedido-header-info">
-                        <div>
-                            <strong>Pedido ID</strong>
-                            #{{ pedido.id }}
+                        <div class="pedido-header-info">
+                            <div>
+                                <strong>Pedido ID</strong>
+                                #{{ pedido.id }}
+                            </div>
+                            <div>
+                                <strong>Fecha</strong>
+                                {{ pedido.fecha|date:"d/m/Y H:i" }}
+                            </div>
+                            <div>
+                                <strong>Estado</strong>
+                                <span class="estado-pedido estado-{{ pedido.estado }}">
+                                    {{ pedido.get_estado_display }}
+                                </span>
+                            </div>
+                            <div class="desktop-entrega-info">
+                                <strong>Entrega</strong>
+                                {{ pedido.get_tipo_entrega_display }}
+                            </div>
                         </div>
-                        <div>
-                            <strong>Fecha</strong>
-                            {{ pedido.fecha|date:"d/m/Y H:i" }}
+
+                        <div class="pedido-actions">
+
+                            {% if pedido.factura_disponible %}
+                                <a href="{{ pedido.factura_url }}" target="_blank" class="btn-factura">
+                                    <i class="fas fa-file-invoice"></i> Factura
+                                </a>
+                            {% else %}
+                                <span class="btn-factura disabled">
+                                    <i class="fas fa-hourglass-half"></i> Factura
+                                </span>
+                            {% endif %}
+
+                            {% if pedido.estado != "entregado" and pedido.estado != "cancelado" %}
+                                <a href="#" class="btn-seguimiento"
+                                   onclick="openStatusModal('{{ pedido.id }}','{{ pedido.estado }}','{{ pedido.tipo_entrega }}'); return false;">
+                                    <i class="fas fa-route"></i> Seguimiento
+                                </a>
+                            {% endif %}
+
                         </div>
-                        <div>
-                            <strong>Estado</strong>
-                            <span class="estado-pedido estado-{{ pedido.estado }}">
-                                {{ pedido.get_estado_display }}
-                            </span>
-                        </div>
-                        <div>
-                            <strong>Entrega</strong>
-                            {{ pedido.get_tipo_entrega_display }}
-                        </div>
+
                     </div>
 
-                    <!-- Botones -->
-                    <div class="pedido-actions">
+                    <div class="pedido-body">
+                        
+                        <h4>Detalles del Pedido</h4>
 
-                        {% if pedido.factura_disponible %}
-                            <a href="{{ pedido.factura_url }}" target="_blank" class="btn-factura">
-                                📄 Descargar Factura
-                            </a>
-                        {% else %}
-                            <span class="btn-factura disabled">
-                                ⏳ Factura no disponible
-                            </span>
+                        {% for detalle in pedido.detallepedido_set.all %}
+                            <div class="pedido-item">
+                                <div class="item-nombre">
+                                    {{ detalle.producto.nombre }} 
+                                    <span>(x {{ detalle.cantidad }})</span>
+                                </div>
+                                <div class="item-subtotal">
+                                    ${{ detalle.subtotal|floatformat:2 }}
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% if pedido.descuento_aplicado and pedido.descuento_aplicado|floatformat != '0' %}
+                            <div class="pedido-item" style="color:#27ae60;font-weight:600;">
+                                <span>Descuento (Promoción)</span>
+                                <span>-${{ pedido.descuento_aplicado|floatformat:2 }}</span>
+                            </div>
                         {% endif %}
 
-                        {% if pedido.estado != "entregado" and pedido.estado != "cancelado" %}
-                            <a href="#" class="btn-seguimiento"
-                               onclick="openStatusModal('{{ pedido.id }}','{{ pedido.estado }}','{{ pedido.tipo_entrega }}'); return false;">
-                                Seguimiento
-                            </a>
-                        {% endif %}
-
+                        <div class="pedido-total-general">
+                            TOTAL: ${{ pedido.total|floatformat:2 }}
+                        </div>
                     </div>
 
                 </div>
 
-                <!-- ========== CUERPO DEL PEDIDO ========== -->
-                <div class="pedido-body">
+                <div id="modalEstado-{{ pedido.id }}" class="modal-track" aria-hidden="true">
                     
-                    <h4>Detalles del Pedido</h4>
+                    <div class="modal-track__content">
 
-                    {% for detalle in pedido.detallepedido_set.all %}
-                        <div class="pedido-item">
-                            <div class="item-nombre">
-                                {{ detalle.producto.nombre }} 
-                                <span>(x {{ detalle.cantidad }})</span>
-                            </div>
-                            <div class="item-subtotal">
-                                ${{ detalle.subtotal }}
-                            </div>
+                        <div class="modal-track__header">
+                            <h3>Pedido #{{ pedido.id }}</h3>
+                            <button class="modal-track__close" onclick="closeStatusModal('{{ pedido.id }}')">&times;</button>
                         </div>
-                    {% endfor %}
 
-                    {% if pedido.descuento_aplicado and pedido.descuento_aplicado|floatformat != '0' %}
-                        <div class="pedido-item" style="color:#27ae60;font-weight:600;">
-                            <span>Descuento (Promoción)</span>
-                            <span>-${{ pedido.descuento_aplicado }}</span>
+                        <div class="modal-track__body">
+
+                            <p class="track-subtitle">
+                                Solicitado el {{ pedido.fecha|date:"d/m/Y" }} - {{ pedido.fecha|date:"H:i" }}
+                            </p>
+
+                            <div class="track-timeline" data-estado="" data-entrega="">
+                                <div class="track-line"></div>
+                                <div class="track-line-progress" style="width:0%"></div>
+
+                                <div class="track-step" data-step="recibido">
+                                    <div class="track-dot"><i class="fas fa-clipboard-check"></i></div>
+                                    <div class="track-label">Recibido</div>
+                                </div>
+
+                                <div class="track-step" data-step="preparando">
+                                    <div class="track-dot"><i class="fas fa-burger"></i></div>
+                                    <div class="track-label">Cocina</div>
+                                </div>
+
+                                <div class="track-step" data-step="tercero">
+                                    <div class="track-dot"><i class="fas fa-motorcycle"></i></div>
+                                    <div class="track-label" data-entrega-label>En camino</div>
+                                </div>
+
+                                <div class="track-step" data-step="entregado">
+                                    <div class="track-dot"><i class="fas fa-handshake"></i></div>
+                                    <div class="track-label">Entregado</div>
+                                </div>
+                            </div>
+
+                            <div class="track-eta" id="eta-{{ pedido.id }}">
+                                Tu pedido debería estar listo en:
+                                <strong class="eta-range">—</strong>
+                            </div>
+
                         </div>
-                    {% endif %}
-
-                    <div class="pedido-total-general">
-                        TOTAL: ${{ pedido.total }}
                     </div>
                 </div>
+                {% endfor %}
 
             </div>
+        {% endif %}
+        
 
-            <!-- ========== MODAL DE SEGUIMIENTO ========= -->
-            <div id="modalEstado-{{ pedido.id }}" class="modal-track" aria-hidden="true">
-
-                <div class="modal-track__content">
-
-                    <div class="modal-track__header">
-                        <h3>Pedido #{{ pedido.id }}</h3>
-                        <button class="modal-track__close" onclick="closeStatusModal('{{ pedido.id }}')">&times;</button>
-                    </div>
-
-                    <div class="modal-track__body">
-
-                        <p class="track-subtitle">
-                            Solicitado el {{ pedido.fecha|date:"d/m/Y" }} - {{ pedido.fecha|date:"H:i" }}
-                        </p>
-
-                        <div class="track-timeline" data-estado="" data-entrega="">
-                            <div class="track-line"></div>
-                            <div class="track-line-progress" style="width:0%"></div>
-
-                            <div class="track-step" data-step="recibido">
-                                <div class="track-dot"></div>
-                                <div class="track-label">Recibido</div>
-                            </div>
-
-                            <div class="track-step" data-step="preparando">
-                                <div class="track-dot"></div>
-                                <div class="track-label">Cocina</div>
-                            </div>
-
-                            <div class="track-step" data-step="tercero">
-                                <div class="track-dot"></div>
-                                <div class="track-label" data-entrega-label>En camino</div>
-                            </div>
-
-                            <div class="track-step" data-step="entregado">
-                                <div class="track-dot"></div>
-                                <div class="track-label">Entregado</div>
-                            </div>
-                        </div>
-
-                        <div class="track-eta" id="eta-{{ pedido.id }}">
-                            Tu pedido debería estar listo en:
-                            <strong class="eta-range">—</strong>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <!-- ========== FIN MODAL ========== -->
-
-            {% endfor %}
-
-        </div>
-    {% endif %}
+    </div> 
 
 </main>
 
-<!-- ======================= JS PARA EL SEGUIMIENTO ======================= -->
 <script>
 function openStatusModal(id, estado, tipo_entrega) {
     const modal = document.getElementById("modalEstado-" + id);
@@ -171,6 +170,12 @@ function openStatusModal(id, estado, tipo_entrega) {
 
     const esDomicilio = (tipo_entrega || "").toLowerCase().includes("dom");
     labelEntrega.textContent = esDomicilio ? "En camino" : "Listo para recoger";
+    
+    // Cambia el icono de entrega a moto o tienda según el tipo de entrega
+    const iconTercero = modal.querySelector('[data-step="tercero"] .track-dot i');
+    if (iconTercero) {
+        iconTercero.className = esDomicilio ? 'fas fa-motorcycle' : 'fas fa-store';
+    }
 
     timeline.dataset.entrega = esDomicilio ? "domicilio" : "local";
     timeline.dataset.estado = estado;
@@ -215,10 +220,18 @@ function paintTimeline(timelineEl, estado) {
         const node = timelineEl.querySelector(`[data-step="${step}"]`);
         if (!node) return;
 
-        if (idx < 0) node.classList.add("muted");
-        else if (i < idx) node.classList.add("done");
-        else if (i === idx) node.classList.add("current");
-        else node.classList.add("muted");
+        if (idx < 0) {
+            node.classList.add("muted");
+        }
+        else if (i < idx) {
+            node.classList.add("done");
+        }
+        else if (i === idx) {
+            node.classList.add("current");
+        }
+        else {
+             node.classList.add("muted");
+        }
     });
 
     const widths = ["0%", "33%", "66%", "100%"];
@@ -228,12 +241,12 @@ function paintTimeline(timelineEl, estado) {
 function getEtaText(estado, esDom) {
     const e = estado.toLowerCase();
 
-    if (e === "pendiente")   return esDom ? "35 - 45 minutos" : "25 - 35 minutos";
-    if (e === "preparando")  return esDom ? "25 - 35 minutos" : "15 - 25 minutos";
-    if (e === "en_camino")   return "10 - 20 minutos";
-    if (e === "listo")       return "Listo para retirar";
-    if (e === "entregado")   return "Entregado ✔";
-    if (e === "cancelado")   return "Pedido cancelado";
+    if (e === "pendiente")   return esDom ? "35 - 45 min (Aprox.)" : "25 - 35 min (Aprox.)";
+    if (e === "preparando")  return esDom ? "25 - 35 min (Aprox.)" : "15 - 25 min (Aprox.)";
+    if (e === "en_camino")   return "10 - 20 min (Aprox.)";
+    if (e === "listo")       return "Listo para retirar ✅";
+    if (e === "entregado")   return "Entregado ✔";
+    if (e === "cancelado")   return "Pedido cancelado ❌";
 
     return "—";
 }
