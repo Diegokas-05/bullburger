@@ -11,4 +11,5 @@ urlpatterns = [
     path('inventario/historial/', views.historial_inventario, name='historial_inventario'),
     # API endpoints
     path('inventario/api/ingrediente/<int:ingrediente_id>/', views.get_ingrediente_data, name='get_ingrediente_data'),
+    path('empleado/', views.inventario_empleado, name='inventario_empleado'),
 ]

@@ -242,3 +242,24 @@ def historial_inventario(request):
         'movimientos': movimientos
     }
     return render(request, 'inventario/historial.html', context)
+
+@login_required
+def inventario_empleado(request):
+    # Obtenemos todos los ingredientes
+    ingredientes = Ingrediente.objects.all()
+    
+    # Calculamos alertas de stock bajo (lógica simple)
+    ingredientes_bajos = []
+    for ing in ingredientes:
+        # Esto asume que tienes un método o lógica para determinar el estado
+        # Si usas la misma lógica que el admin, cópiala aquí.
+        if ing.stock_actual <= ing.stock_minimo:
+             ingredientes_bajos.append(ing)
+
+    context = {
+        'ingredientes': ingredientes,
+        'ingredientes_bajos': ingredientes_bajos,
+    }
+    
+    # Asegúrate de que el nombre del archivo HTML coincida con el que guardaste
+    return render(request, 'inventario/inventario_empleado.html', context)

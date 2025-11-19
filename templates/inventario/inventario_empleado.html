@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inventario - Vista Empleado{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{% static 'css/Administrador/inventario.css' %}">
+
+<div class="admin-bg">
+  <section class="contenedor_dashboard">
+    <div class="inventario-dashboard">
+        
+        <div class="dashboard-header">
+            <h1 class="welcome-title">Inventario - BullBurger</h1>
+            <p class="welcome-subtitle">Consulta de ingredientes y disponibilidad</p>
+        </div>
+
+        {% if ingredientes_bajos %}
+        <div class="alert-section">
+            <div class="alert-header">
+                <h3>⚠️ Alertas de Stock Bajo</h3>
+                <span class="alert-count">{{ ingredientes_bajos|length }}</span>
+            </div>
+            <div class="alert-grid">
+                {% for ingrediente in ingredientes_bajos %}
+                <div class="alert-item {% if ingrediente.estado_stock == 'agotado' %}alert-danger{% else %}alert-warning{% endif %}">
+                    <div class="alert-info">
+                        <span class="alert-nombre">{{ ingrediente.nombre }}</span>
+                        <span class="alert-stock">
+                            Actual: <strong>{{ ingrediente.stock_actual }} {{ ingrediente.unidad_medida }}</strong>
+                        </span>
+                        <span class="alert-minimo">Mínimo requerido: {{ ingrediente.stock_minimo }}</span>
+                    </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="table-section">
+            <div class="section-header">
+                <h3>📦 Listado de Ingredientes</h3>
+                <div class="section-actions">
+                    <span class="total-count">{{ ingredientes|length }} ingredientes</span>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Ingrediente</th>
+                            <th>Stock Actual</th>
+                            <th>Stock Mínimo</th>
+                            <th>Unidad</th>
+                            <th>Costo Unitario</th>
+                            <th>Valor Total</th>
+                            <th>Estado</th>
+                            </tr>
+                    </thead>
+                    <tbody>
+                        {% for ingrediente in ingredientes %}
+                        <tr class="data-row {% if ingrediente.estado_stock == 'bajo' %}row-warning{% elif ingrediente.estado_stock == 'agotado' %}row-danger{% endif %}">
+                            <td class="ingrediente-info">
+                                <div class="ingrediente-nombre">
+                                    <strong>{{ ingrediente.nombre }}</strong>
+                                    {% if ingrediente.proveedor %}
+                                    <small>Prov: {{ ingrediente.proveedor }}</small>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="stock-actual" style="font-weight: bold;">{{ ingrediente.stock_actual }}</td>
+                            <td class="stock-minimo">{{ ingrediente.stock_minimo }}</td>
+                            <td class="unidad">{{ ingrediente.unidad_medida }}</td>
+                            
+                            <td class="costo">${{ ingrediente.costo_unitario|floatformat:4 }}</td>
+                            <td class="valor-total">${{ ingrediente.valor_total|floatformat:2 }}</td>
+                            <td class="estado">
+                                <span class="status-badge status-{{ ingrediente.estado_stock }}">
+                                    {% if ingrediente.estado_stock == 'normal' %}
+                                        ✅ Normal
+                                    {% elif ingrediente.estado_stock == 'bajo' %}
+                                        ⚠️ Bajo
+                                    {% else %}
+                                        🔴 Agotado
+                                    {% endif %}
+                                </span>
+                            </td>
+                            </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="no-data"> <div class="empty-state">
+                                    <div class="empty-icon">📦</div>
+                                    <h3>No hay ingredientes registrados</h3>
+                                    <p>Contacta al administrador para actualizar el inventario.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// Solo mantenemos el efecto visual de hover, eliminamos toda la lógica CRUD
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Vista de inventario (Empleado) cargada 📦');
+    
+    // Agregar efectos hover a las filas de la tabla
+    const tableRows = document.querySelectorAll('.data-row');
+    tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+            this.style.transition = 'all 0.3s ease';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
+});
+</script>
+{% endblock %}
