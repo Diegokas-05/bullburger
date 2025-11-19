@@ -1,49 +1,53 @@
+/* === CLIENTE PEDIDOS STYLES === */
+
+/* === ESTRUCTURA GLOBAL DE LA PÁGINA === */
 .cliente-bg {
     background-color: #fdf8ef;
     min-height: 100vh;
-    padding: 3rem;
-    border-radius: 10px;
+    padding: 0;
+    width: 100%;
 }
 
-/* ============ CONTENEDOR GENERAL ============ */
-.pedidos-page {
+/* CLAVE 1: Contenedor que da el margen superior/inferior para que el título "flote" */
+.pedidos-wrapper {
     max-width: 1200px;
-    margin: 40px auto;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
+.pedidos-container {
     padding: 0 20px;
     animation: fadeInUp 0.35s ease;
 }
 
-/* TITULO */
+/* TITULO (Estilo flotante) */
 .titulo-pedidos {
     font-size: 2.5rem;
-    margin-bottom: 0.5rem;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 2rem;
-    padding: 2rem;
     background: linear-gradient(135deg, #8B4513, #D2691E);
+    /* Café/Marrón */
     border-radius: 15px;
     color: white;
     box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
+    padding: 1.5rem 2rem;
+    margin: 0 20px 2rem 20px;
+    position: relative;
+    z-index: 5;
 }
 
-/* ============ CARD DEL PEDIDO ============ */
+/* ============ CARD DEL PEDIDO (Mantiene Estilo) ============ */
 .pedido-card {
     background: #ffffff;
     border-radius: 18px;
     margin-bottom: 28px;
     overflow: hidden;
     border: 2px solid #f3e7d6;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
     transition: transform .2s, box-shadow .2s;
 }
 
-.pedido-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 26px rgba(0,0,0,0.12);
-}
-
-/* ============ HEADER ============ */
+/* HEADER y BODY (Se mantienen) */
 .pedido-header {
     background: linear-gradient(135deg, #fff8ef, #faefe0);
     padding: 18px 22px;
@@ -55,12 +59,12 @@
     flex-wrap: wrap;
 }
 
-/* Info del header */
 .pedido-header-info {
     display: grid;
-    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    grid-template-columns: repeat(4, minmax(130px, 1fr));
     gap: 24px;
     font-size: 1rem;
+    flex-grow: 1;
 }
 
 .pedido-header-info strong {
@@ -70,7 +74,6 @@
     display: block;
 }
 
-/* ============ ESTADOS ============ */
 .estado-pedido {
     padding: 6px 12px;
     border-radius: 999px;
@@ -78,86 +81,15 @@
     font-weight: 700;
     font-size: .9rem;
     text-transform: capitalize;
-    display: inline-block;
+    white-space: nowrap;
 }
 
-.estado-pendiente { background: #f39c12; }
-.estado-preparando { background: #3498db; }
-.estado-listo { background: #9b59b6; }
-.estado-en_camino { background: #ff6f00; }
-.estado-entregado { background: #27ae60; }
-.estado-cancelado { background: #c0392b; }
-
-/* ============ BOTONES ============ */
 .pedido-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
 }
 
-.btn-factura,
-.btn-seguimiento {
-    padding: 10px 18px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    text-decoration: none;
-    font-size: .9rem;
-    transition: transform .2s, opacity .2s;
-}
-
-.btn-factura { background: #c0392b; color: #fff; }
-.btn-factura.disabled { background: #bbb; cursor: not-allowed; }
-.btn-seguimiento { background: #27ae60; color: #fff; }
-
-.btn-factura:hover:not(.disabled),
-.btn-seguimiento:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
-}
-
-/* ============ BODY DEL PEDIDO ============ */
-.pedido-body {
-    padding: 22px;
-}
-
-.pedido-body h4 {
-    font-family: 'Luckiest Guy', cursive;
-    color: #4c2f1c;
-    margin-bottom: 14px;
-}
-
-/* Item de producto */
-.pedido-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px dashed #e6d4c0;
-}
-
-.pedido-item:last-child {
-    border-bottom: none;
-}
-
-.item-nombre {
-    font-weight: 600;
-    color: #4c2f1c;
-    font-size: .95rem;
-}
-
-.item-nombre span {
-    color: #8b7b6d;
-    font-weight: 400;
-}
-
-.item-subtotal {
-    font-weight: bold;
-    color: #4c2f1c;
-}
-
-/* TOTAL */
 .pedido-total-general {
     margin-top: 18px;
     text-align: right;
@@ -166,14 +98,15 @@
     color: #4c2f1c;
 }
 
-/* ============ MODAL DE SEGUIMIENTO ============ */
+
+/* ============ MODAL DE SEGUIMIENTO (MEJORA ESTÉTICA FINAL) ============ */
 .modal-track {
     display: none;
     position: fixed;
     inset: 0;
     z-index: 1100;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
     align-items: center;
     justify-content: center;
     padding: 24px;
@@ -181,130 +114,235 @@
 
 .modal-track__content {
     width: 96%;
-    max-width: 730px;
+    max-width: 750px;
     background: #ffffff;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-    animation: pop .25s ease-out;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    animation: pop .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Header */
 .modal-track__header {
-    background: #4c2f1c;
+    background: linear-gradient(135deg, #4c2f1c, #6d4c41);
+    /* Café oscuro degradado */
     color: #fff;
-    padding: 18px 24px;
+    padding: 20px 28px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .modal-track__header h3 {
-    margin: 0;
-    font-size: 1.4rem;
+    font-size: 1.7rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.modal-track__close {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 32px;
-    cursor: pointer;
-    transition: transform .2s;
-}
-
-.modal-track__close:hover {
-    transform: scale(1.15);
-}
-
-/* Body */
 .modal-track__body {
-    padding: 22px;
+    padding: 30px 25px;
 }
 
 .track-subtitle {
     color: #7b5a47;
-    margin-bottom: 16px;
+    margin-bottom: 25px;
+    font-size: 1.05rem;
+    text-align: center;
 }
 
-/* Timeline */
+/* Timeline Contenedor */
 .track-timeline {
     position: relative;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    padding: 30px 10px 14px;
+    gap: 5px;
+    padding: 40px 10px 14px;
+    /* Aumentamos el padding vertical */
 }
 
+/* Líneas de progreso */
 .track-line,
 .track-line-progress {
     position: absolute;
-    left: 10%;
-    right: 10%;
-    top: 52px;
+    left: 12%;
+    right: 12%;
+    top: 60px;
+    /* Alineación perfecta con el centro del dot (70px/2 + 25px de padding) */
     height: 6px;
     border-radius: 6px;
 }
 
-.track-line { background: #e2d2c1; }
+.track-line {
+    background: #e2d2c1;
+}
+
 .track-line-progress {
     background: #27ae60;
-    width: 0;
     transition: width .25s ease;
 }
 
-/* Step */
+/* Paso (Ícono arriba, Texto abajo) */
 .track-step {
     text-align: center;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* CLAVE: ESTILO DE ICONO (Más grande, más profundo) */
+.track-dot {
+    width: 70px;
+    height: 70px;
+    /* ICONO GRANDE */
+    background: #f7eee5;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    border: 4px solid #d6c5b5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4c2f1c;
+    font-size: 2.2rem;
+    /* Ícono muy grande */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.track-dot i {
+    color: #4c2f1c;
 }
 
 .track-label {
-    font-weight: 600;
+    font-weight: 700;
     color: #4c2f1c;
-    margin-top: 6px;
-    font-size: .9rem;
+    font-size: 1rem;
+    line-height: 1.3;
 }
 
-.track-dot {
-    width: 20px;
-    height: 20px;
-    background: #d6c5b5;
-    margin: 0 auto;
-    border-radius: 50%;
-    border: 4px solid #f7eee5;
+/* === ESTADOS VIBRANTES === */
+.track-step.done .track-dot {
+    background: #27ae60;
+    border-color: #f7eee5;
 }
 
-/* estados */
-.track-step.done .track-dot { background: #27ae60; }
-.track-step.current .track-dot { background: #f39c12; }
-.track-step.muted .track-dot { background: #d6c5b5; }
-.track-step.muted .track-label { color: #b6a597; }
+.track-step.done .track-dot i {
+    color: #fff;
+}
 
-/* ETA */
+.track-step.current .track-dot {
+    background: #f39c12;
+    border-color: #f4c542;
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(243, 156, 18, 0.8);
+}
+
+.track-step.current .track-dot i {
+    color: #fff;
+}
+
+/* ETA Box */
 .track-eta {
-    margin-top: 22px;
-    padding: 14px;
-    font-size: 1.1rem;
+    margin-top: 30px;
+    padding: 20px;
+    font-size: 1.15rem;
     background: #fff8ef;
     border: 1px solid #f1dcc6;
-    border-radius: 12px;
+    border-radius: 15px;
     color: #4c2f1c;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-/* ============ ANIMACIONES ============ */
-@keyframes pop {
-    0% { transform: scale(0.92); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+.track-eta strong {
+    font-size: 1.4rem;
+    color: #d32f2f;
 }
 
-@keyframes fadeInUp {
-    0% { opacity: 0; transform: translateY(6px); }
-    100% { opacity: 1; transform: translateY(0); }
+
+/* === RESPONSIVE CLIENTE PEDIDOS === */
+@media (max-width: 900px) {
+
+    /* Ajustes generales */
+    .cliente-bg {
+        padding: 1rem;
+    }
+
+    .pedidos-wrapper {
+        padding: 1rem 0;
+    }
+
+    .pedidos-container {
+        padding: 0 10px;
+    }
+
+    .titulo-pedidos {
+        font-size: 2rem;
+        padding: 1rem;
+        margin: 0 10px 1.5rem 10px;
+    }
+
+    .desktop-entrega-info {
+        display: none !important;
+    }
+
+    /* Modal */
+    .modal-track__content {
+        max-width: 95%;
+    }
+
+    .modal-track__header h3 {
+        font-size: 1.4rem;
+    }
+
+    /* Timeline en móvil */
+    .track-timeline {
+        padding: 40px 5px 10px;
+    }
+
+    .track-line,
+    .track-line-progress {
+        top: 40px;
+    }
+
+    /* Ajuste de línea para 60px de dot */
+
+    .track-dot {
+        width: 60px;
+        height: 60px;
+        font-size: 1.6rem;
+    }
+
+    /* Reduce tamaño para móvil */
+    .track-label {
+        font-size: 0.8rem;
+    }
+
+    .track-eta {
+        font-size: 1rem;
+        padding: 15px;
+    }
 }
 
-/* RESPONSIVE */
-@media (max-width: 700px) {
+@media (max-width: 450px) {
+
+    /* Estilos de apilamiento... */
+    .pedido-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
     .pedido-header-info {
-        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+
+    .pedido-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .btn-factura,
+    .btn-seguimiento {
+        flex: 1 1 100%;
     }
 }
