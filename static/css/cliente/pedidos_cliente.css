@@ -1,6 +1,6 @@
 /* === CLIENTE PEDIDOS STYLES === */
 
-/* === ESTRUCTURA GLOBAL DE LA PÁGINA === */
+/* === ESTRUCTURA GLOBAL === */
 .cliente-bg {
     background-color: #fdf8ef;
     min-height: 100vh;
@@ -8,7 +8,6 @@
     width: 100%;
 }
 
-/* CLAVE 1: Contenedor que da el margen superior/inferior para que el título "flote" */
 .pedidos-wrapper {
     max-width: 1200px;
     margin: 0 auto;
@@ -20,13 +19,18 @@
     animation: fadeInUp 0.35s ease;
 }
 
-/* TITULO (Estilo flotante) */
+/* Animación de entrada suave */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* TITULO */
 .titulo-pedidos {
     font-size: 2.5rem;
     font-weight: 700;
     text-align: center;
     background: linear-gradient(135deg, #8B4513, #D2691E);
-    /* Café/Marrón */
     border-radius: 15px;
     color: white;
     box-shadow: 0 8px 25px rgba(139, 69, 19, 0.3);
@@ -36,7 +40,7 @@
     z-index: 5;
 }
 
-/* ============ CARD DEL PEDIDO (Mantiene Estilo) ============ */
+/* === CARD DEL PEDIDO === */
 .pedido-card {
     background: #ffffff;
     border-radius: 18px;
@@ -47,7 +51,6 @@
     transition: transform .2s, box-shadow .2s;
 }
 
-/* HEADER y BODY (Se mantienen) */
 .pedido-header {
     background: linear-gradient(135deg, #fff8ef, #faefe0);
     padding: 18px 22px;
@@ -59,13 +62,16 @@
     flex-wrap: wrap;
 }
 
+/* --- SOLUCIÓN AL ERROR DE DISEÑO "ARRUINADO" --- */
 .pedido-header-info {
     display: grid;
-    grid-template-columns: repeat(4, minmax(130px, 1fr));
+    /* En escritorio: 4 columnas flexibles */
+    grid-template-columns: repeat(4, 1fr); 
     gap: 24px;
     font-size: 1rem;
     flex-grow: 1;
 }
+/* ----------------------------------------------- */
 
 .pedido-header-info strong {
     color: #4c2f1c;
@@ -82,12 +88,69 @@
     font-size: .9rem;
     text-transform: capitalize;
     white-space: nowrap;
+    display: inline-block;
 }
+
+/* Colores de estado */
+.estado-pendiente { background-color: #f39c12; } /* Naranja */
+.estado-preparando { background-color: #3498db; } /* Azul */
+.estado-listo { background-color: #9b59b6; } /* Morado */
+.estado-entregado { background-color: #27ae60; } /* Verde */
+.estado-cancelado { background-color: #c0392b; } /* Rojo */
 
 .pedido-actions {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+.btn-factura, .btn-seguimiento {
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-factura {
+    background-color: #fff;
+    border: 2px solid #dcdcdc;
+    color: #555;
+}
+.btn-factura:hover { background-color: #f5f5f5; border-color: #bbb; }
+.btn-factura.disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-seguimiento {
+    background-color: #4c2f1c;
+    color: #fff;
+    border: none;
+}
+.btn-seguimiento:hover { background-color: #6d4c41; transform: translateY(-2px); }
+
+/* Body del pedido */
+.pedido-body {
+    padding: 20px 25px;
+}
+
+.pedido-body h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #8B4513;
+    border-bottom: 2px solid #f3e7d6;
+    padding-bottom: 8px;
+    display: inline-block;
+}
+
+.pedido-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #555;
 }
 
 .pedido-total-general {
@@ -96,10 +159,12 @@
     font-size: 1.3rem;
     font-weight: 800;
     color: #4c2f1c;
+    border-top: 2px solid #eee;
+    padding-top: 15px;
 }
 
 
-/* ============ MODAL DE SEGUIMIENTO (MEJORA ESTÉTICA FINAL) ============ */
+/* ============ MODAL TRACKING ============ */
 .modal-track {
     display: none;
     position: fixed;
@@ -118,23 +183,32 @@
     background: #ffffff;
     border-radius: 20px;
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    /* AQUÍ ESTABA EL ERROR: Faltaba definir la animación 'pop' */
     animation: pop .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Header */
+/* DEFINICIÓN DE ANIMACIÓN POP QUE FALTABA */
+@keyframes pop {
+    0% { opacity: 0; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
 .modal-track__header {
     background: linear-gradient(135deg, #4c2f1c, #6d4c41);
-    /* Café oscuro degradado */
     color: #fff;
     padding: 20px 28px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-radius: 20px 20px 0 0;
 }
 
-.modal-track__header h3 {
-    font-size: 1.7rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+.modal-track__close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
 }
 
 .modal-track__body {
@@ -148,51 +222,39 @@
     text-align: center;
 }
 
-/* Timeline Contenedor */
+/* Timeline */
 .track-timeline {
     position: relative;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 5px;
     padding: 40px 10px 14px;
-    /* Aumentamos el padding vertical */
 }
 
-/* Líneas de progreso */
-.track-line,
-.track-line-progress {
+.track-line, .track-line-progress {
     position: absolute;
     left: 12%;
     right: 12%;
     top: 60px;
-    /* Alineación perfecta con el centro del dot (70px/2 + 25px de padding) */
     height: 6px;
     border-radius: 6px;
 }
+.track-line { background: #e2d2c1; }
+.track-line-progress { background: #27ae60; transition: width .25s ease; }
 
-.track-line {
-    background: #e2d2c1;
-}
-
-.track-line-progress {
-    background: #27ae60;
-    transition: width .25s ease;
-}
-
-/* Paso (Ícono arriba, Texto abajo) */
 .track-step {
     text-align: center;
     padding-top: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+    z-index: 2;
 }
 
-/* CLAVE: ESTILO DE ICONO (Más grande, más profundo) */
 .track-dot {
     width: 70px;
     height: 70px;
-    /* ICONO GRANDE */
     background: #f7eee5;
     margin: 0 auto 10px auto;
     border-radius: 50%;
@@ -202,45 +264,21 @@
     justify-content: center;
     color: #4c2f1c;
     font-size: 2.2rem;
-    /* Ícono muy grande */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 10;
     transition: all 0.3s ease;
 }
 
-.track-dot i {
-    color: #4c2f1c;
-}
+.track-step.done .track-dot { background: #27ae60; border-color: #f7eee5; }
+.track-step.done .track-dot i { color: #fff; }
 
-.track-label {
-    font-weight: 700;
-    color: #4c2f1c;
-    font-size: 1rem;
-    line-height: 1.3;
-}
-
-/* === ESTADOS VIBRANTES === */
-.track-step.done .track-dot {
-    background: #27ae60;
-    border-color: #f7eee5;
-}
-
-.track-step.done .track-dot i {
-    color: #fff;
-}
-
-.track-step.current .track-dot {
-    background: #f39c12;
-    border-color: #f4c542;
+.track-step.current .track-dot { 
+    background: #f39c12; 
+    border-color: #f4c542; 
     transform: scale(1.15);
-    box-shadow: 0 0 20px rgba(243, 156, 18, 0.8);
 }
+.track-step.current .track-dot i { color: #fff; }
+.track-step.muted { opacity: 0.5; }
 
-.track-step.current .track-dot i {
-    color: #fff;
-}
-
-/* ETA Box */
 .track-eta {
     margin-top: 30px;
     padding: 20px;
@@ -250,82 +288,43 @@
     border-radius: 15px;
     color: #4c2f1c;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-.track-eta strong {
-    font-size: 1.4rem;
-    color: #d32f2f;
-}
+/* === MEDIA QUERIES (Aquí se arregla la responsividad) === */
 
-
-/* === RESPONSIVE CLIENTE PEDIDOS === */
 @media (max-width: 900px) {
-
-    /* Ajustes generales */
-    .cliente-bg {
-        padding: 1rem;
-    }
-
-    .pedidos-wrapper {
-        padding: 1rem 0;
-    }
-
-    .pedidos-container {
-        padding: 0 10px;
-    }
-
-    .titulo-pedidos {
-        font-size: 2rem;
-        padding: 1rem;
-        margin: 0 10px 1.5rem 10px;
-    }
-
     .desktop-entrega-info {
         display: none !important;
     }
-
-    /* Modal */
-    .modal-track__content {
-        max-width: 95%;
-    }
-
-    .modal-track__header h3 {
-        font-size: 1.4rem;
-    }
-
-    /* Timeline en móvil */
-    .track-timeline {
-        padding: 40px 5px 10px;
-    }
-
-    .track-line,
-    .track-line-progress {
-        top: 40px;
-    }
-
-    /* Ajuste de línea para 60px de dot */
-
-    .track-dot {
-        width: 60px;
-        height: 60px;
-        font-size: 1.6rem;
-    }
-
-    /* Reduce tamaño para móvil */
-    .track-label {
-        font-size: 0.8rem;
-    }
-
-    .track-eta {
-        font-size: 1rem;
-        padding: 15px;
+    
+    /* ARREGLO CLAVE: Si ocultamos 1 columna, cambiamos el grid a 3 */
+    .pedido-header-info {
+        grid-template-columns: repeat(3, 1fr); 
     }
 }
 
-@media (max-width: 450px) {
+@media (max-width: 600px) {
+    /* ARREGLO CLAVE PARA MÓVIL: Cambiamos a 2 columnas para que no se rompa */
+    .pedido-header-info {
+        grid-template-columns: 1fr 1fr; 
+        gap: 15px;
+    }
+    
+    .titulo-pedidos {
+        font-size: 1.8rem;
+    }
+    
+    .track-dot {
+        width: 50px; 
+        height: 50px; 
+        font-size: 1.2rem;
+        border-width: 3px;
+    }
+    
+    .track-line, .track-line-progress { top: 50px; }
+}
 
-    /* Estilos de apilamiento... */
+@media (max-width: 450px) {
     .pedido-header {
         flex-direction: column;
         align-items: flex-start;
@@ -333,16 +332,20 @@
 
     .pedido-header-info {
         width: 100%;
+        /* En pantallas muy pequeñas, mantenemos 2 columnas o pasamos a 1 si prefieres */
+        grid-template-columns: 1fr 1fr; 
+        margin-bottom: 15px;
     }
 
     .pedido-actions {
-        flex-direction: column;
         width: 100%;
-        gap: 8px;
+        justify-content: stretch;
     }
 
-    .btn-factura,
-    .btn-seguimiento {
-        flex: 1 1 100%;
+    .btn-factura, .btn-seguimiento {
+        flex: 1;
+        justify-content: center;
     }
+    
+    .track-label { font-size: 0.75rem; }
 }

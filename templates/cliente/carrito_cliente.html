@@ -296,62 +296,86 @@ document.getElementById('btnPagar')?.addEventListener('click', async () => {
 
       // Cambios de entrega
       const entregaWrap = document.getElementById('bb-entrega');
-      const direccionWrap = document.getElementById('bb-direccion-wrap');
+  const direccionWrap = document.getElementById('bb-direccion-wrap');
 
-      const toggleEntrega = () => {
-        const valor = entregaWrap.querySelector('input:checked').value;
-        direccionWrap.style.display = valor === 'domicilio' ? 'block' : 'none';
-      };
-      entregaWrap.addEventListener('change', toggleEntrega);
-      toggleEntrega();
+  const toggleEntrega = () => {
+    const valor = entregaWrap.querySelector('input:checked').value;
+    direccionWrap.style.display = valor === 'domicilio' ? 'block' : 'none';
+  };
+  entregaWrap.addEventListener('change', toggleEntrega);
+  toggleEntrega();
 
-      // Pago
-      const metodoSel = document.getElementById('swal-metodo');
-      const tarjetaWrap = document.getElementById('bb-numero-tarjeta-wrap');
-      metodoSel.addEventListener('change', () => {
-        tarjetaWrap.style.display = metodoSel.value === 'tarjeta' ? 'block' : 'none';
-      });
+  // Pago
+  const metodoSel = document.getElementById('swal-metodo');
+  const tarjetaWrap = document.getElementById('bb-numero-tarjeta-wrap');
+  const tarjetaInput = document.getElementById('bb-numero-tarjeta');
 
-      // 🔹 FORMATEO DE TELÉFONO: 1234-5678
-      const telInput = document.getElementById('swal-telefono');
-      if (telInput) {
-        // Si el usuario no tiene tel, lo habilitamos para escribir
-        if(!telInput.disabled) {
-            telInput.setAttribute('inputmode', 'numeric');
-            telInput.setAttribute('maxlength', '9'); 
-    
-            const formatPhoneSwal = (el) => {
-              let digits = el.value.replace(/\D/g, '').slice(0, 8);
-              if (digits.length > 4) {
-                el.value = digits.slice(0, 4) + '-' + digits.slice(4);
-              } else {
-                el.value = digits;
-              }
-            };
-    
-            formatPhoneSwal(telInput);
-            telInput.addEventListener('input', () => formatPhoneSwal(telInput));
-        }
+  metodoSel.addEventListener('change', () => {
+    tarjetaWrap.style.display = metodoSel.value === 'tarjeta' ? 'block' : 'none';
+  });
+
+  // 🔹 TELÉFONO — FORMATEO ####-####
+  const telInput = document.getElementById('swal-telefono');
+  if (telInput) {
+    telInput.setAttribute('inputmode', 'numeric');
+    telInput.setAttribute('maxlength', '9');
+
+    const formatPhoneSwal = (el) => {
+      let digits = el.value.replace(/\D/g, '').slice(0, 8);
+      if (digits.length > 4) {
+        el.value = digits.slice(0, 4) + '-' + digits.slice(4);
+      } else {
+        el.value = digits;
       }
-    },
-    preConfirm: () => {
-      const nombre = document.getElementById('swal-nombre').value.trim();
-      const telefono = document.getElementById('swal-telefono').value.trim();
-      const entrega = document.querySelector('input[name="bb-entrega"]:checked').value;
-      const metodo = document.getElementById('swal-metodo').value;
-      const direccion = document.getElementById('bb-direccion').value.trim();
-      const tarjeta = document.getElementById('bb-numero-tarjeta').value.trim();
+    };
+    formatPhoneSwal(telInput);
+    telInput.addEventListener('input', () => formatPhoneSwal(telInput));
+  }
 
-      if (!nombre) return Swal.showValidationMessage("El nombre es obligatorio");
-      if (!telefono || telefono.length < 9) return Swal.showValidationMessage("Ingresa un teléfono válido (####-####)");
-      
-      if (entrega === 'domicilio' && !direccion)
-        return Swal.showValidationMessage("Por favor ingresa la dirección de entrega");
-      
-      if (metodo === 'tarjeta' && (tarjeta.length < 12 || tarjeta.length > 19))
-        return Swal.showValidationMessage("Número de tarjeta inválido");
+  // 🔹 TARJETA — FORMATEO 0000-0000-0000-0000
+  if (tarjetaInput) {
+    tarjetaInput.setAttribute('inputmode', 'numeric');
 
-      return { nombre, telefono, entrega, metodo, direccion, numero_pago: tarjeta };
+    tarjetaInput.addEventListener('input', () => {
+      let digits = tarjetaInput.value.replace(/\D/g, '').slice(0, 19);
+
+      let grupos = [];
+      for (let i = 0; i < digits.length; i += 4) {
+        grupos.push(digits.slice(i, i + 4));
+      }
+      tarjetaInput.value = grupos.join('-');
+    });
+  }
+
+},
+preConfirm: () => {
+  const nombre = document.getElementById('swal-nombre').value.trim();
+  const telefono = document.getElementById('swal-telefono').value.trim();
+  const entrega = document.querySelector('input[name="bb-entrega"]:checked').value;
+  const metodo = document.getElementById('swal-metodo').value;
+  const direccion = document.getElementById('bb-direccion').value.trim();
+  let tarjeta = document.getElementById('bb-numero-tarjeta').value.trim();
+
+  if (!nombre) return Swal.showValidationMessage("Nombre inválido");
+  if (!telefono) return Swal.showValidationMessage("Teléfono inválido");
+  if (entrega === 'domicilio' && !direccion)
+    return Swal.showValidationMessage("La dirección es obligatoria");
+
+  // 🔎 Validación de tarjeta usando solo dígitos
+  if (metodo === 'tarjeta') {
+    const soloDigitos = tarjeta.replace(/\D/g, '');
+    if (soloDigitos.length < 12 || soloDigitos.length > 19) {
+      return Swal.showValidationMessage("Número de tarjeta inválido (12–19 dígitos)");
+    }
+
+    let grupos = [];
+    for (let i = 0; i < soloDigitos.length; i += 4) {
+      grupos.push(soloDigitos.slice(i, i + 4));
+    }
+    tarjeta = grupos.join("-");
+  }
+
+  return { nombre, telefono, entrega, metodo, direccion, numero_pago: tarjeta };
     }
   });
 

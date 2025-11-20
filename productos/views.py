@@ -467,8 +467,22 @@ def carrito_checkout(request):
     if entrega == 'domicilio' and not direccion:
         return JsonResponse({'ok': False, 'error': 'La dirección es obligatoria para domicilio'}, status=400)
 
-    if metodo == 'tarjeta' and (not numero_pago.isdigit() or not (12 <= len(numero_pago) <= 19)):
-        return JsonResponse({'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos)'}, status=400)
+    if metodo == 'tarjeta':
+         numero_pago = str(numero_pago or "")
+
+    # ⿢ Quitar todo lo que no sea número
+    solo_digitos = re.sub(r'\D', '', numero_pago)   # --> "1234-5678 9123" => "123456789123"
+
+    # ⿣ Validar largo permitido
+    if len(solo_digitos) < 12 or len(solo_digitos) > 19:
+        return JsonResponse(
+            {'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos).'},
+            status=400
+        )
+
+    # ⿤ Formatear en grupos de 4 → 0000-0000-0000-0000
+    grupos = [solo_digitos[i:i+4] for i in range(0, len(solo_digitos), 4)]
+    numero_pago = "-".join(grupos)
 
     # 🔹 NUEVO: si el usuario escribió teléfono y es distinto al que ya tiene, se actualiza el perfil
     if telefono and telefono != (request.user.telefono or ''):
