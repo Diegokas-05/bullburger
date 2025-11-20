@@ -54,6 +54,7 @@ body {
   font-weight: 700;
   font-size: 28px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+  flex-shrink: 0; /* Evita que se aplaste */
 }
 
 .u-main h2 {
@@ -91,6 +92,7 @@ body {
 .ph-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap; /* Para móviles */
 }
 
 .btn {
@@ -131,7 +133,8 @@ body {
   margin-top: 18px;
   display: grid;
   gap: 18px;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+  align-items: start; /* Alineación superior para que no se estiren feo */
 }
 
 @media(max-width: 900px) {
@@ -145,6 +148,9 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 20px;
+  /* Asegura que la tarjeta no se desborde */
+  overflow: hidden; 
+  min-width: 0; /* Truco CSS Grid para evitar desbordes */
 }
 
 .card h3 {
@@ -152,21 +158,28 @@ body {
   color: var(--c-brown);
 }
 
+/* === CORRECCIÓN AQUÍ: Lista de datos === */
 .dl {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  /* Cambiamos a min-content para la etiqueta y 1fr para el dato */
+  grid-template-columns: auto 1fr; 
   row-gap: 10px;
-  column-gap: 10px;
+  column-gap: 20px; /* Más espacio entre etiqueta y dato */
   color: var(--c-text);
 }
 
 .dl dt {
   font-weight: 700;
   color: #6b5546;
+  white-space: nowrap; /* La etiqueta no se rompe */
 }
 
 .dl dd {
   margin: 0;
+  /* Esto hace la magia: rompe palabras largas */
+  word-break: break-word; 
+  overflow-wrap: break-word;
+  line-height: 1.4; /* Un poco de aire para textos largos */
 }
 
 /* === Modales === */
@@ -211,7 +224,7 @@ body {
   color: #2c3e50 !important;
 }
 
-/* ✅ Fix visual: espaciado y visibilidad de etiquetas */
+/* Fix visual: espaciado y visibilidad de etiquetas */
 .modal-body .form-group {
   margin-bottom: 16px !important;
 }
@@ -260,7 +273,8 @@ label {
 }
 
 textarea.form-control {
-  resize: none;
+  resize: vertical; /* Permite redimensionar verticalmente si es necesario */
+  min-height: 80px;
 }
 
 /* === Acciones (botones dentro del modal) === */
@@ -366,7 +380,6 @@ textarea.form-control {
   </div>
 </div>
 
-<!-- Modal Editar -->
 <div id="modalEdit" class="modal" aria-hidden="true">
   <div class="modal-content">
     <div class="modal-header">
@@ -636,7 +649,7 @@ function openEditModal(){
 function closeEditModal(){
   MEdit.style.display='none';
   resetEditFormFromDisplay();
-  clearAllErrors(MEdit); // <-- AÑADIDO
+  clearAllErrors(MEdit); 
 }
 
 /* --- PASSWORD: limpieza fuerte para vencer autofill --- */
@@ -655,14 +668,8 @@ function openPassModal(){ resetPassForm(); MPass.style.display='block'; }
 function closePassModal(){ 
   MPass.style.display='none'; 
   resetPassForm(); 
-  clearAllErrors(MPass); // <-- AÑADIDO
+  clearAllErrors(MPass); 
 }
-
-{% comment %} /* Cerrar al hacer click fuera */
-window.addEventListener('click',(e)=>{
-  if(e.target===MEdit) closeEditModal();
-  if(e.target===MPass) closePassModal();
-}); {% endcomment %}
 
 /* Cerrar con ESC */
 document.addEventListener('keydown',(e)=>{
@@ -713,7 +720,6 @@ function submitEdit(e){
       if (j.errors && j.errors.telefono) {
           showError(document.getElementById('f_tel'), j.errors.telefono[0]);
       }
-      /* === 'bu' ELIMINADO DE LA LÍNEA DE ABAJO === */
       toast(j.msg || 'No se pudo actualizar',false);
     }
   })
@@ -731,7 +737,7 @@ function submitPass(e){
       return false; // Detiene el envío
   }
   
-  // TU CÓDIGO ORIGINAL (eliminando la validación duplicada)
+  // TU CÓDIGO ORIGINAL
   const payload={
     password_actual:document.getElementById('p_actual').value,
     password_nueva:document.getElementById('p_nueva').value,
