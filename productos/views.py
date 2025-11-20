@@ -461,34 +461,41 @@ def carrito_checkout(request):
     direccion = payload.get('direccion', '').strip()
     numero_pago = payload.get('numero_pago', '').strip()
 
+    # Validación básica
     if metodo not in ('efectivo', 'tarjeta') or entrega not in ('local', 'domicilio'):
         return JsonResponse({'ok': False, 'error': 'Datos incompletos o inválidos'}, status=400)
 
     if entrega == 'domicilio' and not direccion:
         return JsonResponse({'ok': False, 'error': 'La dirección es obligatoria para domicilio'}, status=400)
 
+    # 🔐 VALIDACIÓN *SOLO* SI ES TARJETA
     if metodo == 'tarjeta':
-         numero_pago = str(numero_pago or "")
+        numero_pago = str(numero_pago or "").strip()
 
-    # ⿢ Quitar todo lo que no sea número
-    solo_digitos = re.sub(r'\D', '', numero_pago)   # --> "1234-5678 9123" => "123456789123"
+        # Quitar todo lo que no sea número
+        solo_digitos = re.sub(r'\D', '', numero_pago)
 
-    # ⿣ Validar largo permitido
-    if len(solo_digitos) < 12 or len(solo_digitos) > 19:
-        return JsonResponse(
-            {'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos).'},
-            status=400
-        )
+        # Validar largo
+        if len(solo_digitos) < 12 or len(solo_digitos) > 19:
+            return JsonResponse(
+                {'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos).'},
+                status=400
+            )
 
-    # ⿤ Formatear en grupos de 4 → 0000-0000-0000-0000
-    grupos = [solo_digitos[i:i+4] for i in range(0, len(solo_digitos), 4)]
-    numero_pago = "-".join(grupos)
+        # Formatear 0000-0000-0000-0000
+        grupos = [solo_digitos[i:i+4] for i in range(0, len(solo_digitos), 4)]
+        numero_pago = "-".join(grupos)
 
-    # 🔹 NUEVO: si el usuario escribió teléfono y es distinto al que ya tiene, se actualiza el perfil
+    else:
+        # Si es efectivo, limpiar cualquier rastro
+        numero_pago = ""
+
+    # Guardar teléfono nuevo si cambió
     if telefono and telefono != (request.user.telefono or ''):
         request.user.telefono = telefono
         request.user.save(update_fields=['telefono'])
 
+    # Obtener ítems
     items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
     if not items.exists():
         return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
@@ -509,6 +516,7 @@ def carrito_checkout(request):
                 total=total
             )
 
+            # Crear detalles
             for it in items:
                 DetallePedido.objects.create(
                     pedido=pedido,
@@ -517,7 +525,7 @@ def carrito_checkout(request):
                     subtotal=it.producto.precio * it.cantidad
                 )
 
-            # Inventario: productos terminados
+            # Restar inventario de productos
             if _INV_PRODUCTO_OK:
                 for it in items.select_for_update():
                     try:
@@ -539,7 +547,7 @@ def carrito_checkout(request):
                     except Inventario.DoesNotExist:
                         pass
 
-            # Ingredientes según receta
+            # Restar ingredientes por receta
             for it in items:
                 recetas = Receta.objects.select_related('ingrediente').filter(producto=it.producto)
                 for rec in recetas.select_for_update():
@@ -563,16 +571,16 @@ def carrito_checkout(request):
             # Vaciar carrito
             items.delete()
 
-            # ✅ Generar factura PDF
+            # Generar factura PDF
             factura_url = generar_factura_pdf(pedido)
-            
+
             factura_path_relativo = None
             if factura_url and factura_url.startswith(settings.MEDIA_URL):
                 factura_path_relativo = factura_url[len(settings.MEDIA_URL):]
                 if factura_path_relativo:
                     pedido.factura_pdf = factura_path_relativo
                     pedido.save(update_fields=['factura_pdf'])
-                        
+
             return JsonResponse({
                 'ok': True,
                 'pedido_id': pedido.id,
@@ -584,6 +592,7 @@ def carrito_checkout(request):
         return JsonResponse({'ok': False, 'error': str(ve)}, status=400)
     except Exception as e:
         return JsonResponse({'ok': False, 'error': f'Error interno: {e}'}, status=500)
+
 
 def api_stock_productos(request):
     productos = Producto.objects.filter(disponible=True)
