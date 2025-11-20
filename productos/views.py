@@ -1,7 +1,8 @@
 # productos/views.py
 from decimal import Decimal
 import json
-import re 
+import re
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.http import JsonResponse
 from django.urls import reverse, NoReverseMatch
-from django.db.models import Prefetch # ✅ AÑADIDA PARA OPTIMIZACIÓN
+from django.db.models import Prefetch
 
 # Modelos propios
 from .models import Producto, Categoria, CarritoItem
@@ -23,7 +24,7 @@ from pedidos.models import Pedido, DetallePedido
 # Usuario
 from usuarios.models import Usuario
 
-# ✅ Generador de facturas
+# Generador de facturas
 from inventario.utils_factura import generar_factura_pdf
 from django.conf import settings
 
@@ -52,11 +53,14 @@ def lista_productos(request):
         'ingredientes': ingredientes,
     })
 
-# -----------------------------------------------------------------
-# ❗️ ESTA ES LA VISTA 'crear_producto' (Tu versión original)
-# -----------------------------------------------------------------
+
 @login_required
 def crear_producto(request):
+    """
+    Crea un producto y su receta.
+    Si la petición es AJAX (fetch), devuelve JSON.
+    Si no, usa messages + redirect.
+    """
     if request.method == 'POST':
         try:
             # Crear el producto
@@ -74,9 +78,9 @@ def crear_producto(request):
             for key in request.POST.keys():
                 if key.startswith('ingredientes[') and key.endswith('][id]'):
                     index = key.split('[')[1].split(']')[0]
-                    ingrediente_id = request.POST[f'ingredientes[{index}][id]']
+                    ingrediente_id = request.POST.get(f'ingredientes[{index}][id]')
                     cantidad = request.POST.get(f'ingredientes[{index}][cantidad]')
-                    
+
                     if ingrediente_id and cantidad:
                         ingredientes_data.append({
                             'ingrediente_id': ingrediente_id,
@@ -90,60 +94,77 @@ def crear_producto(request):
                     cantidad=ing['cantidad']
                 )
 
+            # Respuesta AJAX
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'ok': True,
+                    'message': 'Producto creado exitosamente con su receta'
+                }, status=201)
+
+            # Respuesta normal
             messages.success(request, 'Producto creado exitosamente con su receta')
-            return redirect('menu_administrador') 
-            
+            return redirect('menu_administrador')
+
         except Exception as e:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'ok': False,
+                    'error': f'Error al crear producto: {e}'
+                }, status=400)
+
             messages.error(request, f'Error al crear producto: {e}')
+            return redirect('menu_administrador')
+
+    # Método no permitido
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
     return redirect('menu_administrador')
 
 
-# -----------------------------------------------------------------
-# ❗️ ESTA ES LA VISTA 'editar_producto' (Versión corregida)
-# -----------------------------------------------------------------
 @login_required
-@transaction.atomic  # Asegura que la edición sea todo o nada
+@transaction.atomic
 def editar_producto(request, producto_id):
     """
-    Vista para PROCESAR el envío (POST) del formulario modal de edición.
+    Edita un producto y su receta.
+    Si es AJAX, devuelve JSON; si no, redirect.
     """
     producto = get_object_or_404(Producto, id=producto_id)
-    
+
     if request.method == 'POST':
         try:
-            # 1. Actualizar los campos del Producto
+            # 1. Actualizar campos básicos
             producto.nombre = request.POST.get('nombre')
             producto.descripcion = request.POST.get('descripcion')
             producto.precio = float(request.POST.get('precio'))
             producto.categoria_id = request.POST.get('categoria')
             producto.disponible = request.POST.get('disponible') == 'on'
-            
-            # 2. Actualizar imagen SOLO si se sube una nueva
+
+            # 2. Imagen solo si suben nueva
             if 'imagen' in request.FILES:
                 producto.imagen = request.FILES['imagen']
-            
+
             producto.save()
 
-            # 3. Actualizar la Receta (Borrar la antigua y crear la nueva)
+            # 3. Borrar receta anterior
             Receta.objects.filter(producto=producto).delete()
 
-            # 4. Re-crear la receta (misma lógica de tu crear_producto)
+            # 4. Crear nueva receta
             ingredientes_data = []
             for key in request.POST.keys():
                 if key.startswith('ingredientes[') and key.endswith('][id]'):
                     index = key.split('[')[1].split(']')[0]
-                    ingrediente_id = request.POST[f'ingredientes[{index}][id]']
+                    ingrediente_id = request.POST.get(f'ingredientes[{index}][id]')
                     cantidad = request.POST.get(f'ingredientes[{index}][cantidad]')
-                    
+
                     if ingrediente_id and cantidad:
                         ingredientes_data.append({
                             'ingrediente_id': ingrediente_id,
                             'cantidad': cantidad
                         })
 
-            # Validar que la receta no esté vacía
             if not ingredientes_data:
-                 raise Exception("Un producto (incluso editado) debe tener al menos un ingrediente.")
+                raise Exception("Un producto (incluso editado) debe tener al menos un ingrediente.")
 
             for ing in ingredientes_data:
                 Receta.objects.create(
@@ -152,35 +173,61 @@ def editar_producto(request, producto_id):
                     cantidad=ing['cantidad']
                 )
 
+            # AJAX
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'ok': True,
+                    'message': f'Producto "{producto.nombre}" actualizado exitosamente.'
+                })
+
+            # Normal
             messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
-        
+
         except Exception as e:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'ok': False,
+                    'error': f'Error al actualizar producto: {e}'
+                }, status=400)
+
             messages.error(request, f'Error al actualizar producto: {e}')
-        
+
         return redirect('menu_administrador')
-    
-    # Si es GET, simplemente redirigir. El modal se carga vía API.
+
+    # GET u otro método
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
     return redirect('menu_administrador')
-
-
-# -----------------------------------------------------------------
-# ❗️ AQUÍ ESTABA LA VISTA 'editar_producto' DUPLICADA (AHORA BORRADA)
-# -----------------------------------------------------------------
 
 
 @login_required
 def eliminar_producto(request, producto_id):
-    """Vista para eliminar un producto"""
+    """Elimina un producto; si es AJAX, devuelve JSON."""
     producto = get_object_or_404(Producto, id=producto_id)
-    
+
     if request.method == 'POST':
-        # También eliminar las recetas asociadas
+        # Eliminar recetas asociadas
         Receta.objects.filter(producto=producto).delete()
         producto.delete()
+
+        # AJAX
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': 'Producto eliminado exitosamente'
+            })
+
+        # Normal
         messages.success(request, 'Producto eliminado exitosamente')
-        return redirect('menu_administrador') 
-    
-    return redirect('menu_administrador') 
+        return redirect('menu_administrador')
+
+    # Método no permitido
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
+    return redirect('menu_administrador')
+
 
 @login_required
 def crear_categoria(request):
@@ -199,13 +246,31 @@ def crear_categoria(request):
 
 @login_required
 def eliminar_categoria(request, categoria_id):
+    """
+    Elimina una categoría (si no tiene productos asociados).
+    Si es AJAX → JSON; si no, redirect.
+    """
     categoria = get_object_or_404(Categoria, id=categoria_id)
+
     if request.method == 'POST':
         if Producto.objects.filter(categoria=categoria).exists():
-            messages.error(request, 'No se puede eliminar una categoría con productos asociados')
+            msg = 'No se puede eliminar una categoría con productos asociados'
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': msg}, status=400)
+            messages.error(request, msg)
         else:
             categoria.delete()
-            messages.success(request, 'Categoría eliminada exitosamente')
+            msg = 'Categoría eliminada exitosamente'
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': True, 'message': msg})
+            messages.success(request, msg)
+
+        return redirect('menu_administrador')
+
+    # Método no permitido
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'error': 'Método no permitido'}, status=405)
+
     return redirect('menu_administrador')
 
 
@@ -215,38 +280,30 @@ def eliminar_categoria(request, categoria_id):
 
 def menu_cliente(request):
     categorias = Categoria.objects.all().order_by('nombre')
-    
-    # 1. Consulta Inicial y Verificación de Integridad (is_currently_available)
-    # Utilizamos prefetch_related para optimizar la carga de Recetas e Ingredientes.
+
+    # Consulta inicial
     productos_qs = Producto.objects.filter(disponible=True).select_related('categoria').prefetch_related(
         Prefetch('receta_set', queryset=Receta.objects.select_related('ingrediente'))
     ).order_by('nombre')
-    
-    # Filtramos la lista en Python usando la propiedad is_currently_available,
-    # lo cual excluye productos que no tienen stock para hacer NI UNA unidad.
+
     productos_raw = [
         producto for producto in productos_qs if producto.is_currently_available
     ]
-    
-    # --- START: LÓGICA DE DEDUCCIÓN DEL CARRITO ---
 
-    # Obtener carrito de BD (Items que el usuario ya reservó)
+    # --- START: LÓGICA DE DEDUCCIÓN DEL CARRITO ---
     items_carrito = CarritoItem.objects.filter(usuario=request.user).select_related("producto")
 
-    # 1. Calcular consumo global de ingredientes reservados por el carrito
-    consumo_global = {} 
+    consumo_global = {}
     for item in items_carrito:
         recetas = Receta.objects.filter(producto=item.producto).select_related("ingrediente")
         for r in recetas:
             total_req = r.cantidad * item.cantidad
             consumo_global[r.ingrediente_id] = consumo_global.get(r.ingrediente_id, 0) + total_req
 
-    # 2. Calcular stock REAL para la venta (descontando el carrito)
     productos_final = []
 
-    for producto in productos_raw: # Iteramos sobre la lista ya filtrada por disponibilidad
-        # Volvemos a obtener las recetas para la deducción (es el enfoque más seguro para este tipo de cálculo)
-        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente") 
+    for producto in productos_raw:
+        recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
 
         if not recetas.exists():
             producto.stock_disponible = 9999
@@ -257,19 +314,14 @@ def menu_cliente(request):
 
         for r in recetas:
             ing = r.ingrediente
-
-            # Stock disponible después de restar lo que el carrito está consumiendo
             stock_disp = ing.stock_actual - consumo_global.get(ing.id, 0)
             if stock_disp < 0:
                 stock_disp = 0
 
             if r.cantidad > 0:
-                # Calcular cuántas unidades de este producto pueden hacerse con el stock restante
                 stock_posibles.append(stock_disp // r.cantidad)
 
-        # El stock final es el mínimo posible
         stock_real = min(stock_posibles) if stock_posibles else 0
-
         producto.stock_disponible = stock_real
 
         if stock_real > 0:
@@ -281,6 +333,8 @@ def menu_cliente(request):
         'categorias': categorias,
         'productos': productos_final
     })
+
+
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -290,21 +344,18 @@ def agregar_al_carrito(request):
     if not request.user.is_authenticated:
         return JsonResponse({'ok': False, 'error': 'Debe iniciar sesión para agregar productos.'}, status=403)
 
-    # --- leer datos ---
     try:
         data = json.loads(request.body)
         producto_id = data.get("producto_id")
         cantidad_solicitada = int(data.get("cantidad", 1))
-    except:
+    except Exception:
         return JsonResponse({'ok': False, 'error': 'Datos inválidos'}, status=400)
 
-    # --- obtener producto ---
     try:
         producto = Producto.objects.get(id=producto_id)
     except Producto.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Producto no encontrado'}, status=404)
 
-    # --- calcular stock disponible según recetas ---
     recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
 
     if not recetas.exists():
@@ -319,27 +370,22 @@ def agregar_al_carrito(request):
 
         stock_disponible = min(stock_list) if stock_list else 0
 
-    # --- obtener item actual ---
     item, creado = CarritoItem.objects.get_or_create(usuario=request.user, producto=producto)
     nueva_cantidad = item.cantidad + cantidad_solicitada if not creado else cantidad_solicitada
 
-    # --- validar stock ---
     if stock_disponible <= 0:
         return JsonResponse({'ok': False, 'error': 'Producto agotado'})
-    
+
     if nueva_cantidad > stock_disponible:
         return JsonResponse({
             'ok': False,
             'error': f"Solo hay {stock_disponible} unidades disponibles"
         }, status=400)
 
-    # --- guardar ---
     item.cantidad = nueva_cantidad
     item.save()
 
-    # ==========================================================
-    #   CALCULAR STOCK ACTUALIZADO DE TODOS LOS PRODUCTOS
-    # ==========================================================
+    # Actualizar stock de todos los productos
     stock_map = {}
     for p in Producto.objects.filter(disponible=True):
         recetas_p = Receta.objects.filter(producto=p).select_related("ingrediente")
@@ -355,9 +401,6 @@ def agregar_al_carrito(request):
 
         stock_map[p.id] = min(stock_list_p) if stock_list_p else 0
 
-    # ==========================================================
-    #   RETURN FINAL (INCLUYE STOCK ACTUALIZADO)
-    # ==========================================================
     return JsonResponse({
         'ok': True,
         'mensaje': 'Producto agregado correctamente',
@@ -388,7 +431,6 @@ def editar_cantidad(request, item_id):
         item = CarritoItem.objects.select_related('producto').get(id=item_id, usuario=request.user)
         producto = item.producto
 
-        # --- stock receta ---
         recetas = Receta.objects.filter(producto=producto).select_related("ingrediente")
 
         if not recetas.exists():
@@ -400,11 +442,9 @@ def editar_cantidad(request, item_id):
                     stock_list.append(r.ingrediente.stock_actual // r.cantidad)
             stock_receta = min(stock_list) if stock_list else 0
 
-        # --- lo que tienen otros ítems iguales (no este) ---
         otros = CarritoItem.objects.filter(usuario=request.user, producto=producto).exclude(id=item.id).first()
         reservados_otros = otros.cantidad if otros else 0
 
-        # stock disponible para este item
         stock_disponible = stock_receta - reservados_otros
         if stock_disponible < 0:
             stock_disponible = 0
@@ -415,18 +455,16 @@ def editar_cantidad(request, item_id):
                 "error": f"Solo hay {stock_disponible} unidades disponibles"
             }, status=400)
 
-        # guardar
         item.cantidad = nueva_cantidad
         item.save()
 
         return JsonResponse({"ok": True, "mensaje": "Cantidad actualizada correctamente"})
 
     except CarritoItem.DoesNotExist:
-        return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=4404)
+        return JsonResponse({"ok": False, "error": "Item no encontrado"}, status=404)
 
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
-
 
 
 @login_required
@@ -461,41 +499,31 @@ def carrito_checkout(request):
     direccion = payload.get('direccion', '').strip()
     numero_pago = payload.get('numero_pago', '').strip()
 
-    # Validación básica
     if metodo not in ('efectivo', 'tarjeta') or entrega not in ('local', 'domicilio'):
         return JsonResponse({'ok': False, 'error': 'Datos incompletos o inválidos'}, status=400)
 
     if entrega == 'domicilio' and not direccion:
         return JsonResponse({'ok': False, 'error': 'La dirección es obligatoria para domicilio'}, status=400)
 
-    # 🔐 VALIDACIÓN *SOLO* SI ES TARJETA
     if metodo == 'tarjeta':
         numero_pago = str(numero_pago or "").strip()
-
-        # Quitar todo lo que no sea número
         solo_digitos = re.sub(r'\D', '', numero_pago)
 
-        # Validar largo
         if len(solo_digitos) < 12 or len(solo_digitos) > 19:
             return JsonResponse(
                 {'ok': False, 'error': 'Número de tarjeta inválido (12–19 dígitos).'},
                 status=400
             )
 
-        # Formatear 0000-0000-0000-0000
         grupos = [solo_digitos[i:i+4] for i in range(0, len(solo_digitos), 4)]
         numero_pago = "-".join(grupos)
-
     else:
-        # Si es efectivo, limpiar cualquier rastro
         numero_pago = ""
 
-    # Guardar teléfono nuevo si cambió
     if telefono and telefono != (request.user.telefono or ''):
         request.user.telefono = telefono
         request.user.save(update_fields=['telefono'])
 
-    # Obtener ítems
     items = CarritoItem.objects.select_related('producto').filter(usuario=request.user)
     if not items.exists():
         return JsonResponse({'ok': False, 'error': 'Tu bolsa está vacía'}, status=400)
@@ -516,7 +544,6 @@ def carrito_checkout(request):
                 total=total
             )
 
-            # Crear detalles
             for it in items:
                 DetallePedido.objects.create(
                     pedido=pedido,
@@ -525,7 +552,6 @@ def carrito_checkout(request):
                     subtotal=it.producto.precio * it.cantidad
                 )
 
-            # Restar inventario de productos
             if _INV_PRODUCTO_OK:
                 for it in items.select_for_update():
                     try:
@@ -547,7 +573,6 @@ def carrito_checkout(request):
                     except Inventario.DoesNotExist:
                         pass
 
-            # Restar ingredientes por receta
             for it in items:
                 recetas = Receta.objects.select_related('ingrediente').filter(producto=it.producto)
                 for rec in recetas.select_for_update():
@@ -568,10 +593,8 @@ def carrito_checkout(request):
                         usuario=request.user
                     )
 
-            # Vaciar carrito
             items.delete()
 
-            # Generar factura PDF
             factura_url = generar_factura_pdf(pedido)
 
             factura_path_relativo = None
@@ -596,13 +619,11 @@ def carrito_checkout(request):
 
 def api_stock_productos(request):
     productos = Producto.objects.filter(disponible=True)
-
     data = {}
 
     for p in productos:
         recetas = Receta.objects.filter(producto=p).select_related("ingrediente")
 
-        # Sin receta = sin límite
         if not recetas.exists():
             stock_receta = 9999
         else:
@@ -612,7 +633,6 @@ def api_stock_productos(request):
                     stock_list.append(r.ingrediente.stock_actual // r.cantidad)
             stock_receta = min(stock_list) if stock_list else 0
 
-        # Lo reservado por este usuario
         reservados_qs = CarritoItem.objects.filter(usuario=request.user, producto=p)
         reservados = reservados_qs.first().cantidad if reservados_qs else 0
 
@@ -641,7 +661,6 @@ def api_stock_producto(request, producto_id):
 
             stock_disponible = min(stock_list) if stock_list else 0
 
-        # Restar lo que ya tiene en el carrito
         actual = CarritoItem.objects.filter(usuario=request.user, producto=producto).first()
         if actual:
             stock_disponible -= actual.cantidad
@@ -653,10 +672,10 @@ def api_stock_producto(request, producto_id):
 
     except Producto.DoesNotExist:
         return JsonResponse({"stock": 0})
-    
+
 
 # -----------------------------------------------------------------
-#  ESTA ES LA VISTA API QUE FALTABA (Sin duplicados)
+#  API para llenar modal de edición
 # -----------------------------------------------------------------
 def api_detalle_producto_edicion(request, producto_id):
     """
@@ -665,21 +684,17 @@ def api_detalle_producto_edicion(request, producto_id):
     """
     try:
         producto = get_object_or_404(Producto, id=producto_id)
-        
-        # Preparar los datos de la receta
+
         receta_data = []
-        # Usamos 'receta_set' (la relación inversa desde Producto a Receta)
-        for receta in producto.receta_set.all(): 
+        for receta in producto.receta_set.all():
             receta_data.append({
                 'ingrediente_id': receta.ingrediente.id,
                 'ingrediente_nombre': receta.ingrediente.nombre,
-                # Convertir Decimal a float para que JS/JSON lo entienda
-                'cantidad': float(receta.cantidad), 
-                'unidad': receta.ingrediente.unidad_medida, 
+                'cantidad': float(receta.cantidad),
+                'unidad': receta.ingrediente.unidad_medida,
                 'costo_unitario': float(receta.ingrediente.costo_unitario),
             })
-            
-        # Preparar los datos del producto
+
         data = {
             'id': producto.id,
             'nombre': producto.nombre,
@@ -688,9 +703,9 @@ def api_detalle_producto_edicion(request, producto_id):
             'categoria_id': producto.categoria.id if producto.categoria else None,
             'disponible': producto.disponible,
             'imagen_url': producto.imagen.url if producto.imagen else '',
-            'receta': receta_data, # Aquí incluimos la receta
+            'receta': receta_data,
         }
-        
+
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
