@@ -915,16 +915,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-window.addEventListener('click', function(event) {
-    const categoryModal = document.getElementById('categoryModal');
-    const manageModal = document.getElementById('manageCategoriesModal');
-    const customAlert = document.getElementById('customAlert');
-
-    if (event.target === productModal) closeModal(); 
-    if (event.target === categoryModal) closeCategoryModal();
-    if (event.target === manageModal) closeManageCategoriesModal();
-    if (event.target === customAlert) closeCustomAlert();
-});
 
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {

@@ -790,22 +790,7 @@ function confirmDeleteIngrediente(ingredienteId, ingredienteNombre) {
     );
 }
 
-// Cerrar modales al hacer clic fuera
-window.addEventListener('click', function(event) {
-    const modals = [
-        'addIngredienteModal', 
-        'editIngredienteModal', 
-        'ajustarModal',
-        'customAlert'
-    ];
-    
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    });
-});
+
 
 // Cerrar modales con ESC
 document.addEventListener('keydown', function(event) {
