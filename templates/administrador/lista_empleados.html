@@ -198,6 +198,136 @@ function closeCustomAlert() {
     document.getElementById('customAlert').style.display = 'none';
 }
 
+/* ===== Modal Editar (ACTUALIZADO) ===== */
+
+function openEditEmpleadoModal(id) {
+
+  fetch(`/empleados/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+      // IDs estandarizados
+
+      document.getElementById('e_id').value = data.id;
+
+      document.getElementById('e_nombre').value = data.nombre || '';
+
+      document.getElementById('e_email').value = data.email || '';
+
+      document.getElementById('e_telefono').value = data.telefono || '';
+
+      document.getElementById('e_direccion').value = data.direccion || '';
+
+      document.getElementById('editEmpleadoModal').style.display = 'block';
+
+    });
+
+}
+
+function closeEditEmpleadoModal() {
+
+  document.getElementById('editEmpleadoModal').style.display = 'none';
+
+  clearAllErrors(document.getElementById('editEmpleadoForm'));
+
+}
+
+
+
+function submitEditEmpleado(event) {
+
+  event.preventDefault();
+
+  clearAllErrors(document.getElementById('editEmpleadoForm'));
+
+
+
+  if (!validateEditForm()) {
+
+      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
+
+      return false;
+
+  }
+
+
+
+  const id = document.getElementById('e_id').value;
+
+  const data = {
+
+    nombre: document.getElementById('e_nombre').value,
+
+    email: document.getElementById('e_email').value,
+
+    telefono: document.getElementById('e_telefono').value,
+
+    direccion: document.getElementById('e_direccion').value,
+
+  };
+
+
+
+  fetch(`/empleados/editar/${id}/`, {
+
+    method: 'POST',
+
+    headers: {
+
+      'Content-Type': 'application/json',
+
+      'X-CSRFToken': csrftoken,
+
+      'X-Requested-With': 'XMLHttpRequest',
+
+    },
+
+    body: JSON.stringify(data)
+
+  })
+
+  .then(res => res.json())
+
+  .then(json => { // 'resp' cambiado a 'json'
+
+    if (json.success) { // Tu lógica original usaba 'success'
+
+      const fila = document.querySelector(`tr[data-id='${id}']`);
+
+      fila.querySelector('.c-nombre').textContent = data.nombre;
+
+      fila.querySelector('.c-email').textContent = data.email;
+
+      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
+
+      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+
+      closeEditEmpleadoModal();
+
+      showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
+
+    } else {
+
+      // Manejo de errores mejorado
+
+      if (json.errors && json.errors.email) {
+
+          showError(document.getElementById('e_email'), json.errors.email[0]);
+
+      }
+
+      showCustomAlert('Error', json.error || json.errors.non_field_errors || 'No se pudo actualizar.');
+
+    }
+
+  })
+
+  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+
+}
+
 // ===== ELIMINAR EMPLEADO USANDO SWEETALERT2 =====
 function confirmDeleteEmpleado(id, nombre) {
     // 1. Mostrar la alerta de confirmación
