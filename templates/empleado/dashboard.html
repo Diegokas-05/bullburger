@@ -4,67 +4,83 @@
 {% block title %}Panel de Empleado - Bullburger{% endblock %}
 
 {% block content %}
-<!-- Cargar el CSS externo -->
 <link rel="stylesheet" href="{% static 'css/empleado/dashboard.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="welcome-container">
-  <!-- 🔹 Bloque con estadísticas en tiempo real -->
-  <div class="welcome-header">
-    <h1>¡Panel de Empleado!</h1>
-    <p>Hola, <strong>{{ user.nombre }}</strong>. Estado actual de los pedidos</p>
-    
-    <!-- Estadísticas en tiempo real -->
-    <div class="stats-grid">
-      <div class="stat-card stat-total">
-        <div class="stat-number" id="total-pedidos">{{ total_pedidos }}</div>
-        <div class="stat-label">Total Pedidos Hoy</div>
-      </div>
-      
-      <div class="stat-card stat-pendiente">
-        <div class="stat-number" id="pedidos-pendientes">{{ pedidos_pendientes.count }}</div>
-        <div class="stat-label">Pendientes</div>
-      </div>
-      
-      <div class="stat-card stat-preparando">
-        <div class="stat-number" id="pedidos-preparando">{{ pedidos_preparando.count }}</div>
-        <div class="stat-label">En Preparación</div>
-      </div>
-      
-      <div class="stat-card stat-listo">
-        <div class="stat-number" id="pedidos-listos">{{ pedidos_listos.count }}</div>
-        <div class="stat-label">Listos para Entregar</div>
-      </div>
-    </div>
+<div class="admin-bg">
+    <div class="admin-container">
+
+        <h1 class="admin-title">HOLA, {{ user.nombre|default:'EMPLEADO'|upper }}</h1>
+        <p class="admin-subtitle">
+            Bienvenido. Estos son los pedidos activos de hoy 📋
+        </p>
+
+        <div class="dashboard-grid-container">
+
+            <div class="dashboard-section-card wide-card">
+                <div class="card-header">
+                    <span class="icon">📅</span>
+                    <h2>Resumen de Pedidos de Hoy</h2>
+                </div>
+                <div class="card-body">
+                    
+                    <div class="stat-hero success">
+                        <p>Total de Pedidos Recibidos Hoy</p>
+                        <h3 id="total-pedidos">{{ total_pedidos }}</h3>
+                    </div>
+
+                    <div class="stat-list">
+                        <div class="stat-item">
+                            <h4 class="warning-text" id="pedidos-pendientes">{{ pedidos_pendientes.count }}</h4>
+                            <p>Pendientes</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4 class="info-text" id="pedidos-preparando">{{ pedidos_preparando.count }}</h4>
+                            <p>En Preparación</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4 class="success-text" id="pedidos-listos">{{ pedidos_listos.count }}</h4>
+                            <p>Listos (Para Entregar)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    Última actualización: <strong id="last-updated-time">{{ now|date:"H:i:s" }}</strong>
+                </div>
+            </div>
 
 
-  <!-- Tarjetas de funcionalidades -->
-  <div class="feature-grid">
-    <!-- Gestionar Pedidos -->
-    <div class="feature-card">
-      <div class="circle-icon">
-        <span style="font-size: 2rem;">📋</span>
-      </div>
-      <h3>Gestionar Pedidos</h3>
-      <p>Ver y gestionar pedidos en curso</p>
-      <button class="btn btn-primary" onclick="window.location.href='{% url 'gestion_pedidos' %}'">Ver Pedidos</button>
-    </div>
+            <div class="dashboard-section-card actions-card">
+                <div class="card-header">
+                    <span class="icon">🚀</span>
+                    <h2>Acciones Rápidas</h2>
+                </div>
+                <div class="card-body action-body">
+                    
+                    <a href="{% url 'gestion_pedidos' %}" class="action-btn red-bg">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Gestionar Pedidos</span>
+                    </a>
+                    
+                    <a href="{% url 'inventario' %}" class="action-btn gold-bg">
+                        <i class="fas fa-boxes"></i>
+                        <span>Revisar Inventario</span>
+                    </a>
 
-    <!-- Inventario -->
-    <div class="feature-card">
-      <div class="circle-icon">
-        <span style="font-size: 2rem;">📦</span>
-      </div>
-      <h3>Inventario</h3>
-      <p>Revisar y gestionar stock</p>
-      <button class="btn btn-primary" onclick="window.location.href='{% url 'inventario' %}'">Ver Inventario</button>
-    </div>
-  </div>
+                    <a href="{% url 'perfil_usuario' %}" class="action-btn brown-bg">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Mi Perfil</span>
+                    </a>
+                </div>
+            </div>
+
+        </div> </div>
 </div>
 
 <script>
 // Función para actualizar estadísticas en tiempo real
 function actualizarEstadisticas() {
-    fetch('/empleado/api/estadisticas/')
+    fetch('{% url "api_estadisticas" %}') // Usamos la URL nombrada
         .then(response => response.json())
         .then(data => {
             document.getElementById('total-pedidos').textContent = data.total_pedidos;
@@ -82,6 +98,9 @@ function actualizarEstadisticas() {
             console.error('Error actualizando estadísticas:', error);
         });
 }
+
+// Llama a la función al cargar la página
+// actualizarEstadisticas(); // Ya está cargado con Django al inicio.
 
 // Actualizar automáticamente cada 30 segundos
 setInterval(actualizarEstadisticas, 30000);

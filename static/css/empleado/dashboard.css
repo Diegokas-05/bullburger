@@ -1,172 +1,350 @@
-.welcome-container {
-    background-color: #ffffffff;
-    border-radius: 15px;
-    padding: 2rem 2rem 3rem 2rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+/* === Colores Base === */
+:root {
+    --color-red: #d32f2f;
+    --color-dark-red: #b71c1c;
+    --color-gold: #ffcc00;
+    --color-brown-dark: #3e2723;
+    --color-brown-light: #8d6e63;
+    --color-bg-light: #fdf8ef;
+    /* Fondo del Admin */
+    --color-card-bg: #ffffff;
 }
 
-.welcome-container h1 {
-    margin-bottom: 1.5rem;
+/* =========================================================
+   ESTRUCTURA Y ESTILOS DE ADMIN (Replicados)
+   ========================================================= */
+
+.admin-bg {
+    background-color: var(--color-bg-light);
+    min-height: 100vh;
+    padding: 3rem;
+    border-radius: 10px;
 }
 
-.welcome-header {
-    margin-bottom: 6.0rem;
+.admin-container {
+    max-width: 1200px;
+    margin: auto;
 }
 
+.admin-title {
+    font-size: 2.5rem;
+    color: var(--color-brown-dark);
+}
 
-.feature-grid {
+.admin-subtitle {
+    color: var(--color-brown-light);
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+/* === Dashboard Grid === */
+
+.dashboard-grid-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
+    /* Ajuste para que la tarjeta de pedidos sea más ancha en desktop */
+    grid-template-columns: 2fr 1fr;
+    gap: 25px;
+    margin-top: 30px;
 }
 
-.feature-card {
-    position: relative;
-    background-color: #fff;
-    border: 1px solid #e6d8c2;
-    border-radius: 18px;
-    text-align: center;
-    padding: 70px 20px 20px 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* La tarjeta de sección principal */
+.dashboard-section-card {
+    background-color: var(--color-card-bg);
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+    border: 1px solid #f0f0f0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+.dashboard-section-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
 }
 
-.circle-icon {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background-color: #fff8f2;
-    border: 6px solid #f8efe0;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+/* Encabezado de la tarjeta */
+.card-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 12px;
+    padding: 20px 25px;
+    border-bottom: 1px solid #f0f0f0;
+    background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
 }
 
-.feature-card h3 {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #3b2a16;
+.card-header .icon {
+    font-size: 24px;
+    line-height: 1;
 }
 
-.feature-card p {
-    color: #6a5b4b;
-}
-
-.feature-card .btn-primary {
-    margin-top: 10px;
-    background-color: #b71c1c;
-    border-color: #b71c1c;
-    border-radius: 10px;
+.card-header h2 {
+    margin: 0;
+    font-size: 18px;
     font-weight: 600;
-    transition: background-color 0.2s ease;
-    padding: 10px 20px;
-    text-decoration: none;
-    display: inline-block;
-    color: white;
-    border: none;
-    cursor: pointer;
-    width: 80%;
+    color: #333;
 }
 
-.feature-card .btn-primary:hover {
-    background-color: #921212;
-    border-color: #921212;
-    color: white;
-    text-decoration: none;
+/* Cuerpo de la tarjeta */
+.card-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
-/* Estadísticas en tiempo real */
-.stats-grid {
+/* Pie de tarjeta para la hora de actualización */
+.card-footer {
+    padding: 10px 25px;
+    border-top: 1px solid #f0f0f0;
+    background-color: #f9f9f9;
+    font-size: 0.85rem;
+    color: #666;
+    text-align: right;
+}
+
+/* === Estadísticas Héroe === */
+.stat-hero {
+    text-align: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px dashed #e0e0e0;
+}
+
+.stat-hero p {
+    margin: 0 0 5px 0;
+    font-size: 15px;
+    color: #555;
+    font-weight: 500;
+}
+
+.stat-hero h3 {
+    margin: 0;
+    font-size: 42px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.1;
+}
+
+.stat-hero.success h3 {
+    color: var(--color-dark-red);
+    /* Color de Bullburger para el total */
+}
+
+
+/* === Lista de Estadísticas Secundarias === */
+.stat-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* 3 columnas */
+    gap: 20px;
+    margin-top: auto;
 }
 
-.stat-card {
-    background: white;
-    border: 1px solid #e6d8c2;
-    border-radius: 15px;
-    padding: 1.5rem;
+.stat-item {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #eee;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s ease;
 }
 
-.stat-card:hover {
-    transform: translateY(-2px);
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    font-size: 1rem;
-    color: #6a5b4b;
+.stat-item h4 {
+    margin: 0 0 4px 0;
+    font-size: 28px;
     font-weight: 600;
+    color: #333;
 }
 
-.stat-pendiente {
-    border-top: 4px solid #f39c12;
+.stat-item p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
 }
 
-.stat-preparando {
-    border-top: 4px solid #3498db;
+/* Clases de color para los NÚMEROS (igual que el admin) */
+.warning-text {
+    color: #f59e0b;
 }
 
-.stat-listo {
-    border-top: 4px solid #9b59b6;
+/* Pendientes */
+.danger-text {
+    color: #e53935;
 }
 
-.stat-total {
-    border-top: 4px solid #b71c1c;
+.info-text {
+    color: #1e88e5;
 }
 
-.stat-pendiente .stat-number {
-    color: #f39c12;
+/* En Preparación */
+.success-text {
+    color: #28a745;
 }
 
-.stat-preparando .stat-number {
-    color: #3498db;
+/* Listos */
+
+
+/* =========================================================
+   ESTILOS ESPECÍFICOS DE EMPLEADO (Acciones Rápidas)
+   ========================================================= */
+.actions-card {
+    display: flex;
+    flex-direction: column;
 }
 
-.stat-listo .stat-number {
-    color: #9b59b6;
+.action-body {
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.stat-total .stat-number {
-    color: #b71c1c;
+.action-btn {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
 }
 
-.last-updated {
-    text-align: center;
-    color: #95a5a6;
-    font-size: 0.9rem;
-    margin-top: 1rem;
+.action-btn i {
+    font-size: 1.4rem;
+    margin-right: 15px;
 }
 
-@media (max-width: 600px) {
-    .circle-icon {
-        width: 70px;
-        height: 70px;
-        top: -30px;
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0.95;
+    color: white;
+    /* Asegurar que el hover mantiene el texto blanco */
+}
+
+/* Colores para los botones de acción */
+.red-bg {
+    background-color: var(--color-red);
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+}
+
+.gold-bg {
+    background-color: var(--color-gold);
+    color: var(--color-brown-dark);
+    box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
+}
+
+.brown-bg {
+    background-color: var(--color-brown-dark);
+    box-shadow: 0 4px 10px rgba(62, 39, 35, 0.3);
+}
+
+
+/* =========================================================
+   AJUSTES RESPONSIVE (MÓVIL)
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .admin-bg {
+        padding: 1.5rem 0.5rem;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .admin-title {
+        font-size: 1.8rem;
+        text-align: center;
+        margin-top: 0;
+        line-height: 1.1;
+    }
+
+    .admin-subtitle {
+        font-size: 0.95rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    /* El Grid pasa a 1 columna */
+    .dashboard-grid-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    /* La tarjeta de pedidos no necesita ser wide en móvil */
+    .dashboard-section-card.wide-card {
+        grid-column: auto;
+    }
+
+    .card-header {
+        padding: 12px 15px;
+    }
+
+    .card-header h2 {
+        font-size: 15px;
+    }
+
+    .card-header .icon {
+        font-size: 20px;
+    }
+
+    .card-body {
+        padding: 15px;
+    }
+
+    .stat-hero {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+    }
+
+    .stat-hero h3 {
+        font-size: 30px;
+    }
+
+    .stat-hero p {
+        font-size: 13px;
+    }
+
+    /* Los 3 stats se muestran en 3 columnas en móvil si hay espacio */
+    .stat-list {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    /* Si la pantalla es muy pequeña, los stats pasan a 2 columnas */
+    @media (max-width: 500px) {
+        .stat-list {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* El stat que queda solo se centra */
+        .stat-item:last-child:nth-child(odd) {
+            grid-column: span 2;
+        }
+    }
+
+
+    .stat-item h4 {
+        font-size: 20px;
+    }
+
+    .stat-item p {
+        font-size: 11px;
+    }
+
+    .card-footer {
+        padding: 8px 15px;
+    }
+
+    /* Botones de acción */
+    .action-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .action-btn i {
+        font-size: 1.2rem;
     }
 }
