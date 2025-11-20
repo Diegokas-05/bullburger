@@ -78,7 +78,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .tabla-clientes thead {
@@ -97,6 +97,7 @@
   border-bottom: 1px solid #e5dcd1;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  vertical-align: middle;
 }
 
 .tabla-clientes tr:hover {
