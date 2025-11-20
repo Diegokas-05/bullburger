@@ -11,6 +11,12 @@
 .admin-container {
     max-width: 1200px;
     margin: auto;
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    /* Sombra para flotar */
+    padding: 3rem;
+    /* Padding interno */
 }
 
 /* === Tarjetas de productos === */
@@ -24,13 +30,13 @@
     background-color: #fff;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .product-card:hover {
     transform: translateY(-6px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .product-img {
@@ -101,6 +107,7 @@
     margin-top: 0.3rem;
     font-style: italic;
 }
+
 /* === Estilos Generales === */
 .menu-admin-dashboard {
     max-width: 1400px;
@@ -165,7 +172,9 @@
     flex-wrap: wrap;
 }
 
-.add-product-btn, .add-category-btn, .manage-categories-btn {
+.add-product-btn,
+.add-category-btn,
+.manage-categories-btn {
     border: none;
     padding: 1rem 2rem;
     border-radius: 25px;
@@ -176,7 +185,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .add-product-btn {
@@ -209,7 +218,9 @@
     box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
 }
 
-.add-product-btn span, .add-category-btn span, .manage-categories-btn span {
+.add-product-btn span,
+.add-category-btn span,
+.manage-categories-btn span {
     font-size: 1.5rem;
 }
 
@@ -257,14 +268,14 @@
     background: white;
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     position: relative;
 }
 
 .product-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
 }
 
 .product-image {
@@ -302,7 +313,8 @@
     opacity: 1;
 }
 
-.edit-btn, .delete-btn {
+.edit-btn,
+.delete-btn {
     background: rgba(255, 255, 255, 0.9);
     border: none;
     border-radius: 50%;
@@ -382,7 +394,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
     align-items: center;
     justify-content: center;
@@ -398,16 +410,23 @@
     width: 90%;
     max-width: 800px;
     max-height: 90vh;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease;
     display: flex;
     flex-direction: column;
-    margin: 0;  
+    margin: 0;
 }
 
 @keyframes modalSlideIn {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modal-header {
@@ -479,7 +498,9 @@ label {
     color: #2c3e50;
 }
 
-input, textarea, select {
+input,
+textarea,
+select {
     width: 100%;
     padding: 0.8rem;
     border: 2px solid #e0e0e0;
@@ -489,7 +510,9 @@ input, textarea, select {
     font-family: inherit;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
     outline: none;
     border-color: #FF6B35;
 }
@@ -539,7 +562,8 @@ input:focus, textarea:focus, select:focus {
     flex-shrink: 0;
 }
 
-.btn-cancel, .btn-save {
+.btn-cancel,
+.btn-save {
     padding: 0.8rem 1.5rem;
     border: none;
     border-radius: 8px;
@@ -792,45 +816,47 @@ input:focus, textarea:focus, select:focus {
     .menu-admin-dashboard {
         padding: 1rem;
     }
-    
+
     .welcome-title {
         font-size: 2rem;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         align-items: center;
     }
-    
-    .add-product-btn, .add-category-btn, .manage-categories-btn {
+
+    .add-product-btn,
+    .add-category-btn,
+    .manage-categories-btn {
         width: 100%;
         max-width: 300px;
         justify-content: center;
     }
-    
+
     .category-tabs {
         gap: 0.5rem;
     }
-    
+
     .category-tab {
         padding: 0.6rem 1rem;
         font-size: 0.9rem;
     }
-    
+
     .products-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 5% auto;
         max-height: 85vh;
     }
-    
+
     .modal-body {
         padding: 1.5rem;
     }
@@ -840,12 +866,12 @@ input:focus, textarea:focus, select:focus {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .cantidad-container input {
         padding-right: 0.8rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .unidad-text {
         position: static;
         text-align: center;
@@ -853,26 +879,27 @@ input:focus, textarea:focus, select:focus {
         background: #e9ecef;
         border-radius: 4px;
     }
-    
+
     .ingrediente-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
     }
-    
+
     .btn-remove-ingrediente {
         align-self: flex-end;
     }
-    
+
     .form-section {
         padding: 1rem;
     }
-    
+
     .form-actions {
         flex-direction: column;
     }
-    
-    .btn-cancel, .btn-save {
+
+    .btn-cancel,
+    .btn-save {
         width: 100%;
     }
 }
@@ -886,7 +913,9 @@ input:focus, textarea:focus, select:focus {
     font-weight: 500;
 }
 
-input.error, textarea.error, select.error {
+input.error,
+textarea.error,
+select.error {
     border-color: #e74c3c;
 }
 
@@ -917,11 +946,11 @@ input.error, textarea.error, select.error {
     transition: all 0.3s ease;
 }
 
-.checkbox-label:hover input ~ .checkmark {
+.checkbox-label:hover input~.checkmark {
     background-color: #ccc;
 }
 
-.checkbox-label input:checked ~ .checkmark {
+.checkbox-label input:checked~.checkmark {
     background-color: #27ae60;
 }
 
@@ -931,7 +960,7 @@ input.error, textarea.error, select.error {
     display: none;
 }
 
-.checkbox-label input:checked ~ .checkmark:after {
+.checkbox-label input:checked~.checkmark:after {
     display: block;
 }
 
@@ -1034,7 +1063,7 @@ input.error, textarea.error, select.error {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(5px);
 }
 
@@ -1046,15 +1075,22 @@ input.error, textarea.error, select.error {
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 @keyframes modalSlideIn {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .modal-header {
@@ -1137,7 +1173,8 @@ label {
     flex-shrink: 0;
 }
 
-.btn-cancel, .btn-save {
+.btn-cancel,
+.btn-save {
     padding: 0.8rem 1.5rem;
     border: none;
     border-radius: 8px;
@@ -1200,64 +1237,104 @@ label {
     .inventario-dashboard {
         padding: 1rem;
     }
-    
+
     .welcome-title {
         font-size: 2rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         align-items: center;
     }
-    
-    .add-ingrediente-btn, .historial-btn {
+
+    .add-ingrediente-btn,
+    .historial-btn {
         width: 100%;
         max-width: 300px;
         justify-content: center;
     }
-    
+
     .alert-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
     }
-    
+
     .alert-info {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
         width: 100%;
     }
-    
+
     .section-header {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
     }
-    
+
     .table-container {
         overflow-x: auto;
     }
-    
+
     .data-table {
         min-width: 800px;
     }
-    
+
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .modal-content {
         width: 95%;
         margin: 5% auto;
         max-height: 85vh;
     }
-    
+
     .modal-body {
         padding: 1.5rem;
     }
+}
+
+/* === ESTILOS PARA LA ALERTA PERSONALIZADA (COMO SWEETALERT) === */
+
+/* Contenedor del ícono */
+.custom-alert-header {
+    padding-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.custom-alert-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #3498db;
+    /* Borde azul */
+    color: #3498db;
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+/* Ajuste de botones en la alerta */
+.alert-ok-btn {
+    background: #e74c3c !important;
+    /* Rojo */
+    order: 2;
+    /* Para poner OK a la derecha */
+}
+
+/* Reajuste del box-shadow en la alerta */
+#customAlert .modal-content {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
 }

@@ -324,17 +324,27 @@
 <form id="deleteCategoryForm" method="post" style="display: none;">
     {% csrf_token %}
 </form>
+
 <div id="customAlert" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h2 id="alertTitle">Alerta</h2>
-            <span class="close" onclick="closeCustomAlert()">&times;</span>
+    <div class="modal-content" style="max-width: 450px; text-align: center; padding: 0;">
+        <div class="custom-alert-header">
+            <div class="custom-alert-icon">?</div> 
         </div>
-        <div class="modal-body">
-            <p id="alertMessage"></p>
-            <div class="form-actions" style="justify-content: center;">
-                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
+
+        <div class="modal-body" style="padding: 30px 20px;">
+            <h2 id="alertTitle" style="color: #333; font-size: 1.5rem; margin-bottom: 10px;">¿Confirmar acción?</h2>
+            <p id="alertMessage" style="color: #666; font-size: 1rem; margin-bottom: 30px;">
+                </p>
+            
+            <div class="form-actions" style="justify-content: center; gap: 1rem;">
+                <button type="button" class="btn-cancel" id="alertCancelBtn" onclick="closeCustomAlert()" 
+                        style="background: #95a5a6; color: white; width: 100px;">
+                    Cancel
+                </button>
+                <button type="button" class="btn-save alert-ok-btn" id="alertConfirmBtn" 
+                        style="background: #e74c3c; width: 100px; box-shadow: none;">
+                    OK
+                </button>
             </div>
         </div>
     </div>
