@@ -140,23 +140,55 @@
     </div>
 
     <div id="customAlert" class="modal">
-      <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-          <h2 id="alertTitle">Alerta</h2>
-          <span class="close" onclick="closeCustomAlert()">&times;</span>
-        </div>
-        <div class="modal-body">
-          <p id="alertMessage"></p>
-          <div class="form-actions" style="justify-content:center;">
-            <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-            <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
-          </div>
-        </div>
-      </div>
+  <div class="modal-content" style="max-width: 450px; text-align: center; padding: 0;">
+    <div class="custom-alert-header">
+      <div class="custom-alert-icon">?</div> 
     </div>
 
+    <div class="modal-body" style="padding: 30px 20px;">
+      <h2 id="alertTitle" style="color: #333; font-size: 1.5rem; margin-bottom: 10px;">¿Confirmar acción?</h2>
+      <p id="alertMessage" style="color: #666; font-size: 1rem; margin-bottom: 30px;">
+      </p>
+      
+      <div class="form-actions" style="justify-content: center; gap: 1rem;">
+        <button type="button" class="btn-cancel" id="alertCancelBtn" onclick="closeCustomAlert()" 
+                style="background: #95a5a6; color: white; width: 100px;">
+          Cancelar
+        </button>
+        <button type="button" class="btn-save alert-ok-btn" id="alertConfirmBtn" 
+                style="background: #e74c3c; width: 100px; box-shadow: none;">
+          Aceptar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-/* ===== Funciones de Validación (Copiadas de Admin) ===== */
+// ===== FUNCIONES DEL SISTEMA DE ALERTAS (COMO MENU.HTML) =====
+
+// Función de alerta personalizada (igual que menu.html)
+function showCustomAlert(title, message, confirmCallback = null) {
+    document.getElementById('alertTitle').textContent = title;
+    document.getElementById('alertMessage').textContent = message;
+    document.getElementById('customAlert').style.display = 'block';
+    
+    const confirmBtn = document.getElementById('alertConfirmBtn');
+    if (confirmCallback) {
+        confirmBtn.onclick = function() {
+            confirmCallback();
+            closeCustomAlert();
+        };
+    } else {
+        confirmBtn.onclick = closeCustomAlert;
+    }
+}
+
+function closeCustomAlert() {
+    document.getElementById('customAlert').style.display = 'none';
+}
+
+// ===== FUNCIONES DE VALIDACIÓN (MANTENIENDO LAS EXISTENTES) =====
 function showError(input, message) {
     const errorElement = document.getElementById(input.id + 'Error');
     if (errorElement) {
@@ -274,9 +306,7 @@ function validatePasswordConfirm(passwordInput, confirmInput) {
     return true;
 }
 
-/* ===== Funciones "Maestras" para Modales (Adaptadas) ===== */
-
-// Valida el formulario de CREAR (con contraseña)
+// ===== FUNCIONES DE VALIDACIÓN DE FORMULARIOS =====
 function validateCreateForm() {
     const nombre = document.getElementById('c_nombre');
     const email = document.getElementById('c_email');
@@ -294,7 +324,6 @@ function validateCreateForm() {
     return isValid;
 }
 
-// Valida el formulario de EDITAR (SIN contraseña)
 function validateEditForm() {
     const nombre = document.getElementById('e_nombre');
     const email = document.getElementById('e_email');
@@ -308,8 +337,7 @@ function validateEditForm() {
     return isValid;
 }
 
-
-/* ===== CSRF ===== */
+// ===== CSRF =====
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
@@ -326,33 +354,56 @@ function getCookie(name) {
 }
 const csrftoken = getCookie('csrftoken');
 
-/* ===== Helpers Alert ===== */
-function showCustomAlert(title, message, confirmCallback = null) {
-  document.getElementById('alertTitle').textContent = title;
-  document.getElementById('alertMessage').textContent = message;
-  document.getElementById('customAlert').style.display = 'block';
-  const confirmBtn = document.getElementById('alertConfirmBtn');
-  if (confirmCallback) {
-      confirmBtn.onclick = function() { confirmCallback(); closeCustomAlert(); };
-  } else {
-      confirmBtn.onclick = closeCustomAlert;
-  }
-}
-function closeCustomAlert() {
-  document.getElementById('customAlert').style.display = 'none';
-}
-
-/* ===== Modal Crear (ACTUALIZADO) ===== */
+// ===== MODALES =====
 function openCreateEmpleadoModal() {
-  document.getElementById('createEmpleadoModal').style.display = 'block';
+  const modal = document.getElementById('createEmpleadoModal');
+  modal.style.display = 'block';
+  
+  // Resetear scroll
+  const modalBody = modal.querySelector('.modal-body');
+  if (modalBody) {
+    modalBody.scrollTop = 0;
+  }
+  document.body.style.overflow = 'hidden';
 }
 
 function closeCreateEmpleadoModal() {
   document.getElementById('createEmpleadoModal').style.display = 'none';
   document.getElementById('createEmpleadoForm').reset();
   clearAllErrors(document.getElementById('createEmpleadoForm'));
+  document.body.style.overflow = 'auto';
 }
 
+function openEditEmpleadoModal(id) {
+  fetch(`/empleados/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('e_id').value = data.id;
+      document.getElementById('e_nombre').value = data.nombre || '';
+      document.getElementById('e_email').value = data.email || '';
+      document.getElementById('e_telefono').value = data.telefono || '';
+      document.getElementById('e_direccion').value = data.direccion || '';
+      
+      const modal = document.getElementById('editEmpleadoModal');
+      modal.style.display = 'block';
+      
+      // Resetear scroll
+      const modalBody = modal.querySelector('.modal-body');
+      if (modalBody) {
+        modalBody.scrollTop = 0;
+      }
+      document.body.style.overflow = 'hidden';
+    });
+}
+
+function closeEditEmpleadoModal() {
+  document.getElementById('editEmpleadoModal').style.display = 'none';
+  document.getElementById('editEmpleadoForm').reset();
+  clearAllErrors(document.getElementById('editEmpleadoForm'));
+  document.body.style.overflow = 'auto';
+}
+
+// ===== SUBMIT FORMULARIOS =====
 function submitCreateEmpleado(e) {
   e.preventDefault();
   clearAllErrors(document.getElementById('createEmpleadoForm'));
@@ -384,6 +435,7 @@ function submitCreateEmpleado(e) {
   .then(json => {
     if (json.ok) {
       closeCreateEmpleadoModal();
+      // ✅ RECARGAR PARA MOSTRAR MENSAJE TOAST
       location.reload();
     } else {
       if (json.errors) {
@@ -394,36 +446,16 @@ function submitCreateEmpleado(e) {
               showError(document.getElementById('c_password'), json.errors.password[0]);
           }
       }
-      showCustomAlert('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.');
     }
   })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  .catch(() => {});
   return false;
 }
 
-/* ===== Modal Editar (ACTUALIZADO) ===== */
-function openEditEmpleadoModal(id) {
-  fetch(`/empleados/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(res => res.json())
-    .then(data => {
-      // IDs estandarizados
-      document.getElementById('e_id').value = data.id;
-      document.getElementById('e_nombre').value = data.nombre || '';
-      document.getElementById('e_email').value = data.email || '';
-      document.getElementById('e_telefono').value = data.telefono || '';
-      document.getElementById('e_direccion').value = data.direccion || '';
-      document.getElementById('editEmpleadoModal').style.display = 'block';
-    });
-}
-function closeEditEmpleadoModal() {
-  document.getElementById('editEmpleadoModal').style.display = 'none';
+function submitEditEmpleado(e) {
+  e.preventDefault();
   clearAllErrors(document.getElementById('editEmpleadoForm'));
-}
-
-function submitEditEmpleado(event) {
-  event.preventDefault();
-  clearAllErrors(document.getElementById('editEmpleadoForm'));
-
+  
   if (!validateEditForm()) {
       showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
       return false;
@@ -434,7 +466,7 @@ function submitEditEmpleado(event) {
     nombre: document.getElementById('e_nombre').value,
     email: document.getElementById('e_email').value,
     telefono: document.getElementById('e_telefono').value,
-    direccion: document.getElementById('e_direccion').value,
+    direccion: document.getElementById('e_direccion').value
   };
 
   fetch(`/empleados/editar/${id}/`, {
@@ -442,57 +474,61 @@ function submitEditEmpleado(event) {
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest',
+      'X-Requested-With': 'XMLHttpRequest'
     },
     body: JSON.stringify(data)
   })
-  .then(res => res.json())
-  .then(json => { // 'resp' cambiado a 'json'
-    if (json.success) { // Tu lógica original usaba 'success'
-      const fila = document.querySelector(`tr[data-id='${id}']`);
-      fila.querySelector('.c-nombre').textContent = data.nombre;
-      fila.querySelector('.c-email').textContent = data.email;
-      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
-      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+  .then(r => r.json())
+  .then(json => {
+    if (json.ok) {
       closeEditEmpleadoModal();
-      showCustomAlert('Éxito', 'Empleado actualizado correctamente.');
+      // ✅ RECARGAR PARA MOSTRAR MENSAJE TOAST
+      location.reload();
     } else {
-      // Manejo de errores mejorado
-      if (json.errors && json.errors.email) {
-          showError(document.getElementById('e_email'), json.errors.email[0]);
+      if (json.errors) {
+          if (json.errors.email) {
+              showError(document.getElementById('e_email'), json.errors.email[0]);
+          }
       }
-      showCustomAlert('Error', json.error || json.errors.non_field_errors || 'No se pudo actualizar.');
     }
   })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+  .catch(() => {});
+  return false;
 }
 
-// === ELIMINAR EMPLEADO (Sin cambios, solo URL) ===
+// ===== ELIMINAR =====
 function confirmDeleteEmpleado(id, nombre) {
-  showCustomAlert(`Eliminar Empleado`, `¿Seguro que deseas eliminar a "${nombre}"?`, function () {
-    fetch(`/empleados/eliminar/${id}/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-        'X-Requested-With': 'XMLHttpRequest'
-      }
-    })
-    .then(res => res.json())
-    .then(resp => {
-      if (resp.success) {
-        document.querySelector(`tr[data-id='${id}']`).remove();
-        showCustomAlert('Éxito', 'Empleado eliminado correctamente.');
-      } else {
-        showCustomAlert('Error', resp.error || 'No se pudo eliminar.');
-      }
-    })
-    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  });
+  showCustomAlert(
+    'Confirmar Eliminación',
+    `¿Estás seguro de que quieres eliminar al empleado "${nombre}"? Esta acción no se puede deshacer.`,
+    function() {
+      fetch(`/empleados/eliminar/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(res => res.json())
+      .then(resp => {
+        if (resp.ok) {
+          // ✅ ELIMINAR LA FILA VISUALMENTE
+          const fila = document.querySelector(`tr[data-id='${id}']`);
+          if (fila) {
+            fila.remove();
+          }
+          // ✅ RECARGAR PARA MOSTRAR EL TOAST
+          setTimeout(() => {
+            location.reload();
+          }, 100);
+        } else {
+          showCustomAlert('Error', resp.msg || 'No se pudo eliminar.');
+        }
+      })
+      .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
+    }
+  );
 }
 
-/* ===== Listeners (AÑADIDOS) ===== */
+// ===== LISTENERS =====
 document.addEventListener('DOMContentLoaded', function() {
-    
     // --- Formulario CREAR ---
     const c_nombre = document.getElementById('c_nombre');
     const c_email = document.getElementById('c_email');
@@ -500,14 +536,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const c_password = document.getElementById('c_password');
     const c_password2 = document.getElementById('c_password2');
 
-    if(c_nombre) { // Chequeo por si el modal existe
-      c_telefono.addEventListener('input', function() { formatPhone(this); });
-      c_nombre.addEventListener('input', function() { validateNameInput(this); });
-      c_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
-      c_email.addEventListener('blur', function() { validateEmail(this); });
-      c_telefono.addEventListener('blur', function() { validatePhone(this); });
-      c_password.addEventListener('blur', function() { validatePassword(this); });
-      c_password2.addEventListener('blur', function() { validatePasswordConfirm(c_password, this); });
+    if (c_nombre) {
+        c_telefono.addEventListener('input', function() { formatPhone(this); });
+        c_nombre.addEventListener('input', function() { validateNameInput(this); });
+        c_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+        c_email.addEventListener('blur', function() { validateEmail(this); });
+        c_telefono.addEventListener('blur', function() { validatePhone(this); });
+        c_password.addEventListener('blur', function() { validatePassword(this); });
+        c_password2.addEventListener('blur', function() { validatePasswordConfirm(c_password, this); });
     }
 
     // --- Formulario EDITAR ---
@@ -515,13 +551,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const e_email = document.getElementById('e_email');
     const e_telefono = document.getElementById('e_telefono');
     
-    if(e_nombre) { // Chequeo por si el modal existe
-      e_telefono.addEventListener('input', function() { formatPhone(this); });
-      e_nombre.addEventListener('input', function() { validateNameInput(this); });
-      e_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
-      e_email.addEventListener('blur', function() { validateEmail(this); });
-      e_telefono.addEventListener('blur', function() { validatePhone(this); });
+    if (e_nombre) {
+        e_telefono.addEventListener('input', function() { formatPhone(this); });
+        e_nombre.addEventListener('input', function() { validateNameInput(this); });
+        e_nombre.addEventListener('blur', function() { validateLettersOnly(this); });
+        e_email.addEventListener('blur', function() { validateEmail(this); });
+        e_telefono.addEventListener('blur', function() { validatePhone(this); });
     }
+
+    // Manejo de tecla Escape para cerrar modales
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.modal[style*="display: block"]');
+            if (activeModal) {
+                if (activeModal.id === 'createEmpleadoModal') closeCreateEmpleadoModal();
+                else if (activeModal.id === 'editEmpleadoModal') closeEditEmpleadoModal();
+                else if (activeModal.id === 'customAlert') closeCustomAlert();
+            }
+        }
+    });
 });
 </script>
 {% endblock %}

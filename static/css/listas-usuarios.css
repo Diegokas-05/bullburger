@@ -1,10 +1,10 @@
-
 /* === Contenedor principal === */
+
 .clientes-container {
   background-color: #f8f4ef;
   padding: 30px;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   max-width: 1100px;
   margin: 40px auto;
 }
@@ -68,7 +68,8 @@
   background-color: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  table-layout: fixed;
 }
 
 .tabla-clientes thead {
@@ -84,6 +85,8 @@
   padding: 12px 16px;
   text-align: center;
   border-bottom: 1px solid #e5dcd1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .tabla-clientes tr:hover {
@@ -93,6 +96,13 @@
 .tabla-clientes td {
   color: #5a4633;
   font-size: 15px;
+}
+
+.tabla-clientes td:nth-child(5) {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 200px;
+  line-height: 1.4;
 }
 
 /* === Botones de acción === */
@@ -146,7 +156,7 @@
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(5px);
 }
 
@@ -158,7 +168,7 @@
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -195,7 +205,7 @@
   gap: 1rem;
   justify-content: flex-end;
   background: #fff;
-  box-shadow: 0 -6px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 -6px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* === Formularios === */
@@ -288,75 +298,177 @@ input:-webkit-autofill:focus {
 /* === RESPONSIVO CON SCROLL HORIZONTAL === */
 @media (max-width: 768px) {
 
-    /* 1. Ajustes del contenedor general */
-    .clientes-container {
-        padding: 15px;
-        margin: 20px auto;
-        width: 95%; 
-        box-sizing: border-box;
+  /* 1. Ajustes del contenedor general */
+  .clientes-container {
+    padding: 15px;
+    margin: 20px auto;
+    width: 95%;
+    box-sizing: border-box;
+  }
+
+  /* 2. Ajustes del Header y Buscador */
+  .clientes-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .buscador {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .buscador form {
+    display: flex;
+    gap: 5px;
+  }
+
+  .buscador input[type="text"] {
+    width: 100%;
+    flex-grow: 1;
+  }
+
+  .btn-crear {
+    width: 100%;
+  }
+
+  /* 3. EL CONTENEDOR QUE HACE LA MAGIA (SCROLL) */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    /* Activa el scroll horizontal */
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+  }
+
+  /* 4. La tabla debe ser ancha para forzar el scroll */
+  .tabla-clientes {
+    width: 100%;
+    min-width: 800px;
+    /* Ancho mínimo garantizado */
+  }
+
+  /* 5. Evitar saltos de línea feos */
+  .tabla-clientes th,
+  .tabla-clientes td {
+    white-space: nowrap;
+  }
+
+  /* 6. Modal Responsive */
+  .modal-content {
+    width: 95%;
+    margin: 5% auto;
+  }
+
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .btn-cancel,
+  .btn-save {
+    width: 100%;
+  }
+
+  /* === ESTILOS PARA LA ALERTA PERSONALIZADA (COMO MENU.HTML) === */
+
+  /* Contenedor del ícono */
+  .custom-alert-header {
+    padding: 30px 20px;
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .custom-alert-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 4px solid #3498db;
+    /* Borde azul */
+    color: #3498db;
+    font-size: 2.5rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+  }
+
+  /* Ajuste de botones en la alerta */
+  .alert-ok-btn {
+    background: #e74c3c !important;
+    order: 2;
+  }
+
+  /* Centrado de la alerta */
+  #customAlert.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  #customAlert .modal-content {
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 90vh;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      transform: translateY(-50px);
+      opacity: 0;
     }
 
-    /* 2. Ajustes del Header y Buscador */
-    .clientes-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #customAlert.modal {
+      padding: 15px;
     }
 
-    .buscador {
-        width: 100%;
-        flex-direction: column;
-        gap: 10px;
+    #customAlert .modal-content {
+      width: 95%;
+      max-height: 85vh;
     }
 
-    .buscador form {
-        display: flex;
-        gap: 5px;
+    .custom-alert-header {
+      padding: 20px 15px;
     }
 
-    .buscador input[type="text"] {
-        width: 100%;
-        flex-grow: 1;
+    .custom-alert-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 2rem;
     }
+  }
 
-    .btn-crear {
-        width: 100%;
-    }
-
-    /* 3. EL CONTENEDOR QUE HACE LA MAGIA (SCROLL) */
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto; /* Activa el scroll horizontal */
-        -webkit-overflow-scrolling: touch;
-        margin-bottom: 15px;
-        border: 1px solid #eee;
-        border-radius: 8px;
-    }
-
-    /* 4. La tabla debe ser ancha para forzar el scroll */
-    .tabla-clientes {
-        width: 100%;
-        min-width: 800px; /* Ancho mínimo garantizado */
-    }
-
-    /* 5. Evitar saltos de línea feos */
-    .tabla-clientes th, 
-    .tabla-clientes td {
-        white-space: nowrap; 
-    }
-
-    /* 6. Modal Responsive */
-    .modal-content {
-        width: 95%;
-        margin: 5% auto;
-    }
-    
-    .modal-footer {
-        flex-direction: column-reverse;
-        gap: 10px;
-    }
-    
-    .btn-cancel, .btn-save {
-        width: 100%;
-    }
 }

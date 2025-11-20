@@ -366,22 +366,44 @@ def editar_empleado(request, id):
 
     if request.method == 'POST':
         data = json.loads(request.body or '{}')
-        for campo in ('nombre', 'email', 'telefono', 'direccion'):
-            if campo in data:
-                setattr(empleado, campo, (data[campo] or None))
-        empleado.save()
-        return JsonResponse({'success': True})
+        
+        # Mantener el rol de empleado
+        rol_empleado, _ = Rol.objects.get_or_create(nombre='Empleado')
+        data.setdefault('rol', rol_empleado.id)
+        data.setdefault('is_active', empleado.is_active)
 
-    return HttpResponseNotAllowed(['GET', 'POST'])
+        form = UsuarioAdminForm(data=data, instance=empleado)
+        if form.is_valid():
+            nombre_anterior = empleado.nombre
+            user = form.save()
+            # ✅ AGREGAR MENSAJE DE ÉXITO
+            messages.success(request, f'Empleado "{nombre_anterior}" modificado correctamente')
+            return JsonResponse({'ok': True})
+        
+        # ✅ AGREGAR MENSAJE DE ERROR
+        error_msg = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
+        messages.error(request, f'Error al actualizar empleado: {error_msg}')
+        return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
 
 @login_required
 @require_POST
 def eliminar_empleado(request, id):
-    get_object_or_404(Usuario, id=id).delete()
-    return JsonResponse({'success': True})
+    empleado = get_object_or_404(Usuario, id=id)
+    nombre_empleado = empleado.nombre
+    
+    try:
+        empleado.delete()
+        # ✅ AGREGAR MENSAJE DE ÉXITO
+        messages.success(request, f'Empleado "{nombre_empleado}" eliminado exitosamente')
+        return JsonResponse({'ok': True})
+    except Exception as e:
+        # ✅ AGREGAR MENSAJE DE ERROR
+        messages.error(request, f'Error al eliminar empleado: {str(e)}')
+        return JsonResponse({'ok': False, 'msg': f'Error al eliminar empleado: {str(e)}'})
 
 
+@login_required
 def crear_empleado(request):
     if request.method == "GET":
         return JsonResponse({'ok': True, 'data': {}})
@@ -394,8 +416,14 @@ def crear_empleado(request):
 
     form = UsuarioAdminForm(data=data)
     if form.is_valid():
-        empleado = form.save()
-        return JsonResponse({'ok': True, 'id': empleado.id})
+        user = form.save()
+        # ✅ AGREGAR MENSAJE DE ÉXITO
+        messages.success(request, f'Empleado "{user.nombre}" creado exitosamente')
+        return JsonResponse({'ok': True, 'id': user.id})
+    
+    # ✅ AGREGAR MENSAJE DE ERROR
+    error_msg = '; '.join([f"{k}: {', '.join(v)}" for k, v in form.errors.items()])
+    messages.error(request, f'Error al crear empleado: {error_msg}')
     return JsonResponse({'ok': False, 'errors': form.errors}, status=400)
 
 @login_required
