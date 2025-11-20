@@ -1,0 +1,63 @@
+/* =======================================================
+   ESTILOS GLOBALES DE SWEETALERT2
+   (Personalización para la marca BullBurger)
+   ======================================================= */
+
+/* --- Colores Base de BullBurger --- */
+:root {
+    --bb-red: #d32f2f;
+    --bb-dark-red: #b71c1c;
+    --bb-gray: #95a5a6;
+    --bb-dark-gray: #7f8c8d;
+}
+
+
+/* 1. Estilo para el botón de Aceptar/Confirmación (Rojo/Marca) */
+.swal2-styled.swal2-confirm {
+    /* Color principal de la marca (Rojo) */
+    background-color: var(--bb-red) !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.1s;
+    /* Sombra similar a tus botones principales */
+    box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3) !important;
+    width: 100px;
+    /* Ancho fijo para consistencia */
+    margin: 0 5px;
+    /* Pequeño margen para separar de cancelar */
+}
+
+.swal2-styled.swal2-confirm:hover {
+    background-color: var(--bb-dark-red) !important;
+    /* Rojo oscuro al pasar el ratón */
+}
+
+/* 2. Estilo para el botón de Cancelar (Gris/Neutral) */
+.swal2-styled.swal2-cancel {
+    background-color: var(--bb-gray) !important;
+    /* Gris de tu botón Cancelar */
+    border-radius: 8px !important;
+    font-weight: 600;
+    color: white !important;
+    transition: background-color 0.2s, transform 0.1s;
+    width: 100px;
+    /* Ancho fijo para consistencia */
+    margin: 0 5px;
+}
+
+.swal2-styled.swal2-cancel:hover {
+    background-color: var(--bb-dark-gray) !important;
+}
+
+/* 3. Estilo del contenedor principal del modal */
+.swal2-popup {
+    border-radius: 15px !important;
+}
+
+/* 4. Asegura que los botones se vean bien en el contenedor */
+.swal2-actions {
+    /* Pone Aceptar a la derecha, Cancelar a la izquierda */
+    flex-direction: row-reverse !important;
+    /* Elimina el espacio extra vertical que SweetAlert a veces agrega */
+    margin-top: 20px !important;
+}

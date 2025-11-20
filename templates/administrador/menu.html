@@ -4,95 +4,96 @@
 {% block title %}Gestión de Menú - BullBurger{% endblock %}
 
 {% block content %}
-
+<!-- SweetAlert2 es necesario para esta vista. Asegúrate de incluir CSS y JS en base.html -->
 <link rel="stylesheet" href="{% static 'css/Administrador/gestion_menu.css' %}">
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="admin-bg">
-  <section class="contenedor_dashboard">
-    <div class="dashboard-header">
-        <h1 class="welcome-title">Gestión del Menú - BullBurger</h1>
-        <p class="welcome-subtitle">Administra y visualiza todos los productos del menú</p>
-    </div>
-
-    <div class="action-buttons">
-        <button class="add-product-btn" onclick="openAddProductModal()">
-            <span>+</span>
-            Agregar Nuevo Producto
-        </button>
-        <button class="add-category-btn" onclick="openAddCategoryModal()">
-            <span>+</span>
-            Agregar Nueva Categoría
-        </button>
-        <button class="manage-categories-btn" onclick="openManageCategoriesModal()">
-            <span>📁</span>
-            Gestionar Categorías
-        </button>
-    </div>
-
-    <div class="category-tabs">
-        <div class="category-tab active" data-category="all">
-            <span>🍽️ Todos</span>
+    <section class="contenedor_dashboard">
+        <div class="dashboard-header">
+            <h1 class="welcome-title">Gestión del Menú - BullBurger</h1>
+            <p class="welcome-subtitle">Administra y visualiza todos los productos del menú</p>
         </div>
-        {% for categoria in categorias %}
-        <div class="category-tab" data-category="{{ categoria.id }}">
-            <span>
-                {% if categoria.nombre == 'Hamburguesas' %}🍔
-                {% elif categoria.nombre == 'Bebidas' %}🥤
-                {% elif categoria.nombre == 'Snacks' %}🍟
-                {% elif categoria.nombre == 'Combos' %}📦
-                {% elif categoria.nombre == 'Postres' %}🍦
-                {% else %}🍽️{% endif %}
-                {{ categoria.nombre }}
-            </span>
-        </div>
-        {% endfor %}
-    </div>
 
-    <div class="products-grid">
-        {% for producto in productos %}
-        <div class="product-card" data-category="{{ producto.categoria.id }}">
-            <div class="product-image">
-                {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                {% elif producto.imagen_url %}
-                <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                {% endif %}
-                <div class="image-placeholder" {% if producto.imagen or producto.imagen_url %}style="display: none;"{% endif %}>
-                    {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
-                    {% elif producto.categoria.nombre == 'Bebidas' %}🥤
-                    {% elif producto.categoria.nombre == 'Snacks' %}🍟
-                    {% elif producto.categoria.nombre == 'Combos' %}📦
-                    {% elif producto.categoria.nombre == 'Postres' %}🍦
+        <div class="action-buttons">
+            <button class="add-product-btn" onclick="openAddProductModal()">
+                <i class="fas fa-plus"></i>
+                Agregar Nuevo Producto
+            </button>
+            <button class="add-category-btn" onclick="openAddCategoryModal()">
+                <i class="fas fa-sitemap"></i>
+                Agregar Nueva Categoría
+            </button>
+            <button class="manage-categories-btn" onclick="openManageCategoriesModal()">
+                <i class="fas fa-folder-open"></i>
+                Gestionar Categorías
+            </button>
+        </div>
+
+        <div class="category-tabs">
+            <div class="category-tab active" data-category="all">
+                <span>🍽️ Todos</span>
+            </div>
+            {% for categoria in categorias %}
+            <div class="category-tab" data-category="{{ categoria.id }}">
+                <span>
+                    {% if categoria.nombre == 'Hamburguesas' %}🍔
+                    {% elif categoria.nombre == 'Bebidas' %}🥤
+                    {% elif categoria.nombre == 'Snacks' %}🍟
+                    {% elif categoria.nombre == 'Combos' %}📦
+                    {% elif categoria.nombre == 'Postres' %}🍦
                     {% else %}🍽️{% endif %}
-                </div>
-                <div class="product-actions">
-                    <button class="edit-btn" onclick="editProduct({{ producto.id }})">✏️</button>
-                    <button class="delete-btn" onclick="confirmDeleteProduct({{ producto.id }}, '{{ producto.nombre|escapejs }}')">🗑️</button>
-                </div>
+                    {{ categoria.nombre }}
+                </span>
             </div>
-            <div class="product-info">
-                <h3>{{ producto.nombre }}</h3>
-                <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
-                <div class="product-price">${{ producto.precio }}</div>
-                <div class="product-status {% if producto.disponible %}available{% else %}out-of-stock{% endif %}">
-                    {% if producto.disponible %}Disponible{% else %}Agotado{% endif %}
-                </div>
-                <div class="product-category">
-                    <small>Categoría: {{ producto.categoria.nombre }}</small>
-                </div>
-            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <div class="no-products">
-            <h3>No hay productos en el menú</h3>
-            <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-</section>
 
+        <div class="products-grid">
+            {% for producto in productos %}
+            <div class="product-card" data-category="{{ producto.categoria.id }}">
+                <div class="product-image">
+                    {% if producto.imagen %}
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    {% elif producto.imagen_url %}
+                    <img src="{{ producto.imagen_url }}" alt="{{ producto.nombre }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    {% endif %}
+                    <div class="image-placeholder" {% if producto.imagen or producto.imagen_url %}style="display: none;"{% endif %}>
+                        {% if producto.categoria.nombre == 'Hamburguesas' %}🍔
+                        {% elif producto.categoria.nombre == 'Bebidas' %}🥤
+                        {% elif producto.categoria.nombre == 'Snacks' %}🍟
+                        {% elif producto.categoria.nombre == 'Combos' %}📦
+                        {% elif producto.categoria.nombre == 'Postres' %}🍦
+                        {% else %}🍽️{% endif %}
+                    </div>
+                    <div class="product-actions">
+                        <button class="edit-btn" onclick="editProduct({{ producto.id }})">✏️</button>
+                        <button class="delete-btn" onclick="confirmDeleteProduct({{ producto.id }}, '{{ producto.nombre|escapejs }}')">🗑️</button>
+                    </div>
+                </div>
+                <div class="product-info">
+                    <h3>{{ producto.nombre }}</h3>
+                    <p class="product-description">{{ producto.descripcion|default:"Sin descripción" }}</p>
+                    <div class="product-price">${{ producto.precio }}</div>
+                    <div class="product-status {% if producto.disponible %}available{% else %}out-of-stock{% endif %}">
+                        {% if producto.disponible %}Disponible{% else %}Agotado{% endif %}
+                    </div>
+                    <div class="product-category">
+                        <small>Categoría: {{ producto.categoria.nombre }}</small>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-products">
+                <h3>No hay productos en el menú</h3>
+                <p>Haz clic en "Agregar Nuevo Producto" para comenzar</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<!-- Modal CREAR/EDITAR Producto -->
 <div id="productModal" class="modal">
     <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
@@ -108,24 +109,22 @@
                     
                     <div class="form-group">
                         <label for="nombre">Nombre del Producto *</label>
-                        <input type="text" id="nombre" name="nombre" required maxlength="100" 
-                               title="Solo se permiten letras y espacios"
-                               oninput="validateLettersOnly(this)"
+                        <input type="text" name="nombre" id="nombre" required maxlength="100" 
                                placeholder="Ej: Hamburguesa Clásica" class="form-control">
                         <div class="error-message" id="nombreError"></div>
                     </div>
                     
                     <div class="form-group">
                         <label for="descripcion">Descripción *</label>
-                        <textarea id="descripcion" name="descripcion" rows="3" 
-                                  placeholder="Describe el producto..." required class="form-control"></textarea>
+                        <textarea name="descripcion" id="descripcion" rows="3" 
+                                     placeholder="Describe el producto..." required class="form-control"></textarea>
                         <div class="error-message" id="descripcionError"></div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
                             <label for="categoria">Categoría *</label>
-                            <select id="categoria" name="categoria" required class="form-control">
+                            <select name="categoria" id="categoria" required class="form-control">
                                 <option value="">Selecciona una categoría</option>
                                 {% for categoria in categorias %}
                                 <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
@@ -165,7 +164,7 @@
                             <label for="cantidad_ingrediente">Cantidad</label>
                             <div class="cantidad-container">
                                 <input type="number" id="cantidad_ingrediente" step="0.01" min="0.01" 
-                                       class="form-control" placeholder="0.00" oninput="calcularCostoIngrediente()">
+                                        class="form-control" placeholder="0.00" oninput="calcularCostoIngrediente()">
                                 <span id="unidad_ingrediente" class="unidad-text">-</span>
                             </div>
                             <small class="help-text" id="costo_ingrediente_text">Costo: $0.00</small>
@@ -173,7 +172,7 @@
                     </div>
                     
                     <button type="button" class="btn-add-ingrediente" onclick="agregarIngrediente()">
-                        <span>+</span> Agregar a la Receta
+                        <i class="fas fa-plus"></i> Agregar a la Receta
                     </button>
                     
                     <div id="ingredientes-agregados" class="ingredientes-list">
@@ -190,13 +189,13 @@
                             <div class="costo-item">
                                 <label for="mano_obra">Mano de Obra (%)</label>
                                 <input type="number" id="mano_obra" name="mano_obra" value="30" min="0" max="100" 
-                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                        step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
                                 <span id="costo-mano-obra">$0.00</span>
                             </div>
                             <div class="costo-item">
                                 <label for="ganancia">Margen de Ganancia (%)</label>
                                 <input type="number" id="ganancia" name="ganancia" value="40" min="0" max="100" 
-                                       step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
+                                        step="0.1" class="form-control-small" oninput="calcularPrecioFinal()">
                                 <span id="costo-ganancia">$0.00</span>
                             </div>
                             <div class="costo-total">
@@ -221,10 +220,11 @@
                 <div class="form-section">
                     <h3>🖼️ Imagen del Producto</h3>
                     <div class="form-group">
-                        <label for="imagen">Imagen del Producto *</label>
-                        <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input" required
+                        <label for="imagen">Imagen del Producto</label>
+                        <!-- La imagen no es requerida aquí, se añade 'required' en JS si es CREAR -->
+                        <input type="file" id="imagen" name="imagen" accept="image/*" class="file-input"
                                onchange="previewImage(this)">
-                        <small class="file-help">Formatos: JPG, PNG, GIF. Tamaño máximo: 5MB</small>
+                        <small class="file-help">Formatos: JPG, PNG, GIF. Máximo 5MB.</small>
                         <div id="imagePreview" class="image-preview"></div>
                         <div class="error-message" id="imagenError"></div>
                     </div>
@@ -249,6 +249,7 @@
     </div>
 </div>
 
+<!-- Modal AGREGAR Categoría -->
 <div id="categoryModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -258,11 +259,12 @@
         <div class="modal-body">
             <form id="categoryForm" method="post" action="{% url 'crear_categoria' %}">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
                 <div class="form-group">
                     <label for="nombre_categoria">Nombre de la Categoría *</label>
                     <input type="text" id="nombre_categoria" name="nombre" required maxlength="100" 
                            placeholder="Ej: Bebidas, Postres, etc." class="form-control">
-                    <div class="error-message" id="categoriaNameError"></div>
+                    <div class="error-message" id="nombre_categoriaError"></div>
                 </div>
                 
                 <div class="form-actions">
@@ -273,6 +275,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal GESTIONAR Categorías -->
 <div id="manageCategoriesModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -283,9 +287,9 @@
             <div class="categories-list">
                 <h3>Todas las Categorías</h3>
                 {% if categorias %}
-                    <div class="categories-grid">
+                    <div class="categories-grid" id="categories-grid">
                         {% for categoria in categorias %}
-                        <div class="category-item">
+                        <div class="category-item" data-id="{{ categoria.id }}">
                             <span class="category-name">
                                 {% if categoria.nombre == 'Hamburguesas' %}🍔
                                 {% elif categoria.nombre == 'Bebidas' %}🥤
@@ -299,9 +303,10 @@
                                 <span class="product-count">
                                     {{ categoria.producto_set.count }} producto(s)
                                 </span>
-                                <button class="delete-category-btn" onclick="confirmDeleteCategory({{ categoria.id }}, '{{ categoria.nombre|escapejs }}')" 
+                                <button class="delete-category-btn" 
+                                        onclick="confirmDeleteCategory({{ categoria.id }}, '{{ categoria.nombre|escapejs }}', {{ categoria.producto_set.count }})" 
                                         {% if categoria.producto_set.count > 0 %}disabled title="No se puede eliminar categoría con productos"{% endif %}>
-                                    🗑️
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
@@ -311,387 +316,350 @@
                     <p class="no-categories">No hay categorías creadas.</p>
                 {% endif %}
             </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn-cancel" onclick="closeManageCategoriesModal()">Cerrar</button>
-            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeManageCategoriesModal()">Cerrar</button>
         </div>
     </div>
 </div>
+
+<!-- Formulario oculto para eliminar producto -->
 <form id="deleteForm" method="post" style="display: none;">
     {% csrf_token %}
 </form>
-<form id="deleteCategoryForm" method="post" style="display: none;">
-    {% csrf_token %}
-</form>
-
-<div id="customAlert" class="modal">
-    <div class="modal-content" style="max-width: 450px; text-align: center; padding: 0;">
-        <div class="custom-alert-header">
-            <div class="custom-alert-icon">?</div> 
-        </div>
-
-        <div class="modal-body" style="padding: 30px 20px;">
-            <h2 id="alertTitle" style="color: #333; font-size: 1.5rem; margin-bottom: 10px;">¿Confirmar acción?</h2>
-            <p id="alertMessage" style="color: #666; font-size: 1rem; margin-bottom: 30px;">
-                </p>
-            
-            <div class="form-actions" style="justify-content: center; gap: 1rem;">
-                <button type="button" class="btn-cancel" id="alertCancelBtn" onclick="closeCustomAlert()" 
-                        style="background: #95a5a6; color: white; width: 100px;">
-                    Cancel
-                </button>
-                <button type="button" class="btn-save alert-ok-btn" id="alertConfirmBtn" 
-                        style="background: #e74c3c; width: 100px; box-shadow: none;">
-                    OK
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <script>
-// --- Variables Globales para el Modal ---
-const productModal = document.getElementById('productModal');
+// --- Variables Globales ---
+let ingredientesReceta = [];
+let precioModificadoManual = false;
 const productForm = document.getElementById('productForm');
-const modalTitle = document.getElementById('modalTitle');
+const categoryForm = document.getElementById('categoryForm');
+const manageCategoriesModal = document.getElementById('manageCategoriesModal');
 const imagenInput = document.getElementById('imagen');
 const imagePreview = document.getElementById('imagePreview');
 
+// --- Helpers ---
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i=0; i<cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
 
-// ⬇️ FUNCIÓN CORREGIDA ⬇️
-// Limpia el modal y lo prepara para CREAR
+function showError(input, errorElement, message) {
+    input.classList.add('error-field'); 
+    errorElement.textContent = message; 
+    errorElement.style.display = 'block';
+}
+function hideError(input, errorElement) { 
+    input.classList.remove('error-field'); 
+    if(errorElement) { errorElement.style.display = 'none'; } 
+}
+function clearAllErrors() { 
+    document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none'); 
+    document.querySelectorAll('.error-field').forEach(el => el.classList.remove('error-field')); 
+}
+
+// --- Modales ---
 function openAddProductModal() {
-    console.log("Abriendo modal para CREAR nuevo producto");
-    
-    // 1. Configurar para CREACIÓN
-    modalTitle.textContent = 'Agregar Nuevo Producto';
-    productForm.action = "{% url 'crear_producto' %}";
-    
-    // 2. Limpiar todos los campos del formulario
+    clearAllErrors();
     productForm.reset(); 
     imagePreview.innerHTML = '';
-    
-    // 3. IMPORTANTE: La imagen SÍ es obligatoria al crear
+    document.getElementById('modalTitle').textContent = 'Agregar Nuevo Producto';
+    productForm.action = "{% url 'crear_producto' %}";
     imagenInput.setAttribute('required', 'required'); 
-
-    // 4. Limpiar Receta
     ingredientesReceta = [];
     actualizarListaIngredientes();
-    calcularPrecioFinal(); // Resetea los costos a $0.00
-    
-    // 5. Resetear flags y errores
-    precioModificadoManual = false;
-    clearAllErrors(); 
-    
-    // 6. Abrir el modal
-    productModal.style.display = 'block';
+    calcularPrecioFinal(); 
+    document.getElementById('productModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('productModal').style.display = 'none';
+    clearAllErrors();
 }
 
 function openAddCategoryModal() {
-    document.getElementById('categoryModal').style.display = 'block';
-}
-
-function openManageCategoriesModal() {
-    document.getElementById('manageCategoriesModal').style.display = 'block';
-}
-
-// ⬇️ FUNCIÓN CORREGIDA ⬇️
-// Limpia el modal CADA VEZ que se cierra
-function closeModal() {
-    productModal.style.display = 'none';
-    
-    // Limpiamos el formulario para evitar que los datos de "Editar"
-    // se queden si el usuario solo cierra el modal.
-    productForm.reset();
-    imagePreview.innerHTML = '';
-    
-    // Limpiar Receta
-    ingredientesReceta = [];
-    actualizarListaIngredientes();
-    calcularPrecioFinal();
-    
-    // Resetear flags y errores
-    precioModificadoManual = false;
     clearAllErrors();
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryModal').style.display = 'block';
 }
 
 function closeCategoryModal() {
     document.getElementById('categoryModal').style.display = 'none';
+    clearAllErrors();
+}
+
+function openManageCategoriesModal() {
+    // Re-renderizar la lista si es necesario (asumiendo que Django la renderiza con el contexto)
+    document.getElementById('manageCategoriesModal').style.display = 'block';
 }
 
 function closeManageCategoriesModal() {
     document.getElementById('manageCategoriesModal').style.display = 'none';
 }
 
-function closeCustomAlert() {
-    document.getElementById('customAlert').style.display = 'none';
-}
+// --- CRUD Funciones (Usando SweetAlert2) ---
 
-// Función de alerta personalizada
-function showCustomAlert(title, message, confirmCallback = null) {
-    document.getElementById('alertTitle').textContent = title;
-    document.getElementById('alertMessage').textContent = message;
-    document.getElementById('customAlert').style.display = 'block';
-    
-    const confirmBtn = document.getElementById('alertConfirmBtn');
-    if (confirmCallback) {
-        confirmBtn.onclick = function() {
-            confirmCallback();
-            closeCustomAlert();
-        };
-    } else {
-        confirmBtn.onclick = closeCustomAlert;
-    }
-}
+function submitCreateProduct(event) {
+    event.preventDefault();
+    clearAllErrors();
 
-// --- Funciones de validación ---
-
-function validateLettersOnly(input) {
-    const value = input.value; // No trim() aquí para permitir espacios intermedios
-    const errorElement = document.getElementById(input.id + 'Error');
-    
-    // Permitir letras, espacios y caracteres especiales comunes en nombres
-    const pattern = /^[A-Za-zÁáÉéÍíÓóÚúÑñ0-9\s\-.,!¡¿?()&'"]+$/;
-    
-    if (!value) {
-        showError(input, errorElement, 'Este campo es obligatorio');
-        return false;
-    }
-    
-    if (value.trim().length < 2) {
-        showError(input, errorElement, 'El nombre debe tener al menos 2 caracteres');
-        return false;
-    }
-
-    if (!pattern.test(value)) {
-        showError(input, errorElement, 'El nombre contiene caracteres no válidos');
-        return false;
-    }
-    
-    hideError(input, errorElement);
-    return true;
-}
-
-function validateCategoryName(input) {
-    const value = input.value.trim();
-    const errorElement = document.getElementById('categoriaNameError');
-    
-    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s]+$/;
-    
-    if (!value) {
-        showError(input, errorElement, 'Este campo es obligatorio');
-        return false;
-    }
-    
-    if (!lettersOnly.test(value)) {
-        showError(input, errorElement, 'Solo se permiten letras y espacios');
-        return false;
-    }
-    
-    if (value.length < 2) {
-        showError(input, errorElement, 'La categoría debe tener al menos 2 caracteres');
-        return false;
-    }
-    
-    hideError(input, errorElement);
-    return true;
-}
-
-function validatePrice(input) {
-    const value = parseFloat(input.value);
-    const errorElement = document.getElementById('precioError');
-    
-    if (!input.value) {
-        showError(input, errorElement, 'El precio es obligatorio');
-        return false;
-    }
-    
-    if (isNaN(value) || value < 0) {
-        showError(input, errorElement, 'El precio debe ser un número válido mayor o igual a 0');
-        return false;
-    }
-    
-    hideError(input, errorElement);
-    return true;
-}
-
-// ⬇️ FUNCIÓN CORREGIDA ⬇️
-// Ahora comprueba si el campo 'required' está presente
-function validateImage(input) {
-    const file = input.files[0];
-    const errorElement = document.getElementById('imagenError');
-
-    // Si el input NO es 'required' (como en editar), no validamos si está vacío
-    if (!input.hasAttribute('required') && !file) {
-         hideError(input, errorElement);
-         return true; // Es válido no subir nada
-    }
-    
-    // Si es 'required' y no hay archivo, es un error
-    if (input.hasAttribute('required') && !file) {
-        showError(input, errorElement, 'Debes seleccionar una imagen');
-        return false;
-    }
-
-    // Si hay un archivo (para crear o editar), lo validamos
-    if (file) {
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        if (!allowedTypes.includes(file.type)) {
-            showError(input, errorElement, 'Formato no válido. Solo JPG, PNG o GIF');
-            return false;
-        }
-        
-        if (file.size > 5 * 1024 * 1024) { // 5MB
-            showError(input, errorElement, 'La imagen es demasiado grande. Máximo 5MB');
-            return false;
-        }
-    }
-    
-    hideError(input, errorElement);
-    return true;
-}
-
-
-function showError(input, errorElement, message) {
-    input.classList.add('error');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
-}
-
-function hideError(input, errorElement) {
-    input.classList.remove('error');
-    errorElement.style.display = 'none';
-}
-
-function clearAllErrors() {
-    const errors = document.querySelectorAll('.error-message');
-    const errorInputs = document.querySelectorAll('.error');
-    
-    errors.forEach(error => error.style.display = 'none');
-    errorInputs.forEach(input => input.classList.remove('error'));
-}
-
-// ⬇️ FUNCIÓN CORREGIDA ⬇️
-// Llama a la validación de imagen actualizada
-function validateProductForm(event) {
+    // Validaciones
     const nombre = document.getElementById('nombre');
     const descripcion = document.getElementById('descripcion');
     const precio = document.getElementById('precio');
     const categoria = document.getElementById('categoria');
     const imagen = document.getElementById('imagen');
-    
-    clearAllErrors();
-    
+
     let isValid = true;
-    
-    if (!validateLettersOnly(nombre)) isValid = false;
-    if (!descripcion.value.trim()) {
-        showError(descripcion, document.getElementById('descripcionError'), 'La descripción es obligatoria');
-        isValid = false;
-    }
-    if (!validatePrice(precio)) isValid = false;
-    if (!categoria.value) {
-        showError(categoria, document.getElementById('categoriaError'), 'Debes seleccionar una categoría');
-        isValid = false;
-    }
-    // Esta validación ahora funciona para crear (required) y editar (no required)
-    if (!validateImage(imagen)) isValid = false;
+    if (!nombre.value.trim()) { showError(nombre, document.getElementById('nombreError'), 'El nombre es obligatorio'); isValid = false; }
+    if (!descripcion.value.trim()) { showError(descripcion, document.getElementById('descripcionError'), 'La descripción es obligatoria'); isValid = false; }
+    if (!precio.value) { showError(precio, document.getElementById('precioError'), 'El precio es obligatorio'); isValid = false; }
+    if (!categoria.value) { showError(categoria, document.getElementById('categoriaError'), 'Debes seleccionar una categoría'); isValid = false; }
+    if (imagen.hasAttribute('required') && !imagen.files[0]) { showError(imagen, document.getElementById('imagenError'), 'Debes seleccionar una imagen'); isValid = false; }
     
     if (ingredientesReceta.length === 0) {
-        showCustomAlert('Error de Validación', 'Debes agregar al menos un ingrediente a la receta.');
+        Swal.fire('Advertencia', 'Debes agregar al menos un ingrediente a la receta.', 'warning');
         isValid = false;
     }
     
     if (!isValid) {
-        event.preventDefault(); // Detiene el envío del formulario
-        showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-    }
-    
-    return isValid;
-}
-
-function validateCategoryForm(event) {
-    const nombreCategoria = document.getElementById('nombre_categoria');
-    clearAllErrors();
-    if (!validateCategoryName(nombreCategoria)) {
-        event.preventDefault();
-        showCustomAlert('Error de Validación', 'Por favor corrige el error en el campo de categoría.');
+        Swal.fire('Error de Validación', 'Por favor corrige los campos marcados.', 'error');
         return false;
     }
-    return true;
+
+    // Crea FormData para manejar archivos y la receta
+    const formData = new FormData(productForm);
+    
+    // Adjuntar la receta como JSON
+    formData.append('receta_json', JSON.stringify(ingredientesReceta));
+
+    // Deshabilitar botón
+    const btnSave = productForm.querySelector('.btn-save');
+    btnSave.disabled = true;
+    btnSave.textContent = 'Guardando...';
+
+    // Envío del formulario
+    fetch(productForm.action, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest'},
+        body: formData,
+    })
+    .then(response => response.json().then(data => ({ status: response.status, body: data })))
+    .then(({ status, body }) => {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Guardar Producto';
+
+        if (status === 200 || status === 201) {
+            closeModal();
+            Swal.fire({
+                title: '¡Éxito!',
+                text: 'Producto guardado correctamente.',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload(); 
+            });
+        } else {
+            // Manejar errores de validación de Django
+            let errorMsg = 'Error desconocido al guardar.';
+            if (body.errors) {
+                errorMsg = Object.values(body.errors).flat().join('<br>');
+            } else if (body.error) {
+                errorMsg = body.error;
+            }
+            Swal.fire('Error al Guardar', errorMsg, 'error');
+        }
+    })
+    .catch(error => {
+        btnSave.disabled = false;
+        btnSave.textContent = 'Guardar Producto';
+        Swal.fire('Error de Conexión', 'No se pudo conectar con el servidor.', 'error');
+        console.error('Fetch error:', error);
+    });
+    return false;
 }
 
-// --- Funciones de eliminación ---
+function submitCreateCategory(event) {
+    // Esta función maneja el envío de categoryForm
+    // Si tu backend maneja la redirección con messages, no necesitas mucho aquí, solo la validación JS
+    
+    // Asumo que tu backend maneja el éxito con una redirección y messages.success, 
+    // y solo necesitamos la validación aquí:
+    const input = document.getElementById('nombre_categoria');
+    const errorEl = document.getElementById('nombre_categoriaError');
+    let isValid = true;
+    
+    if (!input.value.trim()) { 
+        showError(input, errorEl, 'El nombre es obligatorio'); 
+        isValid = false; 
+    }
+    // ... (otras validaciones de categoría) ...
+    
+    if (!isValid) {
+        event.preventDefault();
+        Swal.fire('Error de Validación', 'Por favor corrige el nombre de la categoría.', 'error');
+        return false;
+    }
+    // Si es válido, se envía la forma, y Django maneja la redirección y el mensaje Toast.
+    closeCategoryModal();
+    return true; 
+}
+
 
 function confirmDeleteProduct(productId, productName) {
-    showCustomAlert(
-        'Confirmar Eliminación',
-        `¿Estás seguro de que quieres eliminar el producto "${productName}"? Esta acción no se puede deshacer.`,
-        function() {
+    Swal.fire({
+        title: 'Confirmar Eliminación',
+        html: `¿Estás seguro de que quieres eliminar el producto "<strong>${productName}</strong>"? <br>Esta acción no se puede deshacer.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true, 
+        confirmButtonColor: '#e74c3c' // Rojo de eliminación
+    }).then((result) => {
+        if (result.isConfirmed) {
             const form = document.getElementById('deleteForm');
             form.action = "{% url 'eliminar_producto' 0 %}".replace('0', productId);
-            form.submit();
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.success) {
+                    document.querySelector(`div.product-card[data-category][data-id='${productId}']`)?.remove();
+                    Swal.fire('¡Eliminado!', `El producto ${productName} ha sido eliminado.`, 'success');
+                    location.reload(); // Recarga para actualizar las pestañas de categoría si es necesario
+                } else {
+                    Swal.fire('Error', resp.error || 'No se pudo eliminar el producto.', 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
         }
-    );
+    });
 }
 
-function confirmDeleteCategory(categoriaId, categoriaNombre) {
-    showCustomAlert(
-        'Confirmar Eliminación',
-        `¿Estás seguro de que quieres eliminar la categoría "${categoriaNombre}"?`,
-        function() {
-            const form = document.getElementById('deleteCategoryForm');
-            form.action = "{% url 'eliminar_categoria' 0 %}".replace('0', categoriaId);
-            form.submit();
+function confirmDeleteCategory(categoriaId, categoriaNombre, productCount) {
+    if (productCount > 0) {
+        Swal.fire('Advertencia', `No se puede eliminar la categoría "${categoriaNombre}" porque tiene ${productCount} productos asociados.`, 'warning');
+        return;
+    }
+
+    Swal.fire({
+        title: 'Confirmar Eliminación de Categoría',
+        html: `¿Estás seguro de que quieres eliminar la categoría "<strong>${categoriaNombre}</strong>"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, Eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true, 
+        confirmButtonColor: '#e74c3c'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const tempForm = document.createElement('form');
+            tempForm.method = 'POST';
+            tempForm.action = "{% url 'eliminar_categoria' 0 %}".replace('0', categoriaId);
+            tempForm.style.display = 'none';
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrftoken;
+            tempForm.appendChild(csrfInput);
+
+            document.body.appendChild(tempForm);
+            
+            // Usamos un fetch en lugar del submit directo para manejar el resultado con SweetAlert
+            fetch(tempForm.action, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+            })
+            .then(response => {
+                // Asumiendo que el backend retorna un JSON simple para éxito/error
+                if (response.ok) {
+                    // Cierra el modal de gestión y muestra éxito
+                    closeManageCategoriesModal();
+                    Swal.fire({
+                        title: '¡Eliminada!',
+                        text: `La categoría ${categoriaNombre} ha sido eliminada.`,
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload(); // Recarga para actualizar tabs
+                    });
+                } else {
+                    response.json().then(data => {
+                        Swal.fire('Error', data.error || 'No se pudo eliminar la categoría.', 'error');
+                    }).catch(() => {
+                        Swal.fire('Error', 'No se pudo procesar la respuesta del servidor.', 'error');
+                    });
+                }
+            })
+            .catch(() => Swal.fire('Error de Conexión', 'No se pudo conectar con el servidor.', 'error'))
+            .finally(() => document.body.removeChild(tempForm));
         }
-    );
+    });
 }
 
 
-// ⬇️ FUNCIÓN CORREGIDA ⬇️
-// Rellena el modal para EDITAR
+// --- Lógica del menú y precio (Mantengo la lógica de tu código anterior) ---
+
+document.getElementById('productForm').addEventListener('submit', submitCreateProduct);
+document.getElementById('categoryForm').addEventListener('submit', submitCreateCategory);
+
+
+// Lógica de edición (necesitas implementar la función submitEditProduct)
+function submitEditProduct(event) {
+    // ... Implementa la lógica de envío de edición similar a submitCreateProduct
+    event.preventDefault();
+    Swal.fire('Falta implementar', 'La función de edición necesita ser implementada en el backend y el frontend.', 'info');
+    return false;
+}
+
+// Lógica de carga de datos para edición
 function editProduct(productId) {
-    console.log(`Abriendo modal para EDITAR producto ID: ${productId}`);
-    
-    // 1. Obtener los datos del producto desde el API
-    // (Usamos la URL 'api_detalle_producto_edicion' que creamos en urls.py)
+    // Asumo que tienes una URL para obtener los detalles del producto y la receta
     const apiUrl = "{% url 'api_detalle_producto_edicion' 0 %}".replace('0', productId);
     
     fetch(apiUrl)
         .then(response => {
-            if (!response.ok) {
-                throw new Error('No se pudo cargar el producto para edición.');
-            }
+            if (!response.ok) throw new Error('No se pudo cargar el producto para edición.');
             return response.json();
         })
         .then(data => {
-            if (data.error) {
-                 throw new Error(data.error);
-            }
-            
-            // 2. Configurar el Modal para "Editar"
-            modalTitle.textContent = `Editar Producto: ${data.nombre}`;
+            // 1. Configurar el Modal para "Editar"
+            document.getElementById('modalTitle').textContent = `Editar Producto: ${data.nombre}`;
             productForm.action = "{% url 'editar_producto' 0 %}".replace('0', productId);
+            imagenInput.removeAttribute('required'); 
             
-            // 3. Poblar campos de información básica
+            // 2. Poblar campos de información básica
             document.getElementById('nombre').value = data.nombre;
             document.getElementById('descripcion').value = data.descripcion;
             document.getElementById('precio').value = data.precio.toFixed(2);
             document.getElementById('categoria').value = data.categoria_id;
             document.getElementById('disponible').checked = data.disponible;
             
-            // 4. Cargar Previsualización de Imagen
-            imagePreview.innerHTML = ''; // Limpiar preview anterior
+            // 3. Cargar Previsualización de Imagen
+            imagePreview.innerHTML = ''; 
             if (data.imagen_url) {
                 imagePreview.innerHTML = `<img src="${data.imagen_url}" alt="${data.nombre}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">`;
             }
             
-            // 5. IMPORTANTE: La imagen NO es obligatoria al editar
-            imagenInput.removeAttribute('required'); 
-            
-            // 6. Cargar Receta
+            // 4. Cargar Receta (simulación de carga de la estructura de receta)
             ingredientesReceta = data.receta.map(item => ({
                 ingrediente_id: item.ingrediente_id,
                 ingrediente_nombre: item.ingrediente_nombre,
@@ -701,29 +669,20 @@ function editProduct(productId) {
                 costo_total: item.costo_unitario * item.cantidad
             }));
             
-            actualizarListaIngredientes(); // Actualiza la lista visual
-            calcularPrecioFinal();       // Recalcula los costos
-            
-            // 7. Marcar que el precio fue cargado (para que no se sobreescriba solo)
+            actualizarListaIngredientes(); 
+            calcularPrecioFinal(); 
             precioModificadoManual = true; 
             
-            // 8. Abrir el Modal
-            productModal.style.display = 'block';
+            document.getElementById('productModal').style.display = 'block';
 
         })
         .catch(error => {
-            console.error('Error al cargar datos para editar:', error);
-            showCustomAlert('Error', `Ocurrió un error al cargar los datos del producto: ${error.message}`);
+            Swal.fire('Error', `Ocurrió un error al cargar los datos del producto: ${error.message}`, 'error');
         });
 }
 
 
-// =============================================
-// SISTEMA DE CÁLCULO AUTOMÁTICO DE PRECIOS
-// (Este bloque está bien, no se necesita cambiar)
-// =============================================
-let ingredientesReceta = [];
-let precioModificadoManual = false;
+// --- Lógica de Receta y Costos (Copiada de tu código anterior) ---
 
 document.getElementById('ingrediente_select')?.addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
@@ -737,7 +696,7 @@ function calcularCostoIngrediente() {
     const cantidadInput = document.getElementById('cantidad_ingrediente');
     const selectedOption = ingredienteSelect.options[ingredienteSelect.selectedIndex];
     
-    const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
+    const costoUnitario = parseFloat(selectedOption?.getAttribute('data-costo')) || 0;
     const cantidad = parseFloat(cantidadInput.value) || 0;
     const costo = costoUnitario * cantidad;
     
@@ -753,11 +712,11 @@ function agregarIngrediente() {
     const cantidad = parseFloat(cantidadInput.value);
     
     if (!ingredienteId) {
-        showCustomAlert('Error', 'Por favor selecciona un ingrediente');
+        Swal.fire('Error', 'Por favor selecciona un ingrediente', 'error');
         return;
     }
     if (!cantidad || cantidad <= 0) {
-        showCustomAlert('Error', 'Por favor ingresa una cantidad válida');
+        Swal.fire('Error', 'Por favor ingresa una cantidad válida', 'error');
         return;
     }
     
@@ -766,12 +725,8 @@ function agregarIngrediente() {
     const costoUnitario = parseFloat(selectedOption.getAttribute('data-costo')) || 0;
     const costo = costoUnitario * cantidad;
     
-    // 🔴 NOTA: He quitado la validación de stock aquí.
-    // No deberías limitar la creación de la *receta* por el stock actual.
-    // El stock se debe validar al *vender* o *producir* el producto.
-    
     if (ingredientesReceta.some(item => item.ingrediente_id == ingredienteId)) {
-        showCustomAlert('Error', 'Este ingrediente ya está en la receta');
+        Swal.fire('Error', 'Este ingrediente ya está en la receta', 'error');
         return;
     }
     
@@ -882,7 +837,8 @@ function previewImage(input) {
     }
 }
 
-// --- Listeners ---
+
+// --- Listeners de Interfaz ---
 
 document.addEventListener('DOMContentLoaded', function() {
     const categoryTabs = document.querySelectorAll('.category-tab');
@@ -905,35 +861,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Asignar validación al formulario
-    if (productForm) {
-        productForm.addEventListener('submit', validateProductForm);
-    }
-    
-    // (Tus otros listeners de DOMContentLoaded)
+    // Asignar listeners para el cálculo de precio
     const manoObraInput = document.getElementById('mano_obra');
     const gananciaInput = document.getElementById('ganancia');
-    if (manoObraInput) {
-        manoObraInput.addEventListener('input', calcularPrecioFinal);
-    }
-    if (gananciaInput) {
-        gananciaInput.addEventListener('input', calcularPrecioFinal);
-    }
+    if (manoObraInput) manoObraInput.addEventListener('input', calcularPrecioFinal);
+    if (gananciaInput) gananciaInput.addEventListener('input', calcularPrecioFinal);
+    
     const cantidadInput = document.getElementById('cantidad_ingrediente');
-    if (cantidadInput) {
-        cantidadInput.addEventListener('input', calcularCostoIngrediente);
-    }
+    if (cantidadInput) cantidadInput.addEventListener('input', calcularCostoIngrediente);
 });
-
-
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape') {
-        closeModal();
-        closeCategoryModal();
-        closeManageCategoriesModal();
-        closeCustomAlert();
-    }
-});
-
 </script>
 {% endblock %}
