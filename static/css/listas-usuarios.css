@@ -1,6 +1,11 @@
+/* =======================================================
+   LISTAS DE USUARIOS - BULLBURGER (listas-usuarios.css)
+   ======================================================= */
+
 /* === Contenedor principal === */
 
 .clientes-container {
+  /* Color de fondo suave (tierra/beige) */
   background-color: #f8f4ef;
   padding: 30px;
   border-radius: 16px;
@@ -18,6 +23,7 @@
 }
 
 .clientes-header h2 {
+  /* Color marrón oscuro para títulos */
   color: #5a3b2e;
   font-weight: bold;
 }
@@ -32,6 +38,7 @@
 .buscador input[type="text"] {
   padding: 8px 14px;
   width: 300px;
+  /* Borde suave */
   border: 1px solid #c4b7a6;
   border-radius: 20px;
   outline: none;
@@ -40,12 +47,14 @@
 }
 
 .buscador input[type="text"]:focus {
+  /* Borde marrón en foco */
   border-color: #8b5e3c;
   box-shadow: 0 0 5px rgba(139, 94, 60, 0.3);
 }
 
 .buscador button,
 .btn-crear {
+  /* Botones de acción principales (Rojo/Marrón de la marca) */
   background-color: #8b2e0f;
   color: #fff;
   border: none;
@@ -73,6 +82,7 @@
 }
 
 .tabla-clientes thead {
+  /* Color de cabecera de tabla (beige) */
   background-color: #d8c3a5;
   color: #4a2e1c;
   text-transform: uppercase;
@@ -98,6 +108,7 @@
   font-size: 15px;
 }
 
+/* Columna de Dirección */
 .tabla-clientes td:nth-child(5) {
   white-space: normal;
   word-break: break-word;
@@ -105,7 +116,7 @@
   line-height: 1.4;
 }
 
-/* === Botones de acción === */
+/* === Botones de acción de fila === */
 .action-buttons-small {
   display: flex;
   justify-content: center;
@@ -122,6 +133,7 @@
 }
 
 .btn-edit {
+  /* Verde para Editar */
   color: #27ae60;
 }
 
@@ -131,6 +143,7 @@
 }
 
 .btn-delete {
+  /* Rojo para Eliminar */
   color: #c0392b;
 }
 
@@ -146,7 +159,7 @@
 }
 
 /* =======================================================
-   🪟 Modal (centrado, con scroll y footer fijo)
+   🪟 Modal General (centrado, con scroll y footer fijo)
    ======================================================= */
 .modal {
   display: none;
@@ -177,6 +190,7 @@
 /* === Header === */
 .modal-header {
   padding: 1.5rem 2rem;
+  /* Degradado marrón */
   background: linear-gradient(135deg, #5a3b2e, #8b5e3c);
   color: white;
   border-radius: 15px 15px 0 0;
@@ -194,6 +208,7 @@
 .modal-body {
   padding: 2rem;
   overflow-y: auto;
+  /* Ajusta el alto para dejar espacio al footer */
   max-height: calc(90vh - 140px);
 }
 
@@ -254,6 +269,7 @@ label {
 }
 
 .btn-save {
+  /* Botón verde para Guardar */
   background: linear-gradient(135deg, #27ae60, #2ecc71);
   color: white;
   border: none;
@@ -287,6 +303,11 @@ label {
   display: none;
 }
 
+/* Estilo para el input con error */
+.error-field {
+  border-color: #e74c3c !important;
+}
+
 /* === Fix para Chrome autofill === */
 input:-webkit-autofill,
 input:-webkit-autofill:focus {
@@ -295,7 +316,54 @@ input:-webkit-autofill:focus {
   box-shadow: 0 0 0px 1000px #fff inset !important;
 }
 
-/* === RESPONSIVO CON SCROLL HORIZONTAL === */
+/* =======================================================
+   ESTILOS PARA SWEETALERT2 (Para simular el estilo BullBurger)
+   ======================================================= */
+
+/* 1. Estilo para el botón de Aceptar (Rojo/Marca) */
+.swal2-styled.swal2-confirm {
+  /* Color principal de la marca (Rojo) */
+  background-color: #d32f2f !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+}
+
+.swal2-styled.swal2-confirm:hover {
+  background-color: #b71c1c !important;
+  /* Rojo oscuro al pasar el ratón */
+}
+
+/* 2. Estilo para el botón de Cancelar (Gris/Neutral) */
+.swal2-styled.swal2-cancel {
+  background-color: #95a5a6 !important;
+  /* Gris de tu botón Cancelar */
+  border-radius: 8px !important;
+  font-weight: 600;
+  color: white !important;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.swal2-styled.swal2-cancel:hover {
+  background-color: #7f8c8d !important;
+}
+
+/* 3. Estilo del contenedor principal del modal (para esquinas más suaves) */
+.swal2-popup {
+  border-radius: 15px !important;
+}
+
+/* 4. Asegurar que el icono se vea bien (ajuste de color) */
+.swal2-icon.swal2-question {
+  /* Mantiene el color azul por defecto de SweetAlert2 */
+  border-color: #3498db !important;
+  color: #3498db !important;
+}
+
+/* =======================================================
+   RESPONSIVO
+   ======================================================= */
 @media (max-width: 768px) {
 
   /* 1. Ajustes del contenedor general */
@@ -333,31 +401,26 @@ input:-webkit-autofill:focus {
     width: 100%;
   }
 
-  /* 3. EL CONTENEDOR QUE HACE LA MAGIA (SCROLL) */
+  /* 3. SCROLL HORIZONTAL DE LA TABLA */
   .table-responsive {
     width: 100%;
     overflow-x: auto;
-    /* Activa el scroll horizontal */
     -webkit-overflow-scrolling: touch;
     margin-bottom: 15px;
     border: 1px solid #eee;
     border-radius: 8px;
   }
 
-  /* 4. La tabla debe ser ancha para forzar el scroll */
   .tabla-clientes {
-    width: 100%;
     min-width: 800px;
-    /* Ancho mínimo garantizado */
   }
 
-  /* 5. Evitar saltos de línea feos */
   .tabla-clientes th,
   .tabla-clientes td {
     white-space: nowrap;
   }
 
-  /* 6. Modal Responsive */
+  /* 4. Modal Responsive */
   .modal-content {
     width: 95%;
     margin: 5% auto;
@@ -372,103 +435,4 @@ input:-webkit-autofill:focus {
   .btn-save {
     width: 100%;
   }
-
-  /* === ESTILOS PARA LA ALERTA PERSONALIZADA (COMO MENU.HTML) === */
-
-  /* Contenedor del ícono */
-  .custom-alert-header {
-    padding: 30px 20px;
-    background: linear-gradient(135deg, #8B4513, #D2691E);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .custom-alert-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 4px solid #3498db;
-    /* Borde azul */
-    color: #3498db;
-    font-size: 2.5rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 15px;
-  }
-
-  /* Ajuste de botones en la alerta */
-  .alert-ok-btn {
-    background: #e74c3c !important;
-    order: 2;
-  }
-
-  /* Centrado de la alerta */
-  #customAlert.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(5px);
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    box-sizing: border-box;
-  }
-
-  #customAlert .modal-content {
-    background-color: white;
-    margin: 0;
-    padding: 0;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 450px;
-    max-height: 90vh;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  @keyframes modalSlideIn {
-    from {
-      transform: translateY(-50px);
-      opacity: 0;
-    }
-
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  /* Responsive */
-  @media (max-width: 768px) {
-    #customAlert.modal {
-      padding: 15px;
-    }
-
-    #customAlert .modal-content {
-      width: 95%;
-      max-height: 85vh;
-    }
-
-    .custom-alert-header {
-      padding: 20px 15px;
-    }
-
-    .custom-alert-icon {
-      width: 60px;
-      height: 60px;
-      font-size: 2rem;
-    }
-  }
-
 }

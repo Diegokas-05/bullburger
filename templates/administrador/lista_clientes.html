@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Lista de Clientes{% endblock %}
-
-{% block content %}
 {% load static %}
 
+{% block content %}
+<!-- SweetAlert2 es necesario para esta vista. Asegúrate de incluir CSS y JS en base.html -->
 <link rel="stylesheet" href="{% static 'css/listas-usuarios.css' %}">
 
 <div class="clientes-container">
@@ -142,24 +142,10 @@
     </div>
 </div>
 
-<div id="customAlert" class="modal">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h2 id="alertTitle">Alerta</h2>
-            <span class="close" onclick="closeCustomAlert()">&times;</span>
-        </div>
-        <div class="modal-body">
-            <p id="alertMessage"></p>
-            <div class="form-actions" style="justify-content:center;">
-                <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-                <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- 🛑 ELIMINAMOS #customAlert Y LO REEMPLAZAMOS CON Swal.fire() 🛑 -->
 
 <script>
-/* ===== Funciones de Validación ===== */
+/* ===== Funciones de Validación (Se mantienen para los modales de Crear/Editar) ===== */
 function showError(input, message) {
     const errorElement = document.getElementById(input.id + 'Error');
     if (errorElement) {
@@ -311,181 +297,190 @@ function validateEditForm() {
 
 /* ===== CSRF ===== */
 function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i=0; i<cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-          }
-      }
-  }
-  return cookieValue;
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i=0; i<cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 const csrftoken = getCookie('csrftoken');
 
-/* ===== Helpers Alert ===== */
-function showCustomAlert(title, message, confirmCallback = null) {
-  document.getElementById('alertTitle').textContent = title;
-  document.getElementById('alertMessage').textContent = message;
-  document.getElementById('customAlert').style.display = 'block';
-  const confirmBtn = document.getElementById('alertConfirmBtn');
-  if (confirmCallback) {
-      confirmBtn.onclick = function() { confirmCallback(); closeCustomAlert(); };
-  } else {
-      confirmBtn.onclick = closeCustomAlert;
-  }
-}
-function closeCustomAlert() {
-  document.getElementById('customAlert').style.display = 'none';
-}
-
 /* ===== Modal Crear ===== */
 function openCreateClienteModal() {
-  document.getElementById('createClienteModal').style.display = 'block';
+    document.getElementById('createClienteModal').style.display = 'block';
 }
 
 function closeCreateClienteModal() {
-  document.getElementById('createClienteModal').style.display = 'none';
-  document.getElementById('createClienteForm').reset();
-  clearAllErrors(document.getElementById('createClienteForm'));
+    document.getElementById('createClienteModal').style.display = 'none';
+    document.getElementById('createClienteForm').reset();
+    clearAllErrors(document.getElementById('createClienteForm'));
 }
 
 function submitCreateCliente(e) {
-  e.preventDefault();
-  clearAllErrors(document.getElementById('createClienteForm'));
-  
-  if (!validateCreateForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false;
-  }
-
-  const data = {
-    nombre: document.getElementById('c_nombre').value,
-    email: document.getElementById('c_email').value,
-    telefono: document.getElementById('c_telefono').value,
-    direccion: document.getElementById('c_direccion').value,
-    password: document.getElementById('c_password').value,
-    password2: document.getElementById('c_password2').value
-  };
-
-  fetch('/clientes/crear/', { 
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      closeCreateClienteModal();
-      location.reload();
-    } else {
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('c_email'), json.errors.email[0]);
-          }
-          if (json.errors.password) {
-              showError(document.getElementById('c_password'), json.errors.password[0]);
-          }
-      }
-      showCustomAlert('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.');
+    e.preventDefault();
+    clearAllErrors(document.getElementById('createClienteForm'));
+    
+    if (!validateCreateForm()) {
+        Swal.fire('Error de Validación', 'Por favor corrige los errores en el formulario.', 'warning');
+        return false;
     }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  return false;
+
+    const data = {
+        nombre: document.getElementById('c_nombre').value,
+        email: document.getElementById('c_email').value,
+        telefono: document.getElementById('c_telefono').value,
+        direccion: document.getElementById('c_direccion').value,
+        password: document.getElementById('c_password').value,
+        password2: document.getElementById('c_password2').value
+    };
+
+    fetch('/clientes/crear/', { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.ok) {
+            closeCreateClienteModal();
+            // SweetAlert de éxito antes de recargar
+            Swal.fire({
+                title: '¡Cliente Creado!',
+                text: 'La cuenta ha sido registrada exitosamente.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            if (json.errors) {
+                if (json.errors.email) {
+                    showError(document.getElementById('c_email'), json.errors.email[0]);
+                }
+                if (json.errors.password) {
+                    showError(document.getElementById('c_password'), json.errors.password[0]);
+                }
+            }
+            Swal.fire('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.', 'error');
+        }
+    })
+    .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+    return false;
 }
 
 /* ===== Modal Editar ===== */
 function openEditClienteModal(id) {
-  fetch(`/clientes/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById('e_id').value = data.id;
-      document.getElementById('e_nombre').value = data.nombre || '';
-      document.getElementById('e_email').value = data.email || '';
-      document.getElementById('e_telefono').value = data.telefono || '';
-      document.getElementById('e_direccion').value = data.direccion || '';
-      document.getElementById('editClienteModal').style.display = 'block';
-    });
+    fetch(`/clientes/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('e_id').value = data.id;
+            document.getElementById('e_nombre').value = data.nombre || '';
+            document.getElementById('e_email').value = data.email || '';
+            document.getElementById('e_telefono').value = data.telefono || '';
+            document.getElementById('e_direccion').value = data.direccion || '';
+            
+            clearAllErrors(document.getElementById('editClienteForm')); // Limpiar errores al abrir
+            document.getElementById('editClienteModal').style.display = 'block';
+        })
+        .catch(() => Swal.fire('Error', 'No se pudo cargar la información del cliente.', 'error'));
 }
 function closeEditClienteModal() {
-  document.getElementById('editClienteModal').style.display = 'none';
-  clearAllErrors(document.getElementById('editClienteForm'));
+    document.getElementById('editClienteModal').style.display = 'none';
+    clearAllErrors(document.getElementById('editClienteForm'));
 }
 
 function submitEditCliente(e) {
-  e.preventDefault();
-  clearAllErrors(document.getElementById('editClienteForm'));
-  
-  if (!validateEditForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false;
-  }
-
-  const id = document.getElementById('e_id').value;
-  const data = {
-    nombre: document.getElementById('e_nombre').value,
-    email: document.getElementById('e_email').value,
-    telefono: document.getElementById('e_telefono').value,
-    direccion: document.getElementById('e_direccion').value
-  };
-
-  fetch(`/clientes/editar/${id}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-.then(json => {
-    if (json.success) {
-      const fila = document.querySelector(`tr[data-id='${id}']`);
-      fila.querySelector('.c-nombre').textContent = data.nombre;
-      fila.querySelector('.c-email').textContent = data.email;
-      fila.querySelector('.c-telefono').textContent = data.telefono || '-';
-      fila.querySelector('.c-direccion').textContent = data.direccion || '-';
-      closeEditClienteModal();
-      showCustomAlert('Éxito', 'Cliente actualizado correctamente.');
-    } else {
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('e_email'), json.errors.email[0]);
-          }
-      }
-      showCustomAlert('Error', json.error || json.errors.non_field_errors || 'No se pudo actualizar.');
+    e.preventDefault();
+    clearAllErrors(document.getElementById('editClienteForm'));
+    
+    if (!validateEditForm()) {
+        Swal.fire('Error de Validación', 'Por favor corrige los errores en el formulario.', 'warning');
+        return false;
     }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  return false;
+
+    const id = document.getElementById('e_id').value;
+    const data = {
+        nombre: document.getElementById('e_nombre').value,
+        email: document.getElementById('e_email').value,
+        telefono: document.getElementById('e_telefono').value,
+        direccion: document.getElementById('e_direccion').value
+    };
+
+    fetch(`/clientes/editar/${id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.success) {
+            // Actualización visual sin recargar
+            const fila = document.querySelector(`tr[data-id='${id}']`);
+            fila.querySelector('.c-nombre').textContent = data.nombre;
+            fila.querySelector('.c-email').textContent = data.email;
+            fila.querySelector('.c-telefono').textContent = data.telefono || '-';
+            fila.querySelector('.c-direccion').textContent = data.direccion || '-';
+            
+            closeEditClienteModal();
+            Swal.fire('Éxito', 'Cliente actualizado correctamente.', 'success');
+        } else {
+            if (json.errors) {
+                if (json.errors.email) {
+                    showError(document.getElementById('e_email'), json.errors.email[0]);
+                }
+            }
+            Swal.fire('Error', json.error || json.errors.non_field_errors || 'No se pudo actualizar.', 'error');
+        }
+    })
+    .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+    return false;
 }
 
-/* ===== Eliminar ===== */
+/* ===== Eliminar con SweetAlert2 ===== */
 function confirmDeleteCliente(id, nombre) {
-  showCustomAlert('Confirmar Eliminación', `¿Seguro que deseas eliminar al cliente "${nombre}"?`, function () {
-    fetch(`/clientes/eliminar/${id}/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(res => res.json())
-    .then(resp => {
-      if (resp.success) {
-        document.querySelector(`tr[data-id='${id}']`).remove();
-        showCustomAlert('Éxito', 'Cliente eliminado correctamente.');
-      } else {
-        showCustomAlert('Error', resp.error || 'No se pudo eliminar.');
-      }
-    })
-    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  });
+    Swal.fire({
+        title: 'Confirmar Eliminación',
+        html: `¿Estás seguro de que quieres eliminar al cliente "<strong>${nombre}</strong>"? <br>Esta acción no se puede deshacer.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true, 
+        confirmButtonColor: '#d32f2f'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/clientes/eliminar/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.success) {
+                    document.querySelector(`tr[data-id='${id}']`).remove();
+                    Swal.fire('¡Eliminado!', 'Cliente eliminado correctamente.', 'success');
+                } else {
+                    Swal.fire('Error', resp.error || 'No se pudo eliminar al cliente.', 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+        }
+    });
 }
 
 /* ===== Listeners ===== */

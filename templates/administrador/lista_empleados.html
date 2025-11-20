@@ -6,165 +6,170 @@
 <link rel="stylesheet" href="{% static 'css/listas-usuarios.css' %}">
 
 <div class="clientes-container">
-  <div class="clientes-header">
-    <h2>Lista de Empleados</h2>
-    <div class="buscador">
-      <form method="GET">
-        <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
-        <button type="submit">Buscar</button>
-      </form>
-      <button class="btn-crear" onclick="openCreateEmpleadoModal()">Crear</button>
-    </div>
-  </div>
-  
-  <div class="table-responsive">
-      <table class="tabla-clientes" id="tabla-empleados">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Creado en</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for emp in empleados %}
-          <tr class="data-row" data-id="{{ emp.id }}">
-            <td>{{ emp.id }}</td>
-            <td class="c-nombre">{{ emp.nombre }}</td>
-            <td class="c-email">{{ emp.email }}</td>
-            <td class="c-telefono">{{ emp.telefono|default:"-" }}</td>
-            <td class="c-direccion">{{ emp.direccion|default:"-" }}</td>
-            
-            <td>{{ emp.creado_en|date:"d/m/Y" }}</td>
-            
-            <td>
-              <div class="action-buttons-small">
-                <button class="btn-action btn-edit" onclick="openEditEmpleadoModal({{ emp.id }})">✏️</button>
-                <button class="btn-action btn-delete" onclick="confirmDeleteEmpleado({{ emp.id }}, '{{ emp.nombre|escapejs }}')">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="sin-resultados">No se encontraron empleados.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-  </div> </div>
-
-<div id="createEmpleadoModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Crear Empleado</h2>
-      <span class="close" onclick="closeCreateEmpleadoModal()">&times;</span>
+    <div class="clientes-header">
+        <h2>Lista de Empleados</h2>
+        <div class="buscador">
+            <form method="GET">
+                <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
+                <button type="submit">Buscar</button>
+            </form>
+            <button class="btn-crear" onclick="openCreateEmpleadoModal()">Crear</button>
+        </div>
     </div>
     
-    <div class="modal-body">
-      <form id="createEmpleadoForm" onsubmit="return submitCreateEmpleado(event)" novalidate>
-        {% csrf_token %}<div class="form-group">
-          <label for="c_nombre">Nombre *</label>
-          <input type="text" id="c_nombre" required class="form-control">
-          <div class="error-message" id="c_nombreError"></div>
-        </div>
-        <div class="form-group">
-          <label for="c_email">Correo *</label>
-          <input type="email" id="c_email" required class="form-control">
-          <div class="error-message" id="c_emailError"></div>
-        </div>
-        <div class="form-group">
-          <label for="c_telefono">Teléfono</label>
-          <input type="text" id="c_telefono" class="form-control">
-          <div class="error-message" id="c_telefonoError"></div>
-        </div>
-        <div class="form-group">
-          <label for="c_direccion">Dirección</label>
-          <input type="text" id="c_direccion" class="form-control">
-        </div>
-        <div class="form-group">
-          <label for="c_password">Contraseña *</label>
-          <input type="password" id="c_password" required class="form-control">
-          <div class="error-message" id="c_passwordError"></div>
-        </div>
-        <div class="form-group">
-          <label for="c_password2">Confirmar contraseña *</label>
-          <input type="password" id="c_password2" required class="form-control">
-          <div class="error-message" id="c_password2Error"></div>
-        </div>
-      </form>
+    <div class="table-responsive">
+        <table class="tabla-clientes" id="tabla-empleados">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Creado en</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in empleados %}
+                <tr class="data-row" data-id="{{ emp.id }}">
+                    <td>{{ emp.id }}</td>
+                    <td class="c-nombre">{{ emp.nombre }}</td>
+                    <td class="c-email">{{ emp.email }}</td>
+                    <td class="c-telefono">{{ emp.telefono|default:"-" }}</td>
+                    <td class="c-direccion">{{ emp.direccion|default:"-" }}</td>
+                    
+                    <td>{{ emp.creado_en|date:"d/m/Y" }}</td>
+                    
+                    <td>
+                        <div class="action-buttons-small">
+                            <button class="btn-action btn-edit" onclick="openEditEmpleadoModal({{ emp.id }})">✏️</button>
+                            <button class="btn-action btn-delete" onclick="confirmDeleteEmpleado({{ emp.id }}, '{{ emp.nombre|escapejs }}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="sin-resultados">No se encontraron empleados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div class="modal-footer">
-      <button type="button" class="btn-cancel" onclick="closeCreateEmpleadoModal()">Cancelar</button>
-      <button type="submit" form="createEmpleadoForm" class="btn-save">Crear</button>
+<div id="createEmpleadoModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Crear Empleado</h2>
+            <span class="close" onclick="closeCreateEmpleadoModal()">&times;</span>
+        </div>
+        
+        <div class="modal-body">
+            <form id="createEmpleadoForm" onsubmit="return submitCreateEmpleado(event)" novalidate>
+                {% csrf_token %}<div class="form-group">
+                    <label for="c_nombre">Nombre *</label>
+                    <input type="text" id="c_nombre" required class="form-control">
+                    <div class="error-message" id="c_nombreError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="c_email">Correo *</label>
+                    <input type="email" id="c_email" required class="form-control">
+                    <div class="error-message" id="c_emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="c_telefono">Teléfono</label>
+                    <input type="text" id="c_telefono" class="form-control">
+                    <div class="error-message" id="c_telefonoError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="c_direccion">Dirección</label>
+                    <input type="text" id="c_direccion" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="c_password">Contraseña *</label>
+                    <input type="password" id="c_password" required class="form-control">
+                    <div class="error-message" id="c_passwordError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="c_password2">Confirmar contraseña *</label>
+                    <input type="password" id="c_password2" required class="form-control">
+                    <div class="error-message" id="c_password2Error"></div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeCreateEmpleadoModal()">Cancelar</button>
+            <button type="submit" form="createEmpleadoForm" class="btn-save">Crear</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <div id="editEmpleadoModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Editar Empleado</h2>
-      <span class="close" onclick="closeEditEmpleadoModal()">&times;</span>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Empleado</h2>
+            <span class="close" onclick="closeEditEmpleadoModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="e_id">
+                <div class="form-group">
+                    <label for="e_nombre">Nombre *</label>
+                    <input type="text" id="e_nombre" required class="form-control">
+                    <div class="error-message" id="e_nombreError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="e_email">Correo *</label>
+                    <input type="email" id="e_email" required class="form-control">
+                    <div class="error-message" id="e_emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="e_telefono">Teléfono</label>
+                    <input type="text" id="e_telefono" class="form-control">
+                    <div class="error-message" id="e_telefonoError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="e_direccion">Dirección</label>
+                    <input type="text" id="e_direccion" class="form-control">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
+            <button type="submit" form="editEmpleadoForm" class="btn-save">Actualizar</button>
+        </div>
     </div>
-    <div class="modal-body">
-      <form id="editEmpleadoForm" onsubmit="return submitEditEmpleado(event)" novalidate>
-        {% csrf_token %}
-        <input type="hidden" id="e_id">
-        <div class="form-group">
-          <label for="e_nombre">Nombre *</label>
-          <input type="text" id="e_nombre" required class="form-control">
-          <div class="error-message" id="e_nombreError"></div>
-        </div>
-        <div class="form-group">
-          <label for="e_email">Correo *</label>
-          <input type="email" id="e_email" required class="form-control">
-          <div class="error-message" id="e_emailError"></div>
-        </div>
-        <div class="form-group">
-          <label for="e_telefono">Teléfono</label>
-          <input type="text" id="e_telefono" class="form-control">
-          <div class="error-message" id="e_telefonoError"></div>
-        </div>
-        <div class="form-group">
-          <label for="e_direccion">Dirección</label>
-          <input type="text" id="e_direccion" class="form-control">
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn-cancel" onclick="closeEditEmpleadoModal()">Cancelar</button>
-      <button type="submit" form="editEmpleadoForm" class="btn-save">Actualizar</button></div></div>
-    </div>
+</div>
 
-    <div id="customAlert" class="modal">
-  <div class="modal-content" style="max-width: 450px; text-align: center; padding: 0;">
-    <div class="custom-alert-header">
-      <div class="custom-alert-icon">?</div> 
-    </div>
+<div id="customAlert" class="modal">
+    <div class="modal-content" style="max-width: 450px; text-align: center; padding: 0;">
+        <div class="custom-alert-header">
+            <div class="custom-alert-icon">?</div> 
+        </div>
 
-    <div class="modal-body" style="padding: 30px 20px;">
-      <h2 id="alertTitle" style="color: #333; font-size: 1.5rem; margin-bottom: 10px;">¿Confirmar acción?</h2>
-      <p id="alertMessage" style="color: #666; font-size: 1rem; margin-bottom: 30px;">
-      </p>
-      
-      <div class="form-actions" style="justify-content: center; gap: 1rem;">
-        <button type="button" class="btn-cancel" id="alertCancelBtn" onclick="closeCustomAlert()" 
-                style="background: #95a5a6; color: white; width: 100px;">
-          Cancelar
-        </button>
-        <button type="button" class="btn-save alert-ok-btn" id="alertConfirmBtn" 
-                style="background: #e74c3c; width: 100px; box-shadow: none;">
-          Aceptar
-        </button>
-      </div>
+        <div class="modal-body" style="padding: 30px 20px;">
+            <h2 id="alertTitle" style="color: #333; font-size: 1.5rem; margin-bottom: 10px;">¿Confirmar acción?</h2>
+            <p id="alertMessage" style="color: #666; font-size: 1rem; margin-bottom: 30px;"></p>
+            
+            <div class="form-actions" style="justify-content: center; gap: 1rem;">
+                <button type="button" class="btn-cancel" id="alertCancelBtn" onclick="closeCustomAlert()" 
+                        style="background: #95a5a6; color: white; width: 100px;">
+                    Cancelar
+                </button>
+                <button type="button" class="btn-save alert-ok-btn" id="alertConfirmBtn" 
+                        style="background: #e74c3c; width: 100px; box-shadow: none;">
+                    Aceptar
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
+// (El resto de tu JavaScript se mantiene, pero aquí está la función confirmDeleteEmpleado
+// para asegurar que usa el nuevo modal)
+
 // ===== FUNCIONES DEL SISTEMA DE ALERTAS (COMO MENU.HTML) =====
 
 // Función de alerta personalizada (igual que menu.html)
@@ -174,13 +179,18 @@ function showCustomAlert(title, message, confirmCallback = null) {
     document.getElementById('customAlert').style.display = 'block';
     
     const confirmBtn = document.getElementById('alertConfirmBtn');
+    
+    // Es crucial clonar para evitar múltiples listeners
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    
     if (confirmCallback) {
-        confirmBtn.onclick = function() {
+        newConfirmBtn.onclick = function() {
             confirmCallback();
             closeCustomAlert();
         };
     } else {
-        confirmBtn.onclick = closeCustomAlert;
+        newConfirmBtn.onclick = closeCustomAlert;
     }
 }
 
@@ -188,343 +198,55 @@ function closeCustomAlert() {
     document.getElementById('customAlert').style.display = 'none';
 }
 
-// ===== FUNCIONES DE VALIDACIÓN (MANTENIENDO LAS EXISTENTES) =====
-function showError(input, message) {
-    const errorElement = document.getElementById(input.id + 'Error');
-    if (errorElement) {
-        input.classList.add('error-field');
-        errorElement.textContent = message;
-        errorElement.style.display = 'block';
-    }
-}
-
-function hideError(input) {
-    const errorElement = document.getElementById(input.id + 'Error');
-    if (errorElement) {
-        input.classList.remove('error-field');
-        errorElement.style.display = 'none';
-    }
-}
-
-function clearAllErrors(formElement) {
-    const errors = formElement.querySelectorAll('.error-message');
-    const errorInputs = formElement.querySelectorAll('.error-field');
-    errors.forEach(error => {
-        error.textContent = '';
-        error.style.display = 'none';
-    });
-    errorInputs.forEach(input => input.classList.remove('error-field'));
-}
-
-function formatPhone(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 4) {
-        value = value.substring(0, 4) + '-' + value.substring(4, 8);
-    }
-    input.value = value;
-}
-
-function validateNameInput(input) {
-    input.value = input.value.replace(/[^A-Za-záéíóúÁÉÍÓÚñÑ\s]/g, '');
-}
-
-function validateLettersOnly(input) {
-    const value = input.value.trim();
-    if (!value) {
-        showError(input, 'Este campo es obligatorio');
-        return false;
-    }
-    const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
-    if (!lettersOnly.test(value)) {
-        showError(input, 'Solo se permiten letras y espacios');
-        return false;
-    }
-    if (value.length < 2) {
-        showError(input, 'El nombre debe tener al menos 2 caracteres');
-        return false;
-    }
-    hideError(input);
-    return true;
-}
-
-function validateEmail(input) {
-    const value = input.value.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!value) {
-        showError(input, 'El email es obligatorio');
-        return false;
-    }
-    if (!emailRegex.test(value)) {
-        showError(input, 'Por favor ingresa un email válido');
-        return false;
-    }
-    hideError(input);
-    return true;
-}
-
-function validatePhone(input) {
-    const value = input.value.trim();
-    if (!value) {
-        hideError(input);
-        return true;
-    }
-    const phoneRegex = /^\d{4}-\d{4}$/;
-    if (!phoneRegex.test(value)) {
-        showError(input, 'Formato inválido. Usar formato: 1234-5678');
-        return false;
-    }
-    hideError(input);
-    return true;
-}
-
-function validatePassword(input) {
-    const value = input.value;
-    if (!value) {
-        showError(input, 'La contraseña es obligatoria');
-        return false;
-    }
-    if (value.length < 8) {
-        showError(input, 'La contraseña debe tener al menos 8 caracteres');
-        return false;
-    }
-    hideError(input);
-    return true;
-}
-
-function validatePasswordConfirm(passwordInput, confirmInput) {
-    const passValue = passwordInput.value;
-    const confirmValue = confirmInput.value;
-    if (!confirmValue) {
-        showError(confirmInput, 'Por favor confirma tu contraseña');
-        return false;
-    }
-    if (confirmValue !== passValue) {
-        showError(confirmInput, 'Las contraseñas no coinciden');
-        return false;
-    }
-    hideError(confirmInput);
-    return true;
-}
-
-// ===== FUNCIONES DE VALIDACIÓN DE FORMULARIOS =====
-function validateCreateForm() {
-    const nombre = document.getElementById('c_nombre');
-    const email = document.getElementById('c_email');
-    const telefono = document.getElementById('c_telefono');
-    const password = document.getElementById('c_password');
-    const password2 = document.getElementById('c_password2');
-    
-    let isValid = true;
-    if (!validateLettersOnly(nombre)) isValid = false;
-    if (!validateEmail(email)) isValid = false;
-    if (!validatePhone(telefono)) isValid = false;
-    if (!validatePassword(password)) isValid = false;
-    if (!validatePasswordConfirm(password, password2)) isValid = false;
-    
-    return isValid;
-}
-
-function validateEditForm() {
-    const nombre = document.getElementById('e_nombre');
-    const email = document.getElementById('e_email');
-    const telefono = document.getElementById('e_telefono');
-    
-    let isValid = true;
-    if (!validateLettersOnly(nombre)) isValid = false;
-    if (!validateEmail(email)) isValid = false;
-    if (!validatePhone(telefono)) isValid = false;
-    
-    return isValid;
-}
-
-// ===== CSRF =====
-function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i=0; i<cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-          }
-      }
-  }
-  return cookieValue;
-}
-const csrftoken = getCookie('csrftoken');
-
-// ===== MODALES =====
-function openCreateEmpleadoModal() {
-  const modal = document.getElementById('createEmpleadoModal');
-  modal.style.display = 'block';
-  
-  // Resetear scroll
-  const modalBody = modal.querySelector('.modal-body');
-  if (modalBody) {
-    modalBody.scrollTop = 0;
-  }
-  document.body.style.overflow = 'hidden';
-}
-
-function closeCreateEmpleadoModal() {
-  document.getElementById('createEmpleadoModal').style.display = 'none';
-  document.getElementById('createEmpleadoForm').reset();
-  clearAllErrors(document.getElementById('createEmpleadoForm'));
-  document.body.style.overflow = 'auto';
-}
-
-function openEditEmpleadoModal(id) {
-  fetch(`/empleados/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById('e_id').value = data.id;
-      document.getElementById('e_nombre').value = data.nombre || '';
-      document.getElementById('e_email').value = data.email || '';
-      document.getElementById('e_telefono').value = data.telefono || '';
-      document.getElementById('e_direccion').value = data.direccion || '';
-      
-      const modal = document.getElementById('editEmpleadoModal');
-      modal.style.display = 'block';
-      
-      // Resetear scroll
-      const modalBody = modal.querySelector('.modal-body');
-      if (modalBody) {
-        modalBody.scrollTop = 0;
-      }
-      document.body.style.overflow = 'hidden';
-    });
-}
-
-function closeEditEmpleadoModal() {
-  document.getElementById('editEmpleadoModal').style.display = 'none';
-  document.getElementById('editEmpleadoForm').reset();
-  clearAllErrors(document.getElementById('editEmpleadoForm'));
-  document.body.style.overflow = 'auto';
-}
-
-// ===== SUBMIT FORMULARIOS =====
-function submitCreateEmpleado(e) {
-  e.preventDefault();
-  clearAllErrors(document.getElementById('createEmpleadoForm'));
-  
-  if (!validateCreateForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false;
-  }
-
-  const data = {
-    nombre: document.getElementById('c_nombre').value,
-    email: document.getElementById('c_email').value,
-    telefono: document.getElementById('c_telefono').value,
-    direccion: document.getElementById('c_direccion').value,
-    password: document.getElementById('c_password').value,
-    password2: document.getElementById('c_password2').value
-  };
-
-  fetch('/empleados/crear/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      closeCreateEmpleadoModal();
-      // ✅ RECARGAR PARA MOSTRAR MENSAJE TOAST
-      location.reload();
-    } else {
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('c_email'), json.errors.email[0]);
-          }
-          if (json.errors.password) {
-              showError(document.getElementById('c_password'), json.errors.password[0]);
-          }
-      }
-    }
-  })
-  .catch(() => {});
-  return false;
-}
-
-function submitEditEmpleado(e) {
-  e.preventDefault();
-  clearAllErrors(document.getElementById('editEmpleadoForm'));
-  
-  if (!validateEditForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false;
-  }
-
-  const id = document.getElementById('e_id').value;
-  const data = {
-    nombre: document.getElementById('e_nombre').value,
-    email: document.getElementById('e_email').value,
-    telefono: document.getElementById('e_telefono').value,
-    direccion: document.getElementById('e_direccion').value
-  };
-
-  fetch(`/empleados/editar/${id}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      closeEditEmpleadoModal();
-      // ✅ RECARGAR PARA MOSTRAR MENSAJE TOAST
-      location.reload();
-    } else {
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('e_email'), json.errors.email[0]);
-          }
-      }
-    }
-  })
-  .catch(() => {});
-  return false;
-}
-
-// ===== ELIMINAR =====
+// ===== ELIMINAR EMPLEADO USANDO SWEETALERT2 =====
 function confirmDeleteEmpleado(id, nombre) {
-  showCustomAlert(
-    'Confirmar Eliminación',
-    `¿Estás seguro de que quieres eliminar al empleado "${nombre}"? Esta acción no se puede deshacer.`,
-    function() {
-      fetch(`/empleados/eliminar/${id}/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
-      })
-      .then(res => res.json())
-      .then(resp => {
-        if (resp.ok) {
-          // ✅ ELIMINAR LA FILA VISUALMENTE
-          const fila = document.querySelector(`tr[data-id='${id}']`);
-          if (fila) {
-            fila.remove();
-          }
-          // ✅ RECARGAR PARA MOSTRAR EL TOAST
-          setTimeout(() => {
-            location.reload();
-          }, 100);
-        } else {
-          showCustomAlert('Error', resp.msg || 'No se pudo eliminar.');
+    // 1. Mostrar la alerta de confirmación
+    Swal.fire({
+        title: 'Confirmar Eliminación',
+        html: `¿Estás seguro de que quieres eliminar al empleado "<strong>${nombre}</strong>"? <br>Esta acción no se puede deshacer.`,
+        icon: 'question', // Usa el icono de pregunta nativo de SA2
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        // Opcional: para que Aceptar sea el color rojo que definimos en el CSS
+        confirmButtonColor: '#d32f2f', 
+        reverseButtons: true, // Pone el botón de Aceptar a la derecha, como en tu imagen
+        customClass: {
+            // Opcional: si quieres ajustar el tamaño del título o el contenido
+            title: 'swal-title-custom', 
+            htmlContainer: 'swal-text-custom'
         }
-      })
-      .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-    }
-  );
+    }).then((result) => {
+        // 2. Si el usuario presiona "Aceptar"
+        if (result.isConfirmed) {
+            const csrftoken = getCookie('csrftoken'); 
+            
+            fetch(`/empleados/eliminar/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.ok) {
+                    // Muestra una alerta de éxito final (Estilo SweetAlert)
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: `El empleado ${nombre} ha sido eliminado.`,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Recargar la página después del éxito
+                        location.reload(); 
+                    });
+                } else {
+                    // Muestra una alerta de error (Estilo SweetAlert)
+                    Swal.fire('Error', resp.msg || 'No se pudo eliminar al empleado.', 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Error en la solicitud al servidor.', 'error'));
+        }
+    });
 }
 
 // ===== LISTENERS =====

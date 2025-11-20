@@ -1,198 +1,183 @@
 {% extends 'base.html' %}
 {% block title %}Lista de Administradores{% endblock %}
-
-{% block content %}
 {% load static %}
 
+{% block content %}
+<!-- SweetAlert2 es necesario para esta vista. Asegúrate de incluir CSS y JS en base.html -->
 <link rel="stylesheet" href="{% static 'css/listas-usuarios.css' %}">
 
 <div class="clientes-container">
-  <div class="clientes-header">
-    <h2>Lista de Administradores</h2>
+    <div class="clientes-header">
+        <h2>Lista de Administradores</h2>
 
-    <div class="buscador">
-      <form method="GET">
-        <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
-        <button type="submit">Buscar</button>
-      </form>
-      <button class="btn-crear" onclick="openCreateAdminModal()">Crear</button>
+        <div class="buscador">
+            <form method="GET">
+                <input type="text" name="buscar" placeholder="Buscar por nombre o correo" value="{{ request.GET.buscar }}">
+                <button type="submit">Buscar</button>
+            </form>
+            <button class="btn-crear" onclick="openCreateAdminModal()">Crear</button>
+        </div>
     </div>
-  </div>
 
-  <div class="table-responsive">
-      <table class="tabla-clientes" id="tabla-admins">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Dirección</th>
-            <th>Creado en</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in admins %}
-          <tr class="data-row" data-id="{{ a.id }}">
-            <td>{{ a.id }}</td>
-            <td class="a-nombre">{{ a.nombre }}</td>
-            <td class="a-email">{{ a.email }}</td>
-            <td class="a-telefono">{{ a.telefono|default:"-" }}</td>
-            <td class="a-direccion">{{ a.direccion|default:"-" }}</td>
-            
-            <td>{{ a.creado_en|date:"d/m/Y" }}</td>
-            
-            <td>
-              <div class="action-buttons-small">
-                <button class="btn-action btn-edit" onclick="openEditAdminModal({{ a.id }})">✏️</button>
-                <button class="btn-action btn-delete" onclick="confirmDeleteAdmin({{ a.id }}, '{{ a.nombre|escapejs }}')">🗑️</button>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="sin-resultados">No se encontraron administradores.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-  </div> </div>
+    <div class="table-responsive">
+        <table class="tabla-clientes" id="tabla-admins">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Creado en</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in admins %}
+                <tr class="data-row" data-id="{{ a.id }}">
+                    <td>{{ a.id }}</td>
+                    <td class="a-nombre">{{ a.nombre }}</td>
+                    <td class="a-email">{{ a.email }}</td>
+                    <td class="a-telefono">{{ a.telefono|default:"-" }}</td>
+                    <td class="a-direccion">{{ a.direccion|default:"-" }}</td>
+                    
+                    <td>{{ a.creado_en|date:"d/m/Y" }}</td>
+                    
+                    <td>
+                        <div class="action-buttons-small">
+                            <button class="btn-action btn-edit" onclick="openEditAdminModal({{ a.id }})">✏️</button>
+                            <button class="btn-action btn-delete" onclick="confirmDeleteAdmin({{ a.id }}, '{{ a.nombre|escapejs }}')">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="sin-resultados">No se encontraron administradores.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> 
+</div>
 
 <div id="createAdminModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Crear Administrador</h2>
-      <span class="close" onclick="closeCreateAdminModal()">&times;</span>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Crear Administrador</h2>
+            <span class="close" onclick="closeCreateAdminModal()">&times;</span>
+        </div>
+
+        <div class="modal-body">
+            <form id="createAdminForm" onsubmit="return submitCreateAdmin(event)" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="c_nombre">Nombre *</label>
+                    <input type="text" id="c_nombre" required class="form-control">
+                    <div class="error-message" id="c_nombreError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="c_email">Correo *</label>
+                    <input type="email" id="c_email" required class="form-control">
+                    <div class="error-message" id="c_emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="c_telefono">Teléfono</label>
+                    <input type="text" id="c_telefono" class="form-control">
+                    <div class="error-message" id="c_telefonoError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="c_direccion">Dirección</label>
+                    <input type="text" id="c_direccion" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="c_password">Contraseña *</label>
+                    <input type="password" id="c_password" required class="form-control">
+                    <div class="error-message" id="c_passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="c_password2">Confirmar contraseña *</label>
+                    <input type="password" id="c_password2" required class="form-control">
+                    <div class="error-message" id="c_password2Error"></div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeCreateAdminModal()">Cancelar</button>
+            <button type="submit" form="createAdminForm" class="btn-save">Crear</button>
+        </div>
     </div>
-
-    <div class="modal-body">
-      <form id="createAdminForm" onsubmit="return submitCreateAdmin(event)" novalidate>
-        {% csrf_token %}
-
-        <div class="form-group">
-          <label for="c_nombre">Nombre *</label>
-          <input type="text" id="c_nombre" required class="form-control">
-          <div class="error-message" id="c_nombreError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="c_email">Correo *</label>
-          <input type="email" id="c_email" required class="form-control">
-          <div class="error-message" id="c_emailError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="c_telefono">Teléfono</label>
-          <input type="text" id="c_telefono" class="form-control">
-          <div class="error-message" id="c_telefonoError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="c_direccion">Dirección</label>
-          <input type="text" id="c_direccion" class="form-control">
-          </div>
-
-        <div class="form-group">
-          <label for="c_password">Contraseña *</label>
-          <input type="password" id="c_password" required class="form-control">
-          <div class="error-message" id="c_passwordError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="c_password2">Confirmar contraseña *</label>
-          <input type="password" id="c_password2" required class="form-control">
-          <div class="error-message" id="c_password2Error"></div>
-        </div>
-      </form>
-    </div>
-
-    <div class="modal-footer">
-      <button type="button" class="btn-cancel" onclick="closeCreateAdminModal()">Cancelar</button>
-      <button type="submit" form="createAdminForm" class="btn-save">Crear</button>
-    </div>
-  </div>
 </div>
 
 
 <div id="editAdminModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header">
-      <h2>Editar Administrador</h2>
-      <span class="close" onclick="closeEditAdminModal()">&times;</span>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Editar Administrador</h2>
+            <span class="close" onclick="closeEditAdminModal()">&times;</span>
+        </div>
+        
+        <div class="modal-body">
+            <form id="editAdminForm" onsubmit="return submitEditAdmin(event)" novalidate>
+                {% csrf_token %}
+                <input type="hidden" id="e_id">
+
+                <div class="form-group">
+                    <label for="e_nombre">Nombre *</label>
+                    <input type="text" id="e_nombre" required class="form-control">
+                    <div class="error-message" id="e_nombreError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="e_email">Correo *</label>
+                    <input type="email" id="e_email" required class="form-control">
+                    <div class="error-message" id="e_emailError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="e_telefono">Teléfono</label>
+                    <input type="text" id="e_telefono" class="form-control">
+                    <div class="error-message" id="e_telefonoError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="e_direccion">Dirección</label>
+                    <input type="text" id="e_direccion" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label for="e_password">Nueva contraseña (opcional)</label>
+                    <input type="password" id="e_password" class="form-control">
+                    <div class="error-message" id="e_passwordError"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="e_password2">Confirmar nueva contraseña</label>
+                    <input type="password" id="e_password2" class="form-control">
+                    <div class="error-message" id="e_password2Error"></div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeEditAdminModal()">Cancelar</button>
+            <button type="submit" form="editAdminForm" class="btn-save">Actualizar</button>
+        </div>
     </div>
-    
-    <div class="modal-body">
-      <form id="editAdminForm" onsubmit="return submitEditAdmin(event)" novalidate>
-        {% csrf_token %}
-        <input type="hidden" id="e_id">
-
-        <div class="form-group">
-          <label for="e_nombre">Nombre *</label>
-          <input type="text" id="e_nombre" required class="form-control">
-          <div class="error-message" id="e_nombreError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="e_email">Correo *</label>
-          <input type="email" id="e_email" required class="form-control">
-          <div class="error-message" id="e_emailError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="e_telefono">Teléfono</label>
-          <input type="text" id="e_telefono" class="form-control">
-          <div class="error-message" id="e_telefonoError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="e_direccion">Dirección</label>
-          <input type="text" id="e_direccion" class="form-control">
-        </div>
-
-        <div class="form-group">
-          <label for="e_password">Nueva contraseña (opcional)</label>
-          <input type="password" id="e_password" class="form-control">
-          <div class="error-message" id="e_passwordError"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="e_password2">Confirmar nueva contraseña</label>
-          <input type="password" id="e_password2" class="form-control">
-          <div class="error-message" id="e_password2Error"></div>
-        </div>
-      </form>
-    </div>
-
-    <div class="modal-footer">
-      <button type="button" class="btn-cancel" onclick="closeEditAdminModal()">Cancelar</button>
-      <button type="submit" form="editAdminForm" class="btn-save">Actualizar</button>
-    </div>
-  </div>
 </div>
 
-
-<div id="customAlert" class="modal">
-  <div class="modal-content" style="max-width: 400px;">
-    <div class="modal-header">
-      <h2 id="alertTitle">Alerta</h2>
-      <span class="close" onclick="closeCustomAlert()">&times;</span>
-    </div>
-    <div class="modal-body">
-      <p id="alertMessage"></p>
-      <div class="form-actions" style="justify-content:center;">
-        <button type="button" class="btn-cancel" onclick="closeCustomAlert()">Cancelar</button>
-        <button type="button" class="btn-save" id="alertConfirmBtn">Aceptar</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- 🛑 ELIMINAMOS #customAlert Y LO REEMPLAZAMOS CON Swal.fire() 🛑 -->
 
 <script>
-
 // Helper functions para errores
 function showError(input, message) {
     const errorElement = document.getElementById(input.id + 'Error');
     if (errorElement) {
-        input.classList.add('error-field'); // Asumo que quieres la clase de borde rojo
+        input.classList.add('error-field'); 
         errorElement.textContent = message;
         errorElement.style.display = 'block';
     }
@@ -235,24 +220,19 @@ function validateNameInput(input) {
 // Funciones de validación
 function validateLettersOnly(input) {
     const value = input.value.trim();
-    
     if (!value) {
         showError(input, 'Este campo es obligatorio');
         return false;
     }
-    
-    // Permitir letras, espacios y algunos caracteres especiales
     const lettersOnly = /^[A-Za-zÁáÉéÍíÓóÚúÑñ\s\-.,!¡¿?()&]+$/;
     if (!lettersOnly.test(value)) {
         showError(input, 'Solo se permiten letras y espacios');
         return false;
     }
-    
     if (value.length < 2) {
         showError(input, 'El nombre debe tener al menos 2 caracteres');
         return false;
     }
-    
     hideError(input);
     return true;
 }
@@ -260,58 +240,47 @@ function validateLettersOnly(input) {
 function validateEmail(input) {
     const value = input.value.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
     if (!value) {
         showError(input, 'El email es obligatorio');
         return false;
     }
-    
     if (!emailRegex.test(value)) {
         showError(input, 'Por favor ingresa un email válido');
         return false;
     }
-    
     hideError(input);
     return true;
 }
 
 function validatePhone(input) {
     const value = input.value.trim();
-    
-    // Si está vacío, es válido (opcional)
     if (!value) {
         hideError(input);
         return true;
     }
-    
     const phoneRegex = /^\d{4}-\d{4}$/;
     if (!phoneRegex.test(value)) {
         showError(input, 'Formato inválido. Usar formato: 1234-5678');
         return false;
     }
-    
     hideError(input);
     return true;
 }
 
 function validatePassword(input) {
     const value = input.value;
-    
     if (!value) {
         showError(input, 'La contraseña es obligatoria');
         return false;
     }
-    
     if (value.length < 8) {
         showError(input, 'La contraseña debe tener al menos 8 caracteres');
         return false;
     }
-    
     hideError(input);
     return true;
 }
 
-// ¡Función MODIFICADA para ser reutilizable!
 function validatePasswordConfirm(passwordInput, confirmInput) {
     const passValue = passwordInput.value;
     const confirmValue = confirmInput.value;
@@ -320,7 +289,6 @@ function validatePasswordConfirm(passwordInput, confirmInput) {
         showError(confirmInput, 'Por favor confirma tu contraseña');
         return false;
     }
-    
     if (confirmValue !== passValue) {
         showError(confirmInput, 'Las contraseñas no coinciden');
         return false;
@@ -330,7 +298,7 @@ function validatePasswordConfirm(passwordInput, confirmInput) {
     return true;
 }
 
-/* ===== Funciones "Maestras" para Modales ===== */
+/* ===== Funciones "Maestras" para Modales (Admin) ===== */
 
 function validateCreateForm() {
     const nombre = document.getElementById('c_nombre');
@@ -369,7 +337,6 @@ function validateEditForm() {
         if (!validatePassword(password)) isValid = false;
         if (!validatePasswordConfirm(password, password2)) isValid = false;
     } else {
-        // Si ambos están vacíos, borra cualquier error previo
         hideError(password);
         hideError(password2);
     }
@@ -380,204 +347,204 @@ function validateEditForm() {
 
 /* ===== CSRF ===== */
 function getCookie(name) {
-  let cookieValue = null;
-  if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i=0; i<cookies.length; i++) {
-          const cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-              break;
-          }
-      }
-  }
-  return cookieValue;
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i=0; i<cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 const csrftoken = getCookie('csrftoken');
 
-/* ===== Helpers Alert ===== */
-function showCustomAlert(title, message, confirmCallback = null) {
-  document.getElementById('alertTitle').textContent = title;
-  document.getElementById('alertMessage').textContent = message;
-  document.getElementById('customAlert').style.display = 'block';
-  const confirmBtn = document.getElementById('alertConfirmBtn');
-  if (confirmCallback) {
-      confirmBtn.onclick = function() { confirmCallback(); closeCustomAlert(); };
-  } else {
-      confirmBtn.onclick = closeCustomAlert;
-  }
-}
-function closeCustomAlert() {
-  document.getElementById('customAlert').style.display = 'none';
-}
 
-/* ===== Modal Crear ===== */
+/* ===== Modal Crear Admin ===== */
 function openCreateAdminModal() {
-  document.getElementById('createAdminModal').style.display = 'block';
+    document.getElementById('createAdminModal').style.display = 'block';
+    clearAllErrors(document.getElementById('createAdminForm'));
 }
 
 function closeCreateAdminModal() {
-  // 1. Oculta el modal (esto ya lo tenías)
-  document.getElementById('createAdminModal').style.display = 'none';
-  
-  // 2. Resetea el formulario para borrar los campos
-  document.getElementById('createAdminForm').reset();
-  
-  // 3. Limpia todos los mensajes de error que quedaron
-  clearAllErrors(document.getElementById('createAdminForm'));
+    document.getElementById('createAdminModal').style.display = 'none';
+    document.getElementById('createAdminForm').reset();
+    clearAllErrors(document.getElementById('createAdminForm'));
 }
 
 function submitCreateAdmin(e) {
-  e.preventDefault();
-  
-  // 1. Limpiar errores previos
-  clearAllErrors(document.getElementById('createAdminForm'));
-  
-  // 2. Validar el formulario
-  if (!validateCreateForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false; // Detiene el envío
-  }
-
-  // 3. (Tu código existente) Preparar datos y enviar
-  const data = {
-    nombre: document.getElementById('c_nombre').value,
-    email: document.getElementById('c_email').value,
-    telefono: document.getElementById('c_telefono').value,
-    direccion: document.getElementById('c_direccion').value,
-    password: document.getElementById('c_password').value,
-    password2: document.getElementById('c_password2').value
-  };
-
-  fetch('/administradores/crear/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      closeCreateAdminModal();
-      location.reload();
-    } else {
-      // (Mejora) Manejar errores del servidor
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('c_email'), json.errors.email[0]);
-          }
-          if (json.errors.password) {
-              showError(document.getElementById('c_password'), json.errors.password[0]);
-          }
-          // ... puedes añadir más campos si tu backend los devuelve
-      }
-      showCustomAlert('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.');
+    e.preventDefault();
+    clearAllErrors(document.getElementById('createAdminForm'));
+    
+    if (!validateCreateForm()) {
+        Swal.fire('Error de Validación', 'Por favor corrige los errores en el formulario.', 'warning');
+        return false;
     }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  return false;
+
+    const data = {
+        nombre: document.getElementById('c_nombre').value,
+        email: document.getElementById('c_email').value,
+        telefono: document.getElementById('c_telefono').value,
+        direccion: document.getElementById('c_direccion').value,
+        password: document.getElementById('c_password').value,
+        password2: document.getElementById('c_password2').value
+    };
+
+    fetch('/administradores/crear/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.ok) {
+            closeCreateAdminModal();
+            Swal.fire({
+                title: '¡Administrador Creado!',
+                text: 'La cuenta ha sido registrada exitosamente.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            if (json.errors) {
+                if (json.errors.email) {
+                    showError(document.getElementById('c_email'), json.errors.email[0]);
+                }
+                if (json.errors.password) {
+                    showError(document.getElementById('c_password'), json.errors.password[0]);
+                }
+            }
+            Swal.fire('Error', json.errors.non_field_errors || 'Revisa los campos del formulario.', 'error');
+        }
+    })
+    .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+    return false;
 }
 
-/* ===== Modal Editar ===== */
+/* ===== Modal Editar Admin ===== */
 function openEditAdminModal(id) {
-  fetch(`/administradores/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById('e_id').value = data.id;
-      document.getElementById('e_nombre').value = data.nombre || '';
-      document.getElementById('e_email').value = data.email || '';
-      document.getElementById('e_telefono').value = data.telefono || '';
-      document.getElementById('e_direccion').value = data.direccion || '';
-      document.getElementById('e_password').value = '';
-      document.getElementById('e_password2').value = '';
-      document.getElementById('editAdminModal').style.display = 'block';
-    });
+    fetch(`/administradores/editar/${id}/`, { headers: {'X-Requested-With': 'XMLHttpRequest'} })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('e_id').value = data.id;
+            document.getElementById('e_nombre').value = data.nombre || '';
+            document.getElementById('e_email').value = data.email || '';
+            document.getElementById('e_telefono').value = data.telefono || '';
+            document.getElementById('e_direccion').value = data.direccion || '';
+            document.getElementById('e_password').value = '';
+            document.getElementById('e_password2').value = '';
+            
+            clearAllErrors(document.getElementById('editAdminForm'));
+            document.getElementById('editAdminModal').style.display = 'block';
+        })
+        .catch(() => Swal.fire('Error', 'No se pudo cargar la información del administrador.', 'error'));
 }
+
 function closeEditAdminModal() {
-  document.getElementById('editAdminModal').style.display = 'none';
+    document.getElementById('editAdminModal').style.display = 'none';
+    clearAllErrors(document.getElementById('editAdminForm'));
 }
 
 function submitEditAdmin(e) {
-  e.preventDefault();
-  
-  // 1. Limpiar errores previos
-  clearAllErrors(document.getElementById('editAdminForm'));
-  
-  // 2. Validar el formulario
-  if (!validateEditForm()) {
-      showCustomAlert('Error de Validación', 'Por favor corrige los errores en el formulario.');
-      return false; // Detiene el envío
-  }
-
-  // 3. (Tu código existente) Preparar datos y enviar
-  const id = document.getElementById('e_id').value;
-  const data = {
-    nombre: document.getElementById('e_nombre').value,
-    email: document.getElementById('e_email').value,
-    telefono: document.getElementById('e_telefono').value,
-    direccion: document.getElementById('e_direccion').value
-  };
-
-  const np = document.getElementById('e_password').value;
-  const np2 = document.getElementById('e_password2').value;
-  if (np || np2) {
-    data.password = np;
-    data.password2 = np2;
-  }
-
-  fetch(`/administradores/editar/${id}/`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken,
-      'X-Requested-With': 'XMLHttpRequest'
-    },
-    body: JSON.stringify(data)
-  })
-  .then(r => r.json())
-  .then(json => {
-    if (json.ok) {
-      // ... (tu código para actualizar la fila) ...
-      closeEditAdminModal();
-      showCustomAlert('Éxito', 'Administrador actualizado correctamente.');
-    } else {
-      // (Mejora) Manejar errores del servidor
-      if (json.errors) {
-          if (json.errors.email) {
-              showError(document.getElementById('e_email'), json.errors.email[0]);
-          }
-          if (json.errors.password) {
-              showError(document.getElementById('e_password'), json.errors.password[0]);
-          }
-      }
-      showCustomAlert('Error', json.errors.non_field_errors || 'No se pudo actualizar.');
+    e.preventDefault();
+    clearAllErrors(document.getElementById('editAdminForm'));
+    
+    if (!validateEditForm()) {
+        Swal.fire('Error de Validación', 'Por favor corrige los errores en el formulario.', 'warning');
+        return false;
     }
-  })
-  .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  return false;
+
+    const id = document.getElementById('e_id').value;
+    const data = {
+        nombre: document.getElementById('e_nombre').value,
+        email: document.getElementById('e_email').value,
+        telefono: document.getElementById('e_telefono').value,
+        direccion: document.getElementById('e_direccion').value
+    };
+
+    const np = document.getElementById('e_password').value;
+    const np2 = document.getElementById('e_password2').value;
+    if (np || np2) {
+        data.password = np;
+        data.password2 = np2;
+    }
+
+    fetch(`/administradores/editar/${id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(json => {
+        if (json.ok) {
+            // Actualización visual sin recargar
+            const fila = document.querySelector(`tr[data-id='${id}']`);
+            fila.querySelector('.a-nombre').textContent = data.nombre;
+            fila.querySelector('.a-email').textContent = data.email;
+            fila.querySelector('.a-telefono').textContent = data.telefono || '-';
+            fila.querySelector('.a-direccion').textContent = data.direccion || '-';
+
+            closeEditAdminModal();
+            Swal.fire('Éxito', 'Administrador actualizado correctamente.', 'success');
+        } else {
+            if (json.errors) {
+                if (json.errors.email) {
+                    showError(document.getElementById('e_email'), json.errors.email[0]);
+                }
+                if (json.errors.password) {
+                    showError(document.getElementById('e_password'), json.errors.password[0]);
+                }
+            }
+            Swal.fire('Error', json.errors.non_field_errors || 'No se pudo actualizar.', 'error');
+        }
+    })
+    .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+    return false;
 }
 
-/* ===== Eliminar ===== */
+/* ===== Eliminar con SweetAlert2 (Admin) ===== */
 function confirmDeleteAdmin(id, nombre) {
-  showCustomAlert('Confirmar Eliminación', `¿Seguro que deseas eliminar al administrador "${nombre}"?`, function () {
-    fetch(`/administradores/eliminar/${id}/`, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(res => res.json())
-    .then(resp => {
-      if (resp.ok) {
-        document.querySelector(`tr[data-id='${id}']`).remove();
-        showCustomAlert('Éxito', 'Administrador eliminado correctamente.');
-      } else {
-        showCustomAlert('Error', resp.msg || 'No se pudo eliminar.');
-      }
-    })
-    .catch(() => showCustomAlert('Error', 'Error en la solicitud.'));
-  });
+    Swal.fire({
+        title: 'Confirmar Eliminación',
+        html: `¿Estás seguro de que quieres eliminar al administrador "<strong>${nombre}</strong>"? <br>Esta acción no se puede deshacer.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true, 
+        confirmButtonColor: '#d32f2f'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/administradores/eliminar/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.ok) {
+                    document.querySelector(`tr[data-id='${id}']`).remove();
+                    Swal.fire('¡Eliminado!', 'Administrador eliminado correctamente.', 'success');
+                } else {
+                    Swal.fire('Error', resp.msg || 'No se pudo eliminar al administrador.', 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Error en la solicitud. Inténtalo de nuevo.', 'error'));
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
