@@ -244,7 +244,7 @@
             <li><a href="/admin/">Admin Django</a></li>
         
         {% elif user.rol.nombre == 'Empleado' %}
-            <li><a href="{% url 'empleado_dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'empleado_dashboard' %}">Inicio</a></li>
             <li><a href="{% url 'gestion_pedidos' %}">Gestionar Pedidos</a></li>
             <li><a href="{% url 'inventario_empleado' %}">Ver Inventario</a></li>
             <li><a href="{% url 'perfil_usuario' %}">Mi perfil</a></li>
