@@ -1,91 +1,279 @@
-.welcome-container {
-    background-color: #ffffffff;
-    border-radius: 15px;
-    padding: 2rem 2rem 3rem 2rem;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+/* === Colores Base === */
+:root {
+  --color-red: #d32f2f;
+  --color-dark-red: #b71c1c;
+  --color-gold: #ffcc00;
+  --color-brown-dark: #3e2723;
+  --color-brown-light: #8d6e63;
+  --color-bg-light: #fdf8ef;
+  --color-card-bg: #ffffff;
+}
+
+/* =========================================================
+   ESTRUCTURA Y ESTILOS DE ADMIN (Replicados)
+   ========================================================= */
+
+.admin-bg {
+  background-color: var(--color-bg-light);
+  min-height: 100vh;
+  padding: 3rem;
+  border-radius: 10px;
+}
+
+.admin-container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.admin-title {
+  font-size: 2.5rem;
+  color: var(--color-brown-dark);
+  margin-bottom: 0.5rem;
+}
+
+.admin-subtitle {
+  color: var(--color-brown-light);
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+/* === Dashboard Grid === */
+
+.dashboard-grid-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+  margin-top: 30px;
+}
+
+/* La tarjeta de sección principal */
+.dashboard-section-card {
+  background-color: var(--color-card-bg);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-section-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezado de la tarjeta */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 25px;
+  border-bottom: 1px solid #f0f0f0;
+  background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+}
+
+.card-header .icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: center;
+}
+
+/* Pie de tarjeta */
+.card-footer {
+  padding: 20px 25px;
+  border-top: 1px solid #f0f0f0;
+  background-color: #f9f9f9;
+  text-align: center;
+}
+
+/* === Estadísticas Héroe === */
+.stat-hero {
+  text-align: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #e0e0e0;
+}
+
+.stat-hero p {
+  margin: 0 0 5px 0;
+  font-size: 15px;
+  color: #555;
+  font-weight: 500;
+}
+
+.stat-hero h3 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 700;
+  color: #222;
+  line-height: 1.1;
+}
+
+.stat-hero.success h3 {
+  color: var(--color-dark-red);
+}
+
+/* =========================================================
+   BOTONES DE ACCIÓN (Mismo estilo que empleado)
+   ========================================================= */
+.action-body {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  text-align: left;
+}
+
+.action-btn i {
+  font-size: 1.4rem;
+  margin-right: 15px;
+  width: 24px;
+  text-align: center;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+  color: white;
+}
+
+/* Colores para los botones de acción */
+.red-bg {
+  background-color: var(--color-red);
+  box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
+}
+
+.gold-bg {
+  background-color: var(--color-gold);
+  color: var(--color-brown-dark);
+  box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
+}
+
+.brown-bg {
+  background-color: var(--color-brown-dark);
+  box-shadow: 0 4px 10px rgba(62, 39, 35, 0.3);
+}
+
+/* =========================================================
+   AJUSTES RESPONSIVE (MÓVIL)
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .admin-bg {
+    padding: 1.5rem 0.5rem;
   }
 
-  .welcome-container h1 {
+  .admin-title {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-top: 0;
+    line-height: 1.1;
+  }
+
+  .admin-subtitle {
+    font-size: 0.95rem;
+    text-align: center;
     margin-bottom: 1.5rem;
   }
 
-  /* Aumentamos separación entre el título y las tarjetas */
-  .welcome-header {
-    margin-bottom: 6.0rem; /* 🔥 separa el bloque superior */
+  .dashboard-grid-container {
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
 
-  .feature-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+  .dashboard-section-card.wide-card {
+    grid-column: auto;
   }
 
-  .feature-card {
-    position: relative;
-    background-color: #fff;
-    border: 1px solid #e6d8c2;
-    border-radius: 18px;
-    text-align: center;
-    padding: 70px 20px 20px 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  .card-header {
+    padding: 12px 15px;
   }
 
-  .feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  .card-header h2 {
+    font-size: 15px;
   }
 
-  .circle-icon {
-    position: absolute;
-    top: -40px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background-color: #fff8f2;
-    border: 6px solid #f8efe0;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .card-header .icon {
+    font-size: 20px;
   }
 
-  .circle-icon img {
-    width: 65%;
-    height: 65%;
-    object-fit: contain;
+  .card-body {
+    padding: 15px;
   }
 
-  .feature-card h3 {
-    margin-top: 10px;
-    font-weight: bold;
-    color: #3b2a16;
+  .stat-hero {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
   }
 
-  .feature-card p {
-    color: #6a5b4b;
+  .stat-hero h3 {
+    font-size: 30px;
   }
 
-  .feature-card .btn-primary {
-    margin-top: 10px;
-    background-color: #b71c1c;
-    border-color: #b71c1c;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
+  .stat-hero p {
+    font-size: 13px;
   }
 
-  .feature-card .btn-primary:hover {
-    background-color: #921212;
-    border-color: #921212;
+  .card-footer {
+    padding: 15px;
   }
 
-  @media (max-width: 600px) {
-    .circle-icon {
-      width: 70px;
-      height: 70px;
-      top: -30px;
-    }
+  .action-btn {
+    padding: 12px 15px;
+    font-size: 0.9rem;
   }
+
+  .action-btn i {
+    font-size: 1.2rem;
+    margin-right: 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .admin-title {
+    font-size: 1.5rem;
+  }
+
+  .admin-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .action-btn {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .action-btn i {
+    font-size: 1.1rem;
+    margin-right: 10px;
+  }
+}
